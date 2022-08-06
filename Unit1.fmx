@@ -1,0 +1,93 @@
+object frmMain: TfrmMain
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnActivate = FormActivate
+  OnCreate = FormCreate
+  OnCloseQuery = FormCloseQuery
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Align = Client
+    Size.Width = 640.000000000000000000
+    Size.Height = 458.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Viewport.Width = 636.000000000000000000
+    Viewport.Height = 454.000000000000000000
+  end
+  object StatusBar1: TStatusBar
+    Position.Y = 458.000000000000000000
+    ShowSizeGrip = True
+    Size.Width = 640.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    object CheckBox1: TCheckBox
+      Align = Right
+      Position.X = 520.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = 'Clean On Exit'
+    end
+    object Button1: TButton
+      Align = Left
+      TabOrder = 2
+      Text = 'Run Code'
+      OnClick = Button1Click
+    end
+    object Button2: TButton
+      Align = Left
+      Position.X = 80.000000000000000000
+      TabOrder = 4
+      Text = 'Style'
+      OnClick = Button2Click
+    end
+    object Button3: TButton
+      Align = Left
+      Position.X = 160.000000000000000000
+      TabOrder = 6
+      Text = 'Train'
+      OnClick = Button3Click
+    end
+    object TrackBar1: TTrackBar
+      Align = Left
+      CanParentFocus = True
+      Frequency = 1.000000000000000000
+      Max = 16.000000000000000000
+      Orientation = Horizontal
+      Position.X = 240.000000000000000000
+      Position.Y = 2.000000000000000000
+      Size.Width = 100.000000000000000000
+      Size.Height = 19.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 7
+      Value = 8.000000000000000000
+      OnChange = TrackBar1Change
+    end
+    object Label1: TLabel
+      Align = Left
+      Position.X = 340.000000000000000000
+      Size.Width = 60.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.HorzAlign = Trailing
+      Text = '10.00'
+      TabOrder = 8
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Filter = 'Images|*.png; *.jpg'
+    Left = 448
+    Top = 184
+  end
+end
