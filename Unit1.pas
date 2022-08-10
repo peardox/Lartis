@@ -7,7 +7,7 @@ uses
   System.Classes, System.Variants, System.Threading, FMX.Types,
   FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, PyCommon,
-  PyModule, PyPackage, PSUtil, CV2_Contrib;
+  PyModule, PyPackage, PSUtil, FMX.Menus;
 
 type
   TfrmMain = class(TForm)
@@ -20,11 +20,14 @@ type
     Button3: TButton;
     TrackBar1: TTrackBar;
     Label1: TLabel;
+    StyleBook1: TStyleBook;
+    MainMenu1: TMainMenu;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
-    procedure FormShow(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
@@ -47,6 +50,10 @@ uses
   SetupForm;
 
 {$R *.fmx}
+{$R *.Windows.fmx MSWINDOWS}
+{$R *.XLgXhdpiTb.fmx ANDROID}
+{$R *.LgXhdpiPh.fmx ANDROID}
+{$R *.Macintosh.fmx MACOS}
 
 procedure TfrmMain.Log(const AMsg: String);
 begin
@@ -120,33 +127,45 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
-//  Application.CreateForm(TfrmSetup, frmSetup);
-end;
-
-procedure TfrmMain.FormShow(Sender: TObject);
-begin
-{
+  frmSetup := TfrmSetup.Create(Self);
+  frmSetup.Parent := Self;
   frmSetup.Show;
-  // frmSetup.Parent := frmMain;
-  if not SystemActive then
-    frmSetup.BringToFront;
-}
-//  TrackToScale;
-  PySys := TPySys.Create(Application); // Self as TComponent);
-  PySys.LogTarget := Memo1.Lines;
-  PySys.SetupSystem;
+  Caption := appname;
 end;
 
 procedure TfrmMain.Button1Click(Sender: TObject);
+var
+  I: Integer;
 begin
   if Assigned(PySys) then
     begin
-//      var t: Variant  := PySys.Torch.torch.cuda.get_device_name(0);
-      var t: Variant := PySys.PSUtil.psutil.cpu_count();
-      var m: Variant := PySys.PSUtil.psutil.virtual_memory();
-      PySys.Log('api returned ' + t);
-      PySys.Log('api returned ' + m.total);
+//    {$IFDEF MSWINDOWS}
+      var gpu_count: Variant := PySys.Torch.torch.cuda.device_count();
+      var cpu_cores: Variant := PySys.PSUtil.psutil.cpu_count(False);
+      var cpu_threads: Variant := PySys.PSUtil.psutil.cpu_count(True);
+      var cpu_freq: Variant := PySys.PSUtil.psutil.cpu_freq();
+      var virtual_memory: Variant := PySys.PSUtil.psutil.virtual_memory();
 
+      PySys.Log('Torch returned gpu_count = ' + gpu_count);
+      if gpu_count > 0 then
+        begin
+          for I := 0 to gpu_count - 1 do
+            begin
+              var gpu_props: Variant := PySys.Torch.torch.cuda.get_device_properties(i);
+
+              PySys.Log('Torch returned Name = ' + gpu_props.name);
+              PySys.Log('Torch returned CudaMajor = ' + gpu_props.major);
+              PySys.Log('Torch returned CudaMajor = ' + gpu_props.minor);
+              PySys.Log('Torch returned Memory = ' + gpu_props.total_memory);
+              PySys.Log('Torch returned CUs = ' + gpu_props.multi_processor_count);
+            end;
+        end;
+      PySys.Log('PSUtil returned cpu_cores = ' + cpu_cores);
+      PySys.Log('PSUtil returned cpu_threads = ' + cpu_threads);
+      PySys.Log('PSUtil returned cpu_freq = ' + cpu_freq.current);
+      PySys.Log('PSUtil returned total_memory = ' + virtual_memory.total);
+      PySys.Log('PSUtil returned available_memory = ' + virtual_memory.available);
+//    {$ENDIF}
 {
       GetAllModels;
       for var I := 0 to ModelList.Count - 1 do

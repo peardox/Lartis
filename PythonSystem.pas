@@ -4,7 +4,8 @@ interface
 uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes,
   System.Classes, System.Variants, System.Threading, PyEnvironment,
-  FMX.Types, FMX.Forms, PyEnvironment.Embeddable, PythonEngine, PyCommon,
+  FMX.Types, FMX.Memo, FMX.Forms,
+  PyEnvironment.Embeddable, PythonEngine, PyCommon,
   PyEnvironment.Embeddable.Res, PyEnvironment.Embeddable.Res.Python39,
   PyModule, PyPackage,
   TorchVision, PyTorch, NumPy, SciPy, PSUtil, Boto3,
@@ -32,7 +33,7 @@ type
     FakeTimerID: String;
     FakeTimerCount: Integer;
 
-    FLogTarget: TStrings;
+    FLogTarget: TMemo;
     procedure PackageConfigureInstall(Sender: TObject);
     procedure PackageAfterInstall(Sender: TObject);
     procedure PackageBeforeImport(Sender: TObject);
@@ -43,7 +44,7 @@ type
 
     procedure DoReady(Sender: TObject; const APythonVersion: string);
     procedure ReActivate;
-    procedure SetLogTarget(SomeStrings: TStrings);
+    procedure SetLogTarget(AStringContainer: TMemo);
     procedure SetupPackage(APackage: TPyManagedPackage; const AExtraURL: String = '');
     procedure ShimSysPath(const ShimPath: String);
     procedure ThreadedSetup;
@@ -60,7 +61,7 @@ type
     procedure DoFakeTimer(Sender: TObject);
     procedure FakeProgressStart(const APackage: String);
     procedure FakeProgressStop(const APackage: String);
-    property LogTarget: TStrings read FLogTarget write SetLogTarget;
+    property LogTarget: TMemo read FLogTarget write SetLogTarget;
     constructor Create(AOwner: TComponent); override;
     procedure SetupSystem;
     procedure RunTest;
@@ -183,10 +184,10 @@ begin
     end;
 end;
 
-procedure TPySys.SetLogTarget(SomeStrings: TStrings);
+procedure TPySys.SetLogTarget(AStringContainer: TMemo);
 begin
-  if FLogTarget <> SomeStrings then
-    FLogTarget := SomeStrings;
+  if FLogTarget <> AStringContainer then
+    FLogTarget := AStringContainer;
 end;
 
 procedure TPySys.LogClear;
@@ -196,27 +197,30 @@ begin
       procedure()
       begin
       if Assigned(FLogTarget) then
-        FLogTarget.Clear;
+        FLogTarget.Lines.Clear;
       end
       )
   else
     begin
       if Assigned(FLogTarget) then
         begin
-          FLogTarget.Clear;
+          FLogTarget.Lines.Clear;
         end;
     end;
 end;
 
 
-procedure TPySys.Log(const AMsg: String; const SameLine: Boolean = False);
+procedure TPySys.Log
+(const AMsg: String; const SameLine: Boolean = False);
 begin
   if TThread.CurrentThread.ThreadID <> MainThreadID then
     TThread.Synchronize(nil,
       procedure()
       begin
       if Assigned(FLogTarget) then
-        FLogTarget.Add('* ' + AMsg);
+        FLogTarget.Lines.Add('* ' + AMsg);
+        FLogTarget.GoToTextEnd;
+        FLogTarget.Repaint;
         Application.ProcessMessages;
       end
       )
@@ -227,13 +231,17 @@ begin
           if SameLine then
             begin
               var LineIdx: Integer;
-              LineIdx := FLogTarget.Count - 1;
-              FLogTarget[LineIdx] := AMsg;
+              LineIdx := FLogTarget.Lines.Count - 1;
+              FLogTarget.Lines[LineIdx] := AMsg;
+              FLogTarget.GoToTextEnd;
+              FLogTarget.Repaint;
               Application.ProcessMessages;
             end
           else
             begin
-              FLogTarget.Add(AMsg);
+              FLogTarget.Lines.Add(AMsg);
+              FLogTarget.GoToTextEnd;
+              FLogTarget.Repaint;
               Application.ProcessMessages;
             end;
         end;
@@ -349,19 +357,6 @@ begin
   PyEnv.AfterDeactivate := PyEnvAfterDeactivate;
   // Tidy up on exit (clean Python for testing)
 
-  {$ifdef CPUX64}
-  Log('CPU is X64');
-  {$else}
-  Log('CPU is NOT X64');
-  {$endif}
-  Log('Calling Setup');
-
-  {$ifdef CPUARM}
-  Log('CPU is ARM');
-  {$else}
-  Log('CPU is NOT ARM');
-  {$endif}
-
   Log('Calling Setup');
 
   PyEnv.EnvironmentPath := IncludeTrailingPathDelimiter(AppHome) + 'python';
@@ -456,7 +451,9 @@ end;
 
 procedure TPySys.ThreadedSetup;
 begin
+  Log('In Threaded Setup');
   PyEnv.Setup(pyver);
+  Log('Just ran PyEnv.Setup');
   FTask.CheckCanceled();
   // Install Python if required
 
@@ -541,7 +538,7 @@ begin
     procedure()
     begin
       SystemActive := True;
-      FLogTarget := frmMain.Memo1.Lines;
+      FLogTarget := frmMain.Memo1;
 //      frmSetup.Close;
     end
   );
@@ -673,7 +670,8 @@ begin
   end;
 
   MaskFPUExceptions(False);
-
+  LogTarget := frmMain.Memo1;
+  frmSetup.Close;
   Log('Ready');
 end;
 

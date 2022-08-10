@@ -4,8 +4,8 @@
         <ProjectFileVersion>12</ProjectFileVersion>
     </ProjectExtensions>
     <PropertyGroup>
-        <DeviceId Condition="'$(Platform)'=='Android'">39V4C20302003803</DeviceId>
-        <DeviceId Condition="'$(Platform)'=='Android64'">39V4C20302003803</DeviceId>
+        <DeviceId Condition="'$(Platform)'=='Android'"/>
+        <DeviceId Condition="'$(Platform)'=='Android64'"/>
         <DeviceId Condition="'$(Platform)'=='iOSDevice64'"/>
         <DeviceId Condition="'$(Platform)'=='iOSSimulator'">iPhone5</DeviceId>
     </PropertyGroup>
@@ -39,15 +39,6 @@
             <RemoteDir>Lartis.app\Contents\Resources\</RemoteDir>
             <RemoteName>Lartis.icns</RemoteName>
             <DeployClass>ProjectOSXResource</DeployClass>
-            <Operation>1</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
-        <DeployFile Include="OSX64\Debug\Lartis.entitlements" Condition="'$(Config)'=='Debug'">
-            <RemoteDir>Lartis.app\..\</RemoteDir>
-            <RemoteName>Lartis.entitlements</RemoteName>
-            <DeployClass>ProjectOSXEntitlements</DeployClass>
             <Operation>1</Operation>
             <LocalCommand/>
             <RemoteCommand/>
@@ -122,6 +113,15 @@
             <RemoteDir>Lartis.app\..\$(PROJECTNAME).app.dSYM\Contents\Resources\DWARF\</RemoteDir>
             <RemoteName>Lartis</RemoteName>
             <DeployClass>ProjectOSXDebug</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="OSX64\Debug\Lartis.entitlements" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis.app\..\</RemoteDir>
+            <RemoteName>Lartis.entitlements</RemoteName>
+            <DeployClass>ProjectOSXEntitlements</DeployClass>
             <Operation>1</Operation>
             <LocalCommand/>
             <RemoteCommand/>

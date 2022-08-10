@@ -1,0 +1,38 @@
+inherited frmMain_XLgXhdpiTb: TfrmMain_XLgXhdpiTb
+  ClientHeight = 1255
+  ClientWidth = 800
+  DesignerMasterStyle = 0
+  inherited Memo1: TMemo
+    Size.Width = 800.000000000000000000
+    Size.Height = 1233.000000000000000000
+    Viewport.Width = 800.000000000000000000
+    Viewport.Height = 1233.000000000000000000
+  end
+  inherited StatusBar1: TStatusBar
+    Position.Y = 1233.000000000000000000
+    Size.Width = 800.000000000000000000
+    inherited CheckBox1: TCheckBox
+      Position.X = 680.000000000000000000
+    end
+    inherited Button1: TButton
+      Size.Width = 73.000000000000000000
+      Size.PlatformDefault = False
+    end
+    inherited Button2: TButton
+      Position.X = 73.000000000000000000
+      Size.Width = 73.000000000000000000
+      Size.PlatformDefault = False
+    end
+    inherited Button3: TButton
+      Position.X = 146.000000000000000000
+      Size.Width = 73.000000000000000000
+      Size.PlatformDefault = False
+    end
+    inherited TrackBar1: TTrackBar
+      Position.X = 219.000000000000000000
+    end
+    inherited Label1: TLabel
+      Position.X = 319.000000000000000000
+    end
+  end
+end

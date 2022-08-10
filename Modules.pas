@@ -473,11 +473,11 @@ begin
   FOptions.model_dir := IncludeTrailingPathDelimiter(AppHome) + 'models';
   FOptions.limit := 0;
   FOptions.net := 'vgg19';
-  FOptions.dataset := IncludeTrailingPathDelimiter(AppHome) + 'datasets/train/coco/2017/256';
-//  FOptions.dataset := IncludeTrailingPathDelimiter(AppHome) + 'datasets/train/unsplash/lite/256';
+//  FOptions.dataset := IncludeTrailingPathDelimiter(AppHome) + 'datasets/train/coco/2017/256';
+  FOptions.dataset := IncludeTrailingPathDelimiter(AppHome) + 'datasets/train/unsplash/lite/256';
   FOptions.force_size := False;
   FOptions.epochs := 1;
-  FOptions.batch_size := 6;
+  FOptions.batch_size := 16;
   FOptions.image_size := 256;
   FOptions.style_scale := 1;
   FOptions.style_weight := StyleWeight;
@@ -734,7 +734,7 @@ begin
   FOptions.content_image := AFile;
   FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-tile_test.jpg';
   FOptions.model := 'Kandinsky-100';
-//  FOptions.ignore_gpu := True
+  FOptions.ignore_gpu := False;
   PySys.LogClear;
   if Assigned(FTask) then
     Pysys.Log('Calling Python Stylize - Task ID = ' + IntToHex(FTask.GetId))

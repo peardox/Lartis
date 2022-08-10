@@ -1,17 +1,16 @@
 object frmSetup: TfrmSetup
   Left = 0
   Top = 0
+  BorderIcons = []
+  BorderStyle = Single
   Caption = 'Form2'
   ClientHeight = 240
   ClientWidth = 480
-  Position = OwnerFormCenter
-  FormStyle = StayOnTop
+  Position = DesktopCenter
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
-  OnActivate = FormActivate
   OnCreate = FormCreate
-  OnClose = FormClose
   OnShow = FormShow
   DesignerMasterStyle = 0
   object Memo1: TMemo

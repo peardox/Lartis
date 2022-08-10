@@ -1,0 +1,13 @@
+inherited frmMain_Macintosh: TfrmMain_Macintosh
+  DesignerMasterStyle = 0
+  inherited Memo1: TMemo
+    Viewport.Width = 640.000000000000000000
+    Viewport.Height = 458.000000000000000000
+  end
+  inherited StatusBar1: TStatusBar
+    inherited TrackBar1: TTrackBar
+      Position.Y = 2.000000000000000000
+      Size.Height = 19.000000000000000000
+    end
+  end
+end

@@ -1,0 +1,7 @@
+inherited frmMain_Windows: TfrmMain_Windows
+  DesignerMasterStyle = 0
+  inherited Memo1: TMemo
+    Viewport.Width = 640.000000000000000000
+    Viewport.Height = 458.000000000000000000
+  end
+end
