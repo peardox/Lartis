@@ -538,7 +538,7 @@ begin
     procedure()
     begin
       SystemActive := True;
-      FLogTarget := frmMain.Memo1;
+      FLogTarget := Nil;
 //      frmSetup.Close;
     end
   );
@@ -670,7 +670,7 @@ begin
   end;
 
   MaskFPUExceptions(False);
-  LogTarget := frmMain.Memo1;
+  LogTarget := Nil;
   frmSetup.Close;
   Log('Ready');
 end;

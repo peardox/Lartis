@@ -733,7 +733,7 @@ function TModStyle.Stylize(const AFile: String): String;
 begin
   FOptions.content_image := AFile;
   FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-tile_test.jpg';
-  FOptions.model := 'Kandinsky-100';
+  FOptions.model := 'homer';
   FOptions.ignore_gpu := False;
   PySys.LogClear;
   if Assigned(FTask) then

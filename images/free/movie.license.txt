@@ -1,0 +1,11 @@
+Model Information:
+* title:	Movie Projector
+* source:	https://sketchfab.com/3d-models/movie-projector-9f6ae9879f8046aa96b14c34ac1d3f32
+* author:	monikanadolna1313 (https://sketchfab.com/monikanadolna1313)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Movie Projector" (https://sketchfab.com/3d-models/movie-projector-9f6ae9879f8046aa96b14c34ac1d3f32) by monikanadolna1313 (https://sketchfab.com/monikanadolna1313) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

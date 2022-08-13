@@ -2,16 +2,18 @@ unit Unit1;
 
 interface
 
+// {$DEFINE ENABLE_PYTHON}
+
 uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes,
   System.Classes, System.Variants, System.Threading, FMX.Types,
   FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, PyCommon,
-  PyModule, PyPackage, PSUtil, FMX.Menus;
+  PyModule, PyPackage, PSUtil, FMX.Menus, FMX.Layouts,
+  EmbeddedForm;
 
 type
   TfrmMain = class(TForm)
-    Memo1: TMemo;
     StatusBar1: TStatusBar;
     CheckBox1: TCheckBox;
     Button1: TButton;
@@ -23,20 +25,30 @@ type
     StyleBook1: TStyleBook;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
-    MenuItem2: TMenuItem;
+    StyleLayout: TLayout;
+    TrainLayout: TLayout;
+    ChoiceLayout: TLayout;
+    OptionsMenu: TMenuItem;
+    ExitMenu: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
-    procedure FormActivate(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
+    procedure OptionsMenuClick(Sender: TObject);
+    procedure ExitMenuClick(Sender: TObject);
   private
     { Private declarations }
-    procedure Log(const AMsg: String);
+    function EmbedForm(AParent:TControl; AForm:TEmbeddedForm): TEmbeddedForm;
+    procedure ChildCloser(Sender: TObject);
+    procedure ChildSwitcher(Sender: TObject);
+    procedure SwitchToForm(AForm: TEmbeddedForm);
     procedure TrackToScale;
   public
     { Public declarations }
+    ActiveForm: TEmbeddedForm;
   end;
 
 var
@@ -47,18 +59,14 @@ implementation
 uses
   Math,
   PythonSystem,
+  OptionsForm,
+  ChoiceForm,
+  StyleForm,
+  TrainForm,
   SetupForm;
 
 {$R *.fmx}
 {$R *.Windows.fmx MSWINDOWS}
-{$R *.XLgXhdpiTb.fmx ANDROID}
-{$R *.LgXhdpiPh.fmx ANDROID}
-{$R *.Macintosh.fmx MACOS}
-
-procedure TfrmMain.Log(const AMsg: String);
-begin
-  Memo1.Lines.Add(AMsg);
-end;
 
 function ScalePower(const n: Single): Single;
 var
@@ -86,19 +94,34 @@ begin
   TrackToScale;
 end;
 
-procedure TfrmMain.Button2Click(Sender: TObject);
+procedure TfrmMain.ChildCloser(Sender: TObject);
 begin
-  if Assigned(PySys) then
+  SwitchToForm(frmChoice);
+end;
+
+procedure TfrmMain.ChildSwitcher(Sender: TObject);
+begin
+  SwitchToForm(TEmbeddedForm(Sender));
+end;
+
+procedure TfrmMain.SwitchToForm(AForm: TEmbeddedForm);
+begin
+  if Assigned(ActiveForm) then
     begin
-      if OpenDialog1.Execute then
-        begin
-          PySys.modStyle.Stylize(OpenDialog1.Filename);
-        end;
+      ActiveForm.HideForm;
+      ActiveForm := Nil;
+    end;
+  if Assigned(AForm) then
+    begin
+      ActiveForm := AForm;
+      ActiveForm.ShowForm;
     end;
 end;
 
 procedure TfrmMain.Button3Click(Sender: TObject);
 begin
+ShowMessage('Button3Click');
+{
   if Assigned(PySys) then
     begin
       if OpenDialog1.Execute then
@@ -108,6 +131,7 @@ begin
           ScalePower(TrackBar1.Value));
         end;
     end;
+}
 end;
 
 procedure TfrmMain.FormActivate(Sender: TObject);
@@ -125,19 +149,60 @@ begin
     PySys.ShutdownSystem;
 end;
 
+function TfrmMain.EmbedForm(AParent:TControl; AForm: TEmbeddedForm): TEmbeddedForm;
+begin
+  while AForm.ChildrenCount>0 do
+    AForm.Children[0].Parent:=AParent;
+
+  TLayout(AParent).Align := TAlignLayout.Client;
+
+  TEmbeddedForm(AForm).ParentLayout := AParent;
+  TEmbeddedForm(AForm).HideForm;
+  TEmbeddedForm(AForm).CloseMyself := ChildCloser;
+  TEmbeddedForm(AForm).SwitchToOther := ChildSwitcher;
+
+  Result := AForm;
+end;
+
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
+  StatusBar1.Visible := False;
+
+  frmStyle := EmbedForm(StyleLayout, TfrmStyle.Create(Self)) as TfrmStyle;
+  frmTrain := EmbedForm(TrainLayout, TfrmTrain.Create(Self)) as TfrmTrain;
+
+  // Must be created last
+  frmChoice := EmbedForm(ChoiceLayout, TfrmChoice.Create(Self)) as TfrmChoice;
+
+  frmChoice.ShowForm;
+  ActiveForm := frmChoice;
+
+  {$IFDEF ENABLE_PYTHON}
   frmSetup := TfrmSetup.Create(Self);
   frmSetup.Parent := Self;
   frmSetup.Show;
   Caption := appname;
+  {$ENDIF}
+end;
+
+procedure TfrmMain.ExitMenuClick(Sender: TObject);
+begin
+  Application.Terminate;
+end;
+
+procedure TfrmMain.OptionsMenuClick(Sender: TObject);
+begin
+  frmOptions.ShowModal;
 end;
 
 procedure TfrmMain.Button1Click(Sender: TObject);
 var
   I: Integer;
 begin
-  if Assigned(PySys) then
+ ShowMessage('Button1Click');
+ Exit;
+
+ if Assigned(PySys) then
     begin
 //    {$IFDEF MSWINDOWS}
       var gpu_count: Variant := PySys.Torch.torch.cuda.device_count();
@@ -172,6 +237,20 @@ begin
         Log(ModelList[I]);
 }
       end;
+end;
+
+procedure TfrmMain.Button2Click(Sender: TObject);
+begin
+ShowMessage('Button2Click');
+{
+  if Assigned(PySys) then
+    begin
+      if OpenDialog1.Execute then
+        begin
+          PySys.modStyle.Stylize(OpenDialog1.Filename);
+        end;
+    end;
+}
 end;
 
 end.

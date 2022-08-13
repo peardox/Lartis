@@ -1,0 +1,29 @@
+object frmChoice: TfrmChoice
+  Left = 0
+  Top = 0
+  Caption = 'Form2'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object Text1: TText
+    Position.Y = 336.000000000000000000
+    Size.Width = 521.000000000000000000
+    Size.Height = 144.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Hello World'
+    TextSettings.FontColor = claChartreuse
+    TextSettings.VertAlign = Leading
+  end
+  object Layout1: TLayout
+    Align = Client
+    Size.Width = 640.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    OnResize = Layout1Resize
+  end
+end
