@@ -8,6 +8,11 @@ uses
   EmbeddedForm, FMX.StdCtrls, FMX.Controls.Presentation;
 type
   TfrmMovie = class(TEmbeddedForm)
+    Text1: TText;
+    Panel1: TPanel;
+    Button1: TButton;
+    procedure Button1Click(Sender: TObject);
+    procedure Text1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -20,5 +25,16 @@ var
 implementation
 
 {$R *.fmx}
+
+procedure TfrmMovie.Button1Click(Sender: TObject);
+begin
+  if Assigned(CloseMyself) then
+      CloseMyself(Self);
+end;
+
+procedure TfrmMovie.Text1Click(Sender: TObject);
+begin
+  Text1.Text := 'Lights, Camera, Action';
+end;
 
 end.

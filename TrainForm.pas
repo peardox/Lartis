@@ -9,10 +9,8 @@ uses
 
 type
   TfrmTrain = class(TEmbeddedForm)
-    Text1: TText;
     Panel1: TPanel;
     Button1: TButton;
-    procedure Text1Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
   private
     { Private declarations }
@@ -31,11 +29,6 @@ procedure TfrmTrain.Button1Click(Sender: TObject);
 begin
   if Assigned(CloseMyself) then
       CloseMyself(Self);
-end;
-
-procedure TfrmTrain.Text1Click(Sender: TObject);
-begin
-  Text1.Text := 'Clack';
 end;
 
 end.

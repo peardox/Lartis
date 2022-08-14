@@ -1,0 +1,5 @@
+.\assets\internal\python3-android-3.9.12-arm64.zip
+.\assets\internal\movie.png
+.\assets\internal\evolve.png
+.\assets\internal\style.png
+.\assets\internal\train.png

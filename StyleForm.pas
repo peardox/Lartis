@@ -5,14 +5,14 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
-  EmbeddedForm, FMX.StdCtrls, FMX.Controls.Presentation;
+  EmbeddedForm, FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts;
 
 type
   TfrmStyle = class(TEmbeddedForm)
-    Text1: TText;
     Panel1: TPanel;
     Button1: TButton;
-    procedure Text1Click(Sender: TObject);
+    Layout1: TLayout;
+    Layout2: TLayout;
     procedure Button1Click(Sender: TObject);
   private
     { Private declarations }
@@ -31,11 +31,6 @@ procedure TfrmStyle.Button1Click(Sender: TObject);
 begin
   if Assigned(CloseMyself) then
       CloseMyself(Self);
-end;
-
-procedure TfrmStyle.Text1Click(Sender: TObject);
-begin
-  Text1.Text := 'Click';
 end;
 
 end.

@@ -11,7 +11,11 @@ uses
   StyleForm in 'StyleForm.pas' {frmStyle},
   TrainForm in 'TrainForm.pas' {frmTrain},
   EmbeddedForm in 'EmbeddedForm.pas',
-  ChoiceForm in 'ChoiceForm.pas' {frmChoice};
+  ChoiceForm in 'ChoiceForm.pas' {frmChoice},
+  EvolveForm in 'EvolveForm.pas' {frmEvolve},
+  MovieForm in 'MovieForm.pas' {frmMovie},
+  FunctionLibrary in 'FunctionLibrary.pas',
+  Shaders in 'Shaders.pas';
 
 {$R *.res}
 
@@ -19,7 +23,9 @@ begin
   Application.Initialize;
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmOptions, frmOptions);
-//  Application.CreateForm(TfrmChoice, frmChoice);
+  Application.CreateForm(TfrmEvolve, frmEvolve);
+  Application.CreateForm(TfrmMovie, frmMovie);
+  //  Application.CreateForm(TfrmChoice, frmChoice);
 //  Application.CreateForm(TfrmStyle, frmStyle);
 //  Application.CreateForm(TfrmTrain, frmTrain);
   Application.Run;

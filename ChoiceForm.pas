@@ -18,7 +18,6 @@ type
   TfrmChoice = class(TEmbeddedForm)
     Text1: TText;
     Layout1: TLayout;
-    procedure Image1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Layout1Resize(Sender: TObject);
   private
@@ -44,6 +43,8 @@ implementation
 
 uses
   Math,
+  EvolveForm,
+  MovieForm,
   StyleForm,
   TrainForm
   ;
@@ -107,10 +108,10 @@ begin
               SectionImages[I].TargetForm := frmTrain;
             end;
             2: begin
-              SectionImages[I].TargetForm := frmStyle;
+              SectionImages[I].TargetForm := frmEvolve;
             end;
             3: begin
-              SectionImages[I].TargetForm := frmTrain;
+              SectionImages[I].TargetForm := frmMovie;
             end;
           end;
           SectionImages[I].OnClick := ImageClick;
@@ -160,8 +161,8 @@ begin
               SectionImages[I].Width := CellSize;
               SectionImages[I].Height := CellSize;
 
-              SectionImages[I].Position.X := (X * (CellSize + (CellMargin * 2))) + GridLeft;
-              SectionImages[I].Position.Y := (Y * (CellSize + (CellMargin * 2))) + GridTop;
+              SectionImages[I].Position.X := (X * CellSize) + (CellMargin * ((X * 2) + 1)) + GridLeft;
+              SectionImages[I].Position.Y := (Y * CellSize) + (CellMargin * ((Y * 2) + 1)) + GridTop;
 
               TxtDebug := TxtDebug + IntToStr(I) + ' / ' + IntToStr(X) + ' / '  + IntToStr(Y) + sLineBreak;
               TxtDebug := TxtDebug + FloatToStr(SectionImages[I].Position.X) + ' / ' + FloatToStr(SectionImages[I].Position.Y) + sLineBreak;
@@ -175,12 +176,6 @@ begin
           Text1.BringToFront;
         end;
     end;
-end;
-
-procedure TfrmChoice.Image1Click(Sender: TObject);
-begin
-  if Assigned(SwitchToOther) then
-      SwitchToOther(frmStyle);
 end;
 
 procedure TfrmChoice.ImageClick(Sender: TObject);

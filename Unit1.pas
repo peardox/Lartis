@@ -2,7 +2,9 @@ unit Unit1;
 
 interface
 
-// {$DEFINE ENABLE_PYTHON}
+{$DEFINE ENABLE_PYTHON}
+{$DEFINE ENABLE_EVOLVE}
+{$DEFINE ENABLE_MOVIE}
 
 uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes,
@@ -30,6 +32,12 @@ type
     ChoiceLayout: TLayout;
     OptionsMenu: TMenuItem;
     ExitMenu: TMenuItem;
+    {$IFDEF ENABLE_EVOLVE}
+    EvolveLayout: TLayout;
+    {$ENDIF}
+    {$IFDEF ENABLE_MOVIE}
+    MovieLayout: TLayout;
+    {$ENDIF}
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure Button1Click(Sender: TObject);
@@ -61,6 +69,12 @@ uses
   PythonSystem,
   OptionsForm,
   ChoiceForm,
+  {$IFDEF ENABLE_EVOLVE}
+  EvolveForm,
+  {$ENDIF}
+  {$IFDEF ENABLE_EVOLVE}
+  MovieForm,
+  {$ENDIF}
   StyleForm,
   TrainForm,
   SetupForm;
@@ -166,10 +180,16 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
-  StatusBar1.Visible := False;
+//  StatusBar1.Visible := False;
 
   frmStyle := EmbedForm(StyleLayout, TfrmStyle.Create(Self)) as TfrmStyle;
   frmTrain := EmbedForm(TrainLayout, TfrmTrain.Create(Self)) as TfrmTrain;
+  {$IFDEF ENABLE_EVOLVE}
+  frmEvolve := EmbedForm(EvolveLayout, TfrmEvolve.Create(Self)) as TfrmEvolve;
+  {$ENDIF}
+  {$IFDEF ENABLE_MOVIE}
+  frmMovie := EmbedForm(MovieLayout, TfrmMovie.Create(Self)) as TfrmMovie;
+  {$ENDIF}
 
   // Must be created last
   frmChoice := EmbedForm(ChoiceLayout, TfrmChoice.Create(Self)) as TfrmChoice;
@@ -241,8 +261,7 @@ end;
 
 procedure TfrmMain.Button2Click(Sender: TObject);
 begin
-ShowMessage('Button2Click');
-{
+
   if Assigned(PySys) then
     begin
       if OpenDialog1.Execute then
@@ -250,7 +269,7 @@ ShowMessage('Button2Click');
           PySys.modStyle.Stylize(OpenDialog1.Filename);
         end;
     end;
-}
+
 end;
 
 end.
