@@ -129,6 +129,7 @@ type
 implementation
 
 uses
+  Settings,
   PythonSystem;
 
 ///// Helper for TPythonModule /////

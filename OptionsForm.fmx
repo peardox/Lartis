@@ -8,52 +8,117 @@ object frmOptions: TfrmOptions
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnShow = FormShow
   DesignerMasterStyle = 0
-  object Panel1: TPanel
-    Align = Left
-    Size.Width = 120.000000000000000000
-    Size.Height = 480.000000000000000000
+  object Panel3: TPanel
+    Align = Bottom
+    Position.Y = 440.000000000000000000
+    Size.Width = 640.000000000000000000
+    Size.Height = 40.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
-    object SkLabel1: TSkLabel
-      Position.X = 32.000000000000000000
-      Position.Y = 16.000000000000000000
-      Size.Width = 49.000000000000000000
-      Size.Height = 19.000000000000000000
-      Size.PlatformDefault = False
-      Words = <
-        item
-          Text = 'Options'
-        end>
+    object Button1: TButton
+      Position.X = 432.000000000000000000
+      Position.Y = 8.000000000000000000
+      TabOrder = 0
+      Text = 'Close'
+      OnClick = Button1Click
     end
   end
-  object Panel2: TPanel
+  object Panel4: TPanel
     Align = Client
-    Size.Width = 520.000000000000000000
-    Size.Height = 480.000000000000000000
+    Size.Width = 640.000000000000000000
+    Size.Height = 440.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
-    object Panel3: TPanel
-      Align = Bottom
-      Position.Y = 440.000000000000000000
-      Size.Width = 520.000000000000000000
-      Size.Height = 40.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 0
-      object Button1: TButton
-        Position.X = 432.000000000000000000
-        Position.Y = 8.000000000000000000
-        TabOrder = 0
-        Text = 'Close'
-        OnClick = Button1Click
-      end
-    end
-    object Panel4: TPanel
+    object TabControl1: TTabControl
       Align = Client
-      Size.Width = 520.000000000000000000
+      Size.Width = 640.000000000000000000
       Size.Height = 440.000000000000000000
       Size.PlatformDefault = False
+      TabIndex = 2
       TabOrder = 1
+      TabPosition = PlatformDefault
+      Sizes = (
+        640s
+        414s
+        640s
+        414s
+        640s
+        414s)
+      object StyleTab: TTabItem
+        CustomIcon = <
+          item
+          end>
+        IsSelected = False
+        Size.Width = 56.000000000000000000
+        Size.Height = 26.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = ''
+        TabOrder = 0
+        Text = 'Styling'
+      end
+      object TrainTab: TTabItem
+        CustomIcon = <
+          item
+          end>
+        IsSelected = False
+        Size.Width = 62.000000000000000000
+        Size.Height = 26.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = ''
+        TabOrder = 0
+        Text = 'Training'
+      end
+      object SystemTab: TTabItem
+        CustomIcon = <
+          item
+          end>
+        IsSelected = True
+        Size.Width = 58.000000000000000000
+        Size.Height = 26.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = ''
+        TabOrder = 0
+        Text = 'System'
+        object SystermLayout: TLayout
+          Align = Client
+          Size.Width = 640.000000000000000000
+          Size.Height = 414.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object Label1: TLabel
+            Position.X = 32.000000000000000000
+            Position.Y = 32.000000000000000000
+            Text = 'Label1'
+            TabOrder = 0
+          end
+          object Label2: TLabel
+            Position.X = 192.000000000000000000
+            Position.Y = 32.000000000000000000
+            Size.Width = 425.000000000000000000
+            Size.Height = 17.000000000000000000
+            Size.PlatformDefault = False
+            Text = 'Label2'
+            TabOrder = 1
+          end
+          object Label3: TLabel
+            Position.X = 32.000000000000000000
+            Position.Y = 72.000000000000000000
+            Text = 'Wipe On Start'
+            TabOrder = 2
+          end
+          object cbWipeOnStart: TCheckBox
+            Position.X = 192.000000000000000000
+            Position.Y = 72.000000000000000000
+            Size.Width = 33.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 3
+          end
+        end
+      end
     end
   end
 end

@@ -5,17 +5,25 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, Skia, Skia.FMX,
-  FMX.StdCtrls, FMX.Controls.Presentation;
+  FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts, FMX.TabControl;
 
 type
   TfrmOptions = class(TForm)
-    Panel1: TPanel;
-    Panel2: TPanel;
     Panel3: TPanel;
-    Panel4: TPanel;
     Button1: TButton;
-    SkLabel1: TSkLabel;
+    Panel4: TPanel;
+    TabControl1: TTabControl;
+    StyleTab: TTabItem;
+    TrainTab: TTabItem;
+    SystemTab: TTabItem;
+    SystermLayout: TLayout;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    cbWipeOnStart: TCheckBox;
     procedure Button1Click(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -29,9 +37,23 @@ implementation
 
 {$R *.fmx}
 
+uses
+  Settings;
+
 procedure TfrmOptions.Button1Click(Sender: TObject);
 begin
   ModalResult := mrOK;
+end;
+
+procedure TfrmOptions.FormCreate(Sender: TObject);
+begin
+//  SystermLayout
+end;
+
+procedure TfrmOptions.FormShow(Sender: TObject);
+begin
+  Label1.Text := 'Lartis Home';
+  Label2.Text := AppHome;
 end;
 
 end.

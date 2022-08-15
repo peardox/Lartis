@@ -73,17 +73,7 @@ type
 
 var
   PySys: TPySys;
-  AppHome: String;
-  modelList: TStringList;
   SystemActive: Boolean;
-
-const
-  appname: String = 'Lartis';
-  pypath: String = 'python';
-  pyver: String = '3.9';
-  pyexe: String = 'python.exe';
-  pyshim: String = 'pysrc';
-  pycode: String = 'SystemCode.py';
 
 function EscapeBackslashForPython(const AStr: String): String;
 procedure GetAllModels(const AltModelDir: String = String.Empty; const ModelSubDir: String = String.Empty);
@@ -93,6 +83,7 @@ implementation
 uses
   Unit1,
   SetupForm,
+  Settings,
   PyPackage.Manager.Pip,
   PyPackage.Manager.Defs.Pip;
 
@@ -104,7 +95,7 @@ var
   FileName: String;
 begin
   if (AltModelDir = String.Empty) then
-    modeldir := IncludeTrailingPathDelimiter(AppHome) + 'models'
+    Modeldir := IncludeTrailingPathDelimiter(AppHome) + 'models'
   else
     modeldir := AltModelDir;
 
@@ -171,10 +162,6 @@ begin
   FakeTimer := TTimer.Create(Self);
   FakeTimer.Enabled := False;
   // Wipe Python when finished
-  AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetHomePath) + appname;
-  // System agnostic path for data files + Python
-  if not DirectoryExists(AppHome) then
-    ForceDirectories(AppHome);
   if not DirectoryExists(IncludeTrailingPathDelimiter(AppHome) + pyshim) then
     ForceDirectories(IncludeTrailingPathDelimiter(AppHome) + pyshim);
   if FileExists(IncludeTrailingPathDelimiter(AppHome) + pycode) then

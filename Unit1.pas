@@ -65,6 +65,7 @@ var
 implementation
 
 uses
+  Settings,
   Math,
   PythonSystem,
   OptionsForm,
