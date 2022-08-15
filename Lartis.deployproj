@@ -94,6 +94,15 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
+        <DeployFile Include="images\free\evolve.png" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis.app\Contents\Resources\images\free\</RemoteDir>
+            <RemoteName>evolve.png</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
         <DeployFile Include="OSX64\Release\Lartis.info.plist" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis.app\Contents\</RemoteDir>
             <RemoteName>Info.plist</RemoteName>
@@ -103,11 +112,38 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
+        <DeployFile Include="images\free\train.png" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis.app\Contents\Resources\images\free\</RemoteDir>
+            <RemoteName>train.png</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
         <DeployFile Include="OSX64\Debug\Lartis.entitlements" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis.app\..\</RemoteDir>
             <RemoteName>Lartis.entitlements</RemoteName>
             <DeployClass>ProjectOSXEntitlements</DeployClass>
             <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="images\free\style.png" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis.app\Contents\Resources\images\free\</RemoteDir>
+            <RemoteName>style.png</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="images\free\movie.png" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis.app\Contents\Resources\images\free\</RemoteDir>
+            <RemoteName>movie.png</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>

@@ -52,6 +52,7 @@ uses
 
 procedure TfrmChoice.FormCreate(Sender: TObject);
 var
+  BaseDir: String;
   ImgDir: String;
   I: Integer;
 begin
@@ -68,12 +69,18 @@ begin
   ImgDir := '';
   {$ENDIF}
   {$IFNDEF ANDROID}
-  if DirectoryExists('images') then
-      ImgDir := ImgDir + 'images'
-  else if DirectoryExists('../../images') then
-      ImgDir := ImgDir + '../../images'
+  {$IFDEF MACOS}
+  BaseDir := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetFullPath('../Resources/'));
+  {$ELSE}
+  BaseDir := '';
+  {$ENDIF}
+
+  if DirectoryExists(BaseDir + 'images') then
+      ImgDir := BaseDir + 'images'
+  else if DirectoryExists(BaseDir + '../../images') then
+      ImgDir := BaseDir + '../../images'
   else
-    ShowMessage('Can''t find images');
+    ShowMessage('Can''t find images - ' + BaseDir + sLineBreak + ImgDir);
 
   if DirectoryExists(ImgDir + '/licensed') then
       ImgDir := ImgDir + '/licensed'
