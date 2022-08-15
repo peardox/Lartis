@@ -15,12 +15,14 @@ uses
   EvolveForm in 'EvolveForm.pas' {frmEvolve},
   MovieForm in 'MovieForm.pas' {frmMovie},
   FunctionLibrary in 'FunctionLibrary.pas',
-  Shaders in 'Shaders.pas';
+  Shaders in 'Shaders.pas',
+  Settings in 'Settings.pas';
 
 {$R *.res}
 
 begin
   Application.Initialize;
+  CreateSettings;
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmOptions, frmOptions);
   Application.CreateForm(TfrmEvolve, frmEvolve);

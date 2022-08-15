@@ -446,8 +446,8 @@ begin
 
   Log('Calling Activate');
   // Show some important stuff
-  Log('InstEng Libpath = ' + PyEng.DllPath);
-  Log('InstEng Lib = ' + PyEng.DllName);
+  Log('PyEng Libpath = ' + PyEng.DllPath);
+  Log('PyEng Lib = ' + PyEng.DllName);
 
   TThread.Synchronize(nil,
     procedure()
