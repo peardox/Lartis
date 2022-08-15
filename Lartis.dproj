@@ -5,8 +5,8 @@
         <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">OSX64</Platform>
-        <TargetedPlatforms>167955</TargetedPlatforms>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <TargetedPlatforms>168083</TargetedPlatforms>
         <AppType>Application</AppType>
         <MainSource>Lartis.dpr</MainSource>
     </PropertyGroup>
@@ -20,6 +20,11 @@
     </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='Android64' and '$(Base)'=='true') or '$(Base_Android64)'!=''">
         <Base_Android64>true</Base_Android64>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Linux64' and '$(Base)'=='true') or '$(Base_Linux64)'!=''">
+        <Base_Linux64>true</Base_Linux64>
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
@@ -97,7 +102,7 @@
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
         <SanitizedProjectName>Lartis</SanitizedProjectName>
-        <DCC_Define>SKIA;PYTHON;PYTHONVER39;$(DCC_Define)</DCC_Define>
+        <DCC_Define>PYTHON;PYTHONVER39;SKIA;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
         <DCC_UsePackage>DBXSqliteDriver;IndyIPCommon;RESTComponents;bindcompdbx;DBXInterBaseDriver;IndyIPServer;IndySystem;tethering;fmxFireDAC;FireDAC;bindcompfmx;FireDACSqliteDriver;FMXTee;soaprtl;DbxCommonDriver;FmxTeeUI;fmx;FireDACIBDriver;xmlrtl;soapmidas;rtl;PythonFmx;DbxClientDriver;CustomIPTransport;dbexpress;IndyCore;bindcomp;dsnap;FireDACCommon;IndyIPClient;Python;Skia.Package.RTL;RESTBackendComponents;soapserver;dbxcds;Skia.Package.FMX;bindengine;CloudService;dsnapxml;dbrtl;IndyProtocols;FireDACCommonDriver;inet;$(DCC_UsePackage)</DCC_UsePackage>
@@ -142,6 +147,9 @@
         <Android_NotificationIcon72>$(BDS)\bin\Artwork\Android\FM_NotificationIcon_72x72.png</Android_NotificationIcon72>
         <Android_NotificationIcon96>$(BDS)\bin\Artwork\Android\FM_NotificationIcon_96x96.png</Android_NotificationIcon96>
         <EnabledSysJars>android-support-v4.dex.jar;cloud-messaging.dex.jar;com-google-android-gms.play-services-ads-base.17.2.0.dex.jar;com-google-android-gms.play-services-ads-identifier.16.0.0.dex.jar;com-google-android-gms.play-services-ads-lite.17.2.0.dex.jar;com-google-android-gms.play-services-ads.17.2.0.dex.jar;com-google-android-gms.play-services-analytics-impl.16.0.8.dex.jar;com-google-android-gms.play-services-analytics.16.0.8.dex.jar;com-google-android-gms.play-services-base.16.0.1.dex.jar;com-google-android-gms.play-services-basement.16.2.0.dex.jar;com-google-android-gms.play-services-gass.17.2.0.dex.jar;com-google-android-gms.play-services-identity.16.0.0.dex.jar;com-google-android-gms.play-services-maps.16.1.0.dex.jar;com-google-android-gms.play-services-measurement-base.16.4.0.dex.jar;com-google-android-gms.play-services-measurement-sdk-api.16.4.0.dex.jar;com-google-android-gms.play-services-stats.16.0.1.dex.jar;com-google-android-gms.play-services-tagmanager-v4-impl.16.0.8.dex.jar;com-google-android-gms.play-services-tasks.16.0.1.dex.jar;com-google-android-gms.play-services-wallet.16.0.1.dex.jar;com-google-firebase.firebase-analytics.16.4.0.dex.jar;com-google-firebase.firebase-common.16.1.0.dex.jar;com-google-firebase.firebase-iid-interop.16.0.1.dex.jar;com-google-firebase.firebase-iid.17.1.1.dex.jar;com-google-firebase.firebase-measurement-connector.17.0.1.dex.jar;com-google-firebase.firebase-messaging.17.5.0.dex.jar;fmx.dex.jar;google-play-billing.dex.jar;google-play-licensing.dex.jar</EnabledSysJars>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Linux64)'!=''">
+        <DCC_UnitSearchPath>$(fmxlinux)\Lib\$(ProductVersion)\$(Config);$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_OSX64)'!=''">
         <DCC_UsePackage>DBXSqliteDriver;IndyIPCommon;RESTComponents;bindcompdbx;DBXInterBaseDriver;IndyIPServer;IndySystem;P4DPyTorch;tethering;fmxFireDAC;P4DMatplotLib;FireDAC;bindcompfmx;FireDACSqliteDriver;FireDACPgDriver;inetdb;FMXTee;soaprtl;DbxCommonDriver;FmxTeeUI;fmx;FireDACIBDriver;fmxdae;xmlrtl;soapmidas;fmxobj;rtl;PythonFmx;DbxClientDriver;CustomIPTransport;dbexpress;IndyCore;bindcomp;dsnap;P4DNumPy;FireDACCommon;IndyIPClient;Python;RESTBackendComponents;soapserver;dbxcds;P4DOpenCV;P4DNLTK;bindengine;DBXMySQLDriver;CloudService;dsnapxml;FireDACMySQLDriver;dbrtl;IndyProtocols;inetdbxpress;FireDACCommonODBC;FireDACCommonDriver;inet;fmxase;$(DCC_UsePackage)</DCC_UsePackage>
@@ -661,6 +669,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile Required="true" LocalName="$(PYTHONENVIRONMENTDIR)\python\python3-linux-3.9.12-x86_64.zip" Configuration="Debug" Class="Python">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>0</Operation>
+                        <RemoteName>python3-linux-3.9.12-x86_64.zip</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Required="true" LocalName="$(PYTHONENVIRONMENTDIR)\python\python3-linux-3.9.12-x86_64.zip" Configuration="Release" Class="Python">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>0</Operation>
+                        <RemoteName>python3-linux-3.9.12-x86_64.zip</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile Required="true" LocalName="$(PYTHONENVIRONMENTDIR)\python\python3-macos-3.9.12-x86_64.zip" Configuration="Debug" Class="Python">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\MacOS\</RemoteDir>
@@ -757,8 +781,48 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\Linux64\Release\libsk4d.so" Configuration="Debug" Class="Skia">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>1</Operation>
+                        <RemoteName>libsk4d.so</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\Linux64\Release\libsk4d.so" Configuration="Release" Class="Skia">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>1</Operation>
+                        <RemoteName>libsk4d.so</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\OSX64\Release\sk4d.dylib" Configuration="Debug" Class="Skia">
+                    <Platform Name="OSX64">
+                        <RemoteDir>Contents\MacOS\</RemoteDir>
+                        <Operation>1</Operation>
+                        <RemoteName>sk4d.dylib</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\OSX64\Release\sk4d.dylib" Configuration="Release" Class="Skia">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\MacOS\</RemoteDir>
+                        <Operation>1</Operation>
+                        <RemoteName>sk4d.dylib</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\OSXARM64\Release\sk4d.dylib" Configuration="Debug" Class="Skia">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\MacOS\</RemoteDir>
+                        <Operation>1</Operation>
+                        <RemoteName>sk4d.dylib</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\OSXARM64\Release\sk4d.dylib" Configuration="Release" Class="Skia">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\MacOS\</RemoteDir>
                         <Operation>1</Operation>
                         <RemoteName>sk4d.dylib</RemoteName>
@@ -885,9 +949,23 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="images\free\evolve.png" Configuration="Release" Class="File">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\images\free</RemoteDir>
+                        <RemoteName>evolve.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="images\free\evolve.png" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\images\free\</RemoteDir>
                         <RemoteName>evolve.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="images\free\movie.png" Configuration="Release" Class="File">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\images\free</RemoteDir>
+                        <RemoteName>movie.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -899,9 +977,23 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="images\free\style.png" Configuration="Release" Class="File">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\images\free</RemoteDir>
+                        <RemoteName>style.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="images\free\style.png" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\images\free\</RemoteDir>
                         <RemoteName>style.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="images\free\train.png" Configuration="Release" Class="File">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\images\free</RemoteDir>
+                        <RemoteName>train.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -927,6 +1019,13 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="images\licensed\evolve.png" Configuration="Release" Class="File">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\images\licensed</RemoteDir>
+                        <RemoteName>evolve.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="images\licensed\evolve.png" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\images/licensed\</RemoteDir>
                         <RemoteName>evolve.png</RemoteName>
@@ -942,6 +1041,13 @@
                 <DeployFile LocalName="images\licensed\movie.png" Configuration="Release" Class="File">
                     <Platform Name="Android64">
                         <RemoteDir>assets\internal\</RemoteDir>
+                        <RemoteName>movie.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="images\licensed\movie.png" Configuration="Release" Class="File">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\images\licensed</RemoteDir>
                         <RemoteName>movie.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
@@ -968,6 +1074,13 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="images\licensed\style.png" Configuration="Release" Class="File">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\images\licensed</RemoteDir>
+                        <RemoteName>style.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="images\licensed\style.png" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\images/licensed\</RemoteDir>
                         <RemoteName>style.png</RemoteName>
@@ -989,9 +1102,29 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="images\licensed\train.png" Configuration="Release" Class="File">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\images\licensed</RemoteDir>
+                        <RemoteName>train.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="images\licensed\train.png" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\images/licensed\</RemoteDir>
                         <RemoteName>train.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Linux64\Debug\Lartis" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Linux64">
+                        <RemoteName>Lartis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Linux64\Release\Lartis" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\</RemoteDir>
+                        <RemoteName>Lartis</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1871,6 +2004,7 @@
             <Platforms>
                 <Platform value="Android">True</Platform>
                 <Platform value="Android64">True</Platform>
+                <Platform value="Linux64">True</Platform>
                 <Platform value="OSX64">True</Platform>
                 <Platform value="OSXARM64">True</Platform>
                 <Platform value="Win32">True</Platform>
