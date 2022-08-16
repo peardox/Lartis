@@ -25,7 +25,8 @@ var
 implementation
 
 uses
-    Math,
+  Settings,
+  Math,
   PythonSystem;
 
 {$R *.fmx}

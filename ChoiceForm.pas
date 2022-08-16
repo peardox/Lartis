@@ -2,6 +2,9 @@ unit ChoiceForm;
 
 interface
 
+// {$DEFINE ENABLE_EVOLVE}
+// {$DEFINE ENABLE_MOVIE}
+
 uses
   System.SysUtils, System.Types, System.IOUtils, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
@@ -34,7 +37,15 @@ var
   frmChoice: TfrmChoice;
 
 const
-  Sections: Array [0..3] of String = ('style.png', 'train.png', 'evolve.png', 'movie.png');
+  Sections: Array [0..{$IFNDEF ENABLE_EVOLVE}1{$ELSE}{$IFNDEF ENABLE_MOVIE}2{$ELSE}3{$ENDIF}{$ENDIF}] of String = ('style.png',
+    'train.png'
+    {$IFDEF ENABLE_EVOLVE}
+    ,'evolve.png'
+    {$ENDIF}
+    {$IFDEF ENABLE_MOVIE}
+    ,'movie.png'
+    {$ENDIF}
+    );
 
 
 implementation
@@ -58,36 +69,51 @@ var
 begin
   Text1.Visible := False;
 
+  {$IFDEF ENABLE_EVOLVE}
+  {$IFDEF ENABLE_MOVIE}
   GridCols := 2;
   GridRows := 2;
+  {$ELSE}
+  GridCols := 3;
+  GridRows := 1;
+  {$ENDIF}
+  {$ELSE}
+  GridCols := 2;
+  GridRows := 1;
+  {$ENDIF}
 
   SetLength(SectionImages, Length(Sections));
 
+  BaseDir := '';
   {$IFDEF ANDROID}
-  ImgDir := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetDocumentsPath);
-  {$ELSE}
-  ImgDir := '';
+  BaseDir := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetDocumentsPath);
   {$ENDIF}
-  {$IFNDEF ANDROID}
   {$IFDEF MACOS}
   BaseDir := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetFullPath('../Resources/'));
-  {$ELSE}
-  BaseDir := '';
+  {$ENDIF}
+  {$IFDEF MSWINDOWS}
+  BaseDir := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath);
+  {$ENDIF}
+  {$IFDEF LINUX64}
+  BaseDir := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath);
   {$ENDIF}
 
   if DirectoryExists(BaseDir + 'images') then
-      ImgDir := BaseDir + 'images'
+    ImgDir := BaseDir + 'images'
+  {$IFDEF MSWINDOWS}
   else if DirectoryExists(BaseDir + '../../images') then
-      ImgDir := BaseDir + '../../images'
+    ImgDir := BaseDir + '../../images'
+  {$ENDIF}
   else
     ShowMessage('Can''t find images - ' + BaseDir + sLineBreak + ImgDir);
 
   if DirectoryExists(ImgDir + '/licensed') then
-      ImgDir := ImgDir + '/licensed'
+    ImgDir := ImgDir + '/licensed'
   else if DirectoryExists(ImgDir + '/free') then
-      ImgDir := ImgDir + '/free'
+    ImgDir := ImgDir + '/free'
   else
-    ShowMessage('Can''t find image assets');
+    ShowMessage('Can''t find image assets - ' + BaseDir + sLineBreak + ImgDir);
+
   ImgDir := IncludeTrailingPathDelimiter(ImgDir);
 
   for I := 0 to Length(Sections) - 1 do
@@ -98,7 +124,6 @@ begin
           Application.Terminate;
         end;
     end;
-  {$ENDIF}
 
   for I := 0 to Length(Sections) - 1 do
     begin
@@ -114,12 +139,16 @@ begin
             1: begin
               SectionImages[I].TargetForm := frmTrain;
             end;
+            {$IFDEF ENABLE_EVOLVE}
+            {$ENDIF}
             2: begin
               SectionImages[I].TargetForm := frmEvolve;
             end;
+            {$IFDEF ENABLE_MOVIE}
             3: begin
               SectionImages[I].TargetForm := frmMovie;
             end;
+            {$ENDIF}
           end;
           SectionImages[I].OnClick := ImageClick;
         end;
@@ -163,7 +192,6 @@ begin
             begin
               X := I mod GridCols;
               Y := I div GridCols;
-
 
               SectionImages[I].Width := CellSize;
               SectionImages[I].Height := CellSize;

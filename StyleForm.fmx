@@ -7,8 +7,9 @@ object frmStyle: TfrmStyle
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
   DesignerMasterStyle = 0
-  object Panel1: TPanel
+  object TopPanel: TPanel
     Align = Top
     Size.Width = 640.000000000000000000
     Size.Height = 24.000000000000000000
@@ -26,7 +27,7 @@ object frmStyle: TfrmStyle
       OnClick = Button1Click
     end
   end
-  object Layout1: TLayout
+  object ControlLayout: TLayout
     Align = Right
     Position.X = 528.000000000000000000
     Position.Y = 24.000000000000000000
@@ -34,12 +35,28 @@ object frmStyle: TfrmStyle
     Size.Height = 456.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 2
+    object btnOpenFile: TButton
+      Hint = 'Open Image'
+      Position.X = 8.000000000000000000
+      Position.Y = 8.000000000000000000
+      Size.Width = 30.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'pagecurltoolbutton'
+      TabOrder = 0
+      Text = 'btnOpenFile'
+      OnClick = btnOpenFileClick
+    end
   end
-  object Layout2: TLayout
+  object StyleLayout: TLayout
     Align = Client
     Size.Width = 528.000000000000000000
     Size.Height = 456.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 3
+    TabOrder = 4
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 320
+    Top = 96
   end
 end

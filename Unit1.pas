@@ -3,8 +3,8 @@ unit Unit1;
 interface
 
 {$DEFINE ENABLE_PYTHON}
-{$DEFINE ENABLE_EVOLVE}
-{$DEFINE ENABLE_MOVIE}
+// {$DEFINE ENABLE_EVOLVE}
+// {$DEFINE ENABLE_MOVIE}
 
 uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes,
@@ -70,14 +70,14 @@ uses
   PythonSystem,
   OptionsForm,
   ChoiceForm,
+  StyleForm,
+  TrainForm,
   {$IFDEF ENABLE_EVOLVE}
   EvolveForm,
   {$ENDIF}
-  {$IFDEF ENABLE_EVOLVE}
+  {$IFDEF ENABLE_MOVIE}
   MovieForm,
   {$ENDIF}
-  StyleForm,
-  TrainForm,
   SetupForm;
 
 {$R *.fmx}

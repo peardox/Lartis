@@ -73,7 +73,6 @@ type
 
 var
   PySys: TPySys;
-  SystemActive: Boolean;
 
 function EscapeBackslashForPython(const AStr: String): String;
 procedure GetAllModels(const AltModelDir: String = String.Empty; const ModelSubDir: String = String.Empty);
@@ -81,9 +80,9 @@ procedure GetAllModels(const AltModelDir: String = String.Empty; const ModelSubD
 implementation
 
 uses
+  Settings,
   Unit1,
   SetupForm,
-  Settings,
   PyPackage.Manager.Pip,
   PyPackage.Manager.Defs.Pip;
 

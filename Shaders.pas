@@ -71,7 +71,7 @@ const
 implementation
 
 uses
-  System.SysUtils, System.UITypes, FMX.Dialogs,
+  Settings, System.SysUtils, System.UITypes, FMX.Dialogs,
   Math, IOUtils, FunctionLibrary;
 
 constructor TAspectLayout.Create(AOwner: TComponent);
@@ -128,6 +128,8 @@ begin
 end;
 
 procedure TGridShader.AddShader;
+var
+  ShaderText: String;
 begin
   Enabled := False;
   ShaderText := LoadShader(TPath.Combine(ShaderPath,'grid.sksl'));
@@ -302,6 +304,8 @@ begin
 end;
 
 procedure TLayerShader.AddShader;
+var
+  ShaderText: String;
 begin
   Enabled := False;
   ShaderText := LoadShader(TPath.Combine(ShaderPath,'original_colors.sksl'));
