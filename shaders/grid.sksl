@@ -1,0 +1,31 @@
+uniform float4 	cFront;					// A Tile Colour
+uniform float4 	cBack;					// Another Tile Colour
+uniform int 	iGridSize;				// Grid Size
+uniform float2 	iResolution;      		// Image resolution (pixels)
+uniform float2 	sResolution;      		// Viewport resolution (pixels)
+
+int mod(int a, int b) {
+	return a - (b * (a/b));
+}
+
+float4 main( in float2 fragCoord )
+{
+	// Calculte ImageGoord 
+	float2 ImageGoord = fragCoord * (iResolution / sResolution);
+	// Calculate GridCell the coords are in
+	int2 GridCell = int2(ImageGoord / float(iGridSize));
+	
+	// Odd or Even?
+	int x = mod(GridCell.x, 2);
+	int y = mod(GridCell.y, 2);
+	
+	float4 gridColor = cBack;
+
+	// XOR substitute - hmmph
+	if(x != y) {
+		gridColor = cFront;
+	}
+	
+	return( gridColor );
+}
+

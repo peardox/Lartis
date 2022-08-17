@@ -351,20 +351,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="system\system-2022.08.16.06.51.zip" Configuration="Release" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\</RemoteDir>
-                        <RemoteName>system.zip</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="images\free\style.png" Configuration="Release" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\free</RemoteDir>
-                        <RemoteName>style.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_960x720.png" Configuration="Release" Class="Android_SplashImage960">
                     <Platform Name="Android64">
                         <RemoteName>splash_image.png</RemoteName>
@@ -383,10 +369,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="images\licensed\evolve.png" Configuration="Debug" Class="File">
+                <DeployFile LocalName="Win64\Release\Lartis.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win64">
-                        <RemoteDir>.\images\licensed</RemoteDir>
-                        <RemoteName>evolve.png</RemoteName>
+                        <RemoteName>Lartis.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -395,19 +380,6 @@
                         <RemoteDir>.\</RemoteDir>
                         <Operation>0</Operation>
                         <RemoteName>python3-windows-3.9.12-amd64.zip</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="images\licensed\style.png" Configuration="Release" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\licensed</RemoteDir>
-                        <RemoteName>style.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Win64\Release\Lartis.exe" Configuration="Release" Class="ProjectOutput">
-                    <Platform Name="Win64">
-                        <RemoteName>Lartis.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -533,16 +505,16 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="OSX64\Debug\Lartis.entitlements" Configuration="Debug" Class="ProjectOSXEntitlements">
+                    <Platform Name="OSX64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\Win32\Release\sk4d.dll" Configuration="Release" Class="Skia">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Operation>0</Operation>
                         <RemoteName>sk4d.dll</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="OSX64\Debug\Lartis.entitlements" Configuration="Debug" Class="ProjectOSXEntitlements">
-                    <Platform Name="OSX64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -595,27 +567,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="images\licensed\movie.png" Configuration="Debug" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\licensed</RemoteDir>
-                        <RemoteName>movie.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="images\free\evolve.png" Configuration="Debug" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\free</RemoteDir>
-                        <RemoteName>evolve.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="images\licensed\evolve.png" Configuration="Release" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\licensed</RemoteDir>
-                        <RemoteName>evolve.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_640x480.png" Configuration="Release" Class="Android_SplashImage640">
                     <Platform Name="Android64">
                         <RemoteName>splash_image.png</RemoteName>
@@ -633,13 +584,6 @@
                 <DeployFile LocalName="Android64\Release\classes.dex" Configuration="Release" Class="AndroidClassesDexFile">
                     <Platform Name="Android64">
                         <RemoteName>classes.dex</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="images\licensed\style.png" Configuration="Debug" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\licensed</RemoteDir>
-                        <RemoteName>style.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -681,13 +625,6 @@
                 <DeployFile LocalName="Win64\Debug\Lartis.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win64">
                         <RemoteName>Lartis.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="images\licensed\movie.png" Configuration="Release" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\licensed</RemoteDir>
-                        <RemoteName>movie.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -785,13 +722,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="images\free\train.png" Configuration="Debug" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\free</RemoteDir>
-                        <RemoteName>train.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile Required="true" LocalName="$(PYTHONENVIRONMENTDIR)\python\python3-android-3.9.12-arm64.zip" Configuration="Debug" Class="Python">
                     <Platform Name="Android64">
                         <RemoteDir>.\assets\internal</RemoteDir>
@@ -851,13 +781,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="images\licensed\train.png" Configuration="Debug" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\licensed</RemoteDir>
-                        <RemoteName>train.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="Android64\Release\libLartis.so" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Android64">
                         <RemoteName>libLartis.so</RemoteName>
@@ -871,22 +794,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="system\system-2022.08.16.06.51.zip" Configuration="Debug" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteName>system.zip</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_72x72.png" Configuration="Release" Class="Android_NotificationIcon72">
                     <Platform Name="Android64">
                         <RemoteName>ic_notification.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="images\free\movie.png" Configuration="Release" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\free</RemoteDir>
-                        <RemoteName>movie.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -908,10 +818,11 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="images\free\evolve.png" Configuration="Release" Class="File">
+                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\Win64\Release\sk4d.dll" Configuration="Release" Class="Skia">
                     <Platform Name="Win64">
-                        <RemoteDir>.\images\free</RemoteDir>
-                        <RemoteName>evolve.png</RemoteName>
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>0</Operation>
+                        <RemoteName>sk4d.dll</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -946,18 +857,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\Win64\Release\sk4d.dll" Configuration="Release" Class="Skia">
+                <DeployFile LocalName="Win64\Debug\Lartis.rsm" Configuration="Debug" Class="DebugSymbols">
                     <Platform Name="Win64">
-                        <RemoteDir>.\</RemoteDir>
-                        <Operation>0</Operation>
-                        <RemoteName>sk4d.dll</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="images\licensed\train.png" Configuration="Release" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\licensed</RemoteDir>
-                        <RemoteName>train.png</RemoteName>
+                        <RemoteName>Lartis.rsm</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1071,23 +973,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="images\free\movie.png" Configuration="Debug" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\free</RemoteDir>
-                        <RemoteName>movie.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_192x192.png" Configuration="Release" Class="Android_LauncherIcon192">
                     <Platform Name="Android64">
                         <RemoteName>ic_launcher.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="images\free\train.png" Configuration="Release" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\free</RemoteDir>
-                        <RemoteName>train.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1281,13 +1169,6 @@
                 </DeployFile>
                 <DeployFile LocalName="Android64\Release\splash_image_def.xml" Configuration="Release" Class="AndroidSplashImageDef">
                     <Platform Name="Android64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="images\free\style.png" Configuration="Debug" Class="File">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\images\free</RemoteDir>
-                        <RemoteName>style.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
