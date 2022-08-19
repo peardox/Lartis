@@ -12,6 +12,7 @@ var
   SystemActive: Boolean;
   ShaderPath: String;
   DataSetsPath: String;
+  FrameCount: Integer;
 
 const
   appname: String = 'Lartis';

@@ -15,7 +15,7 @@ float3 rgb2grey(float3 rgb){
 float4 main( in float2 fragCoord ) {
 	float4 styled = float4(0, 0, 0, 0);
 	
-	float done = ((2 * fPercentDone) - 0.5) * pi;	// -0.5 pi to +1.5 pi
+	float done = ((2 * fPercentDone) - 1) * pi;	// -pi to +pi
 	
 	float2 center = sImageResolution.xy / 2;
 	float vscale = sImageResolution.y / iResolution.y;
@@ -39,20 +39,12 @@ float4 main( in float2 fragCoord ) {
 	
 	float dy = im1loc.y - center.y;
 	float dx = im1loc.x - center.x;
-	float angle = atan(dy, dx);
+	float angle = atan(-dx, dy);
 
 	if(angle > done) {
 		styled.rgb = rgb2grey(styled.rgb);
 	}	
 	
-	if(angle < (-pi / 2)) {
-		styled.rgb = rgb2grey(styled.rgb);
-	}
-	if(fPercentDone > 0.75){
-		if(angle < (done - (pi * 2))) {
-			styled = colour;
-		}
-	}
 	
 	return( styled );
 }

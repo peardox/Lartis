@@ -5,6 +5,7 @@ interface
 function LoadShader(const AShaderFile: String): String;
 function FitInsideContainer(const AContainerWidth: Single; const AContentWidth: Single; const AContainerHeight: Single; const AContentHeight: Single): Single;
 function BoolToInt(const AValue: Boolean): Integer;
+function GetFileHash(const AFile: String): String;
 
 implementation
 
@@ -12,7 +13,14 @@ uses
   Settings,
   System.SysUtils, System.Types, System.UITypes,
   System.Classes, System.Variants, FMX.Forms, FMX.Dialogs,
-  IOUtils, Math;
+  IOUtils, Math, System.Hash;
+
+function GetFileHash(const AFile: String): String;
+begin
+  Result := String.Empty;
+  if FileExists(AFile) then
+    Result := System.Hash.THashMD5.GetHashStringFromFile(AFile);
+end;
 
 function FitInsideContainer(const AContainerWidth: Single;
   const AContentWidth: Single; const AContainerHeight: Single;

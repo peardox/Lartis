@@ -4,7 +4,7 @@
         <ProjectVersion>19.2</ProjectVersion>
         <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>36883</TargetedPlatforms>
         <AppType>Application</AppType>
@@ -265,7 +265,6 @@
         </DelphiCompile>
         <DCCReference Include="Unit1.pas">
             <Form>frmMain</Form>
-            <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="PythonSystem.pas"/>
         <DCCReference Include="Modules.pas"/>
@@ -274,32 +273,29 @@
         </DCCReference>
         <DCCReference Include="OptionsForm.pas">
             <Form>frmOptions</Form>
-            <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="StyleForm.pas">
             <Form>frmStyle</Form>
-            <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="TrainForm.pas">
             <Form>frmTrain</Form>
-            <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="EmbeddedForm.pas"/>
         <DCCReference Include="ChoiceForm.pas">
             <Form>frmChoice</Form>
-            <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="EvolveForm.pas">
             <Form>frmEvolve</Form>
-            <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="MovieForm.pas">
             <Form>frmMovie</Form>
-            <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="FunctionLibrary.pas"/>
         <DCCReference Include="Shaders.pas"/>
         <DCCReference Include="Settings.pas"/>
+        <DCCReference Include="DebugForm.pas">
+            <Form>frmDebug</Form>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -468,14 +464,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\Linux64\Release\libsk4d.so" Configuration="Debug" Class="Skia">
-                    <Platform Name="Linux64">
-                        <RemoteDir>.\</RemoteDir>
-                        <Operation>1</Operation>
-                        <RemoteName>libsk4d.so</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="images\free\train.png" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\images\free\</RemoteDir>
@@ -488,14 +476,6 @@
                         <RemoteDir>.\assets\internal</RemoteDir>
                         <Operation>0</Operation>
                         <RemoteName>python3-android-3.9.12-arm.zip</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\Linux64\Release\libsk4d.so" Configuration="Release" Class="Skia">
-                    <Platform Name="Linux64">
-                        <RemoteDir>.\</RemoteDir>
-                        <Operation>1</Operation>
-                        <RemoteName>libsk4d.so</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -592,14 +572,6 @@
                         <RemoteDir>Contents\MacOS\</RemoteDir>
                         <Operation>0</Operation>
                         <RemoteName>python3-macos-3.9.12-x86_64.zip</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\OSX64\Release\sk4d.dylib" Configuration="Debug" Class="Skia">
-                    <Platform Name="OSX64">
-                        <RemoteDir>Contents\MacOS\</RemoteDir>
-                        <Operation>1</Operation>
-                        <RemoteName>sk4d.dylib</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -760,11 +732,10 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\Win32\Release\sk4d.dll" Configuration="Debug" Class="Skia">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
-                        <Operation>0</Operation>
-                        <RemoteName>sk4d.dll</RemoteName>
+                <DeployFile LocalName="images\licensed\movie.png" Configuration="Release" Class="File">
+                    <Platform Name="Linux64">
+                        <RemoteDir>.\images\licensed</RemoteDir>
+                        <RemoteName>movie.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -774,10 +745,11 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="images\licensed\movie.png" Configuration="Release" Class="File">
-                    <Platform Name="Linux64">
-                        <RemoteDir>.\images\licensed</RemoteDir>
-                        <RemoteName>movie.png</RemoteName>
+                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\Win32\Release\sk4d.dll" Configuration="Debug" Class="Skia">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>0</Operation>
+                        <RemoteName>sk4d.dll</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -833,11 +805,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\OSXARM64\Release\sk4d.dylib" Configuration="Debug" Class="Skia">
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>Contents\MacOS\</RemoteDir>
-                        <Operation>1</Operation>
-                        <RemoteName>sk4d.dylib</RemoteName>
+                <DeployFile LocalName="Win64\Debug\Lartis.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>Lartis.rsm</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -854,12 +824,6 @@
                         <RemoteDir>.\</RemoteDir>
                         <Operation>0</Operation>
                         <RemoteName>python3-linux-3.9.12-x86_64.zip</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Win64\Debug\Lartis.rsm" Configuration="Debug" Class="DebugSymbols">
-                    <Platform Name="Win64">
-                        <RemoteName>Lartis.rsm</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -894,30 +858,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Condition="'$(AndroidAppBundle)'=='true'" Required="true" LocalName="$(SKIADIR)\Binary\Android\Release\libsk4d.so" Configuration="Release" Class="Skia">
-                    <Platform Name="Android64">
-                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>
-                        <Operation>1</Operation>
-                        <RemoteName>libsk4d.so</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\OSXARM64\Release\sk4d.dylib" Configuration="Release" Class="Skia">
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>Contents\MacOS\</RemoteDir>
-                        <Operation>1</Operation>
-                        <RemoteName>sk4d.dylib</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\Win64\Release\sk4d.dll" Configuration="Debug" Class="Skia">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\</RemoteDir>
-                        <Operation>0</Operation>
-                        <RemoteName>sk4d.dll</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="images\licensed\movie.png" Configuration="Release" Class="File">
                     <Platform Name="Android64">
                         <RemoteDir>assets\internal\</RemoteDir>
@@ -929,6 +869,22 @@
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\images/licensed\</RemoteDir>
                         <RemoteName>train.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Condition="'$(AndroidAppBundle)'=='true'" Required="true" LocalName="$(SKIADIR)\Binary\Android\Release\libsk4d.so" Configuration="Release" Class="Skia">
+                    <Platform Name="Android64">
+                        <RemoteDir>library\lib\armeabi-v7a\</RemoteDir>
+                        <Operation>1</Operation>
+                        <RemoteName>libsk4d.so</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\Win64\Release\sk4d.dll" Configuration="Debug" Class="Skia">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>0</Operation>
+                        <RemoteName>sk4d.dll</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1141,14 +1097,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\OSX64\Release\sk4d.dylib" Configuration="Release" Class="Skia">
-                    <Platform Name="OSX64">
-                        <RemoteDir>Contents\MacOS\</RemoteDir>
-                        <Operation>1</Operation>
-                        <RemoteName>sk4d.dylib</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="images\licensed\movie.png" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\images/licensed\</RemoteDir>
@@ -1156,14 +1104,14 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="$(BDS)\Redist\iossimulator\libpcre.dylib" Class="DependencyModule">
-                    <Platform Name="iOSSimulator">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="OSX64\Release\Lartis" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="OSX64">
                         <RemoteName>Lartis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="$(BDS)\Redist\iossimulator\libpcre.dylib" Class="DependencyModule">
+                    <Platform Name="iOSSimulator">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

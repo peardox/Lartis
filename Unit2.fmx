@@ -1,0 +1,109 @@
+object Form2: TForm2
+  Left = 0
+  Top = 0
+  Caption = 'Form2'
+  ClientHeight = 564
+  ClientWidth = 884
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object Panel1: TPanel
+    Align = Client
+    Size.Width = 691.000000000000000000
+    Size.Height = 544.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object StyleLayout: TRectangle
+      Align = Client
+      Size.Width = 691.000000000000000000
+      Size.Height = 544.000000000000000000
+      Size.PlatformDefault = False
+      OnPaint = StyleLayoutPaint
+      OnResize = StyleLayoutResize
+    end
+  end
+  object VertScrollBox1: TVertScrollBox
+    Align = Right
+    Position.X = 691.000000000000000000
+    Size.Width = 193.000000000000000000
+    Size.Height = 544.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Viewport.Width = 193.000000000000000000
+    Viewport.Height = 544.000000000000000000
+    object btnOpenFile: TButton
+      Hint = 'Open Image'
+      Position.X = 8.000000000000000000
+      Position.Y = 8.000000000000000000
+      Size.Width = 30.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'pagecurltoolbutton'
+      TabOrder = 4
+      Text = 'btnOpenFile'
+      OnClick = btnOpenFileClick
+    end
+    object Button2: TButton
+      Position.X = 72.000000000000000000
+      Position.Y = 8.000000000000000000
+      Size.Width = 30.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'cameratoolbutton'
+      TabOrder = 1
+      Text = 'Button2'
+      OnClick = Button2Click
+    end
+    object lblStyleWeightKey: TLabel
+      Position.X = 8.000000000000000000
+      Position.Y = 40.000000000000000000
+      Size.Width = 81.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'StyleWeight'
+      TabOrder = 2
+    end
+    object lblStyleWeightValue: TLabel
+      Position.X = 104.000000000000000000
+      Position.Y = 40.000000000000000000
+      Size.Width = 40.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.HorzAlign = Trailing
+      Text = '0.00'
+      TabOrder = 3
+    end
+    object TrackBar1: TTrackBar
+      CanParentFocus = True
+      Max = 1.000000000000000000
+      Orientation = Horizontal
+      Position.Y = 71.000000000000000000
+      Size.Width = 193.000000000000000000
+      Size.Height = 19.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      OnChange = TrackBar1Change
+    end
+    object Label1: TLabel
+      Position.X = 40.000000000000000000
+      Position.Y = 128.000000000000000000
+      Text = 'Label1'
+      TabOrder = 5
+    end
+  end
+  object ProgressBar1: TProgressBar
+    Align = Bottom
+    Max = 1.000000000000000000
+    Orientation = Horizontal
+    Position.Y = 544.000000000000000000
+    Size.Width = 884.000000000000000000
+    Size.Height = 20.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 368
+    Top = 144
+  end
+end

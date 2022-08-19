@@ -3,11 +3,16 @@ unit Shaders;
 interface
 
 uses
-  System.Classes, System.Types, System.TypInfo, FMX.Types, FMX.Graphics, FMX.Controls, FMX.Objects, FMX.Layouts, Skia, Skia.FMX;
+  System.Classes, System.Types, System.TypInfo, FMX.Types, FMX.Graphics,
+  FMX.Controls, FMX.Objects, FMX.Layouts, Skia, Skia.FMX;
 
 type
   TLayerImageType = (Styled, Original);
-  TLayerImages = Array[0..1] of TBitmap;
+  TLayerBitmap = record
+    ImageFile: String;
+    Bitmap: TBitmap;
+  end;
+  TLayerImages = Array[0..1] of TLayerBitmap;
 
   TAspectLayout = class(TRectangle)
   public
@@ -20,6 +25,7 @@ type
   end;
 
   TBaseShader = class(TSkPaintBox)
+//  TBaseShader = class(TSkAnimatedPaintBox)
   protected
     Effect: ISkRuntimeEffect;
     Painter: ISkPaint;
@@ -59,11 +65,39 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure AddShader;
-    function AddImage(const ImageType: TLayerImageType; const ImageFile: String): Boolean;
+    function GetStyleImage: String;
+    function GetOriginalImage: String;
+    Procedure SetStyleImage(const AFileName: String);
+    procedure SetOriginalImage(const AFileName: String);
+    function AddImage(const ImageType: TLayerImageType; const AImageFile: String): Boolean;
     function AddBitmap(const ImageType: TLayerImageType; const ImageBitmap: TBitmap): Boolean;
   published
     property OnDraw;
+    property StyleImage: String read GetStyleImage write SetStyleImage;
+    property OriginalImage: String read GetOriginalImage write SetOriginalImage;
   end;
+
+  TClockShader = class(TBaseShader)
+  private
+    procedure DoDraw(ASender: TObject; const ACanvas: ISkCanvas; const ADest: TRectF; const AOpacity: Single);
+  public
+    ImWidth: Integer;
+    ImHeight: Integer;
+    fImScale: Single;
+    fImOffsetX: Integer;
+    fImOffsetY: Integer;
+    fPercentDone: Single;
+    bmImage: TBitmap;
+    ImageFile: String;
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure AddShader;
+    function AddImage(const AImageFile: String): Boolean;
+    function AddBitmap(const AImageBitmap: TBitmap): Boolean;
+  published
+    property OnDraw;
+  end;
+
 
 const
   LayerImageNames: Array [0..1] of String = ('Styled', 'Original');
@@ -128,8 +162,6 @@ begin
 end;
 
 procedure TGridShader.AddShader;
-var
-  ShaderText: String;
 begin
   Enabled := False;
   ShaderText := LoadShader(TPath.Combine(ShaderPath,'grid.sksl'));
@@ -199,8 +231,11 @@ var
 begin
   inherited;
   for I := 0 to Length(bmImages) - 1 do
-    if Assigned(bmImages[I]) then
-      FreeAndNil(bmImages[I]);
+    if Assigned(bmImages[I].Bitmap) then
+      begin
+        bmImages[I].ImageFile := String.Empty;
+        FreeAndNil(bmImages[I].Bitmap);
+      end;
 end;
 
 procedure TLayerShader.MakeAlphaMap(const APixmap: ISkPixmap);
@@ -233,15 +268,37 @@ begin
     end;
 end;
 
-function TLayerShader.AddImage(const ImageType: TLayerImageType; const ImageFile: String): Boolean;
+function TLayerShader.GetStyleImage: String;
+begin
+  Result := bmImages[0].ImageFile;
+end;
+
+function TLayerShader.GetOriginalImage: String;
+begin
+  Result := bmImages[1].ImageFile;
+end;
+
+Procedure TLayerShader.SetStyleImage(const AFileName: String);
+begin
+  bmImages[0].ImageFile := AFileName;
+end;
+
+procedure TLayerShader.SetOriginalImage(const AFileName: String);
+begin
+  bmImages[1].ImageFile := AFileName;
+end;
+
+
+function TLayerShader.AddImage(const ImageType: TLayerImageType; const AImageFile: String): Boolean;
 begin
   Result := False;
-  if FileExists(ImageFile) then
+  if FileExists(AImageFile) then
     begin
       var ImageIdentifier: String := LayerImageNames[Ord(ImageType)];
-      bmImages[Ord(ImageType)] := TBitmap.Create;
-      bmImages[Ord(ImageType)].LoadFromFile(ImageFile);
-      Result := AddBitmap(ImageType, bmImages[Ord(ImageType)]);
+      bmImages[Ord(ImageType)].ImageFile := AImageFile;
+      bmImages[Ord(ImageType)].Bitmap := TBitmap.Create;
+      bmImages[Ord(ImageType)].Bitmap.LoadFromFile(AImageFile);
+      Result := AddBitmap(ImageType, bmImages[Ord(ImageType)].Bitmap);
     end;
 end;
 
@@ -304,8 +361,6 @@ begin
 end;
 
 procedure TLayerShader.AddShader;
-var
-  ShaderText: String;
 begin
   Enabled := False;
   ShaderText := LoadShader(TPath.Combine(ShaderPath,'original_colors.sksl'));
@@ -349,6 +404,139 @@ begin
       Effect.SetUniform('bPreserveTransparency', BoolToInt(iPreserveTransparency));
     if Effect.UniformExists('bInvertAlpha') then
       Effect.SetUniform('bInvertAlpha', BoolToInt(iInvertAlpha));
+    if Effect.UniformExists('fImScale') then
+      begin
+        if fImScale > 0 then
+          Effect.SetUniform('fImScale', 1 / fImScale)
+        else
+          Effect.SetUniform('fImScale', 1);
+      end;
+    if Effect.UniformExists('fImOffset') then
+      Effect.SetUniform('fImOffset', TSkRuntimeEffectFloat2.Create(fImOffsetX * (1 / fImScale), fImOffsetY * (1 / fImScale)));
+
+    ACanvas.DrawRect(ADest, Painter);
+  end;
+end;
+
+constructor TClockShader.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  fImScale := 1;
+  fImOffsetX := 0;
+  fImOffsetY := 0;
+  fPercentDone := 1;
+  ImageFile := String.Empty;
+
+  AddShader;
+end;
+
+destructor TClockShader.Destroy;
+begin
+  inherited;
+  if Assigned(bmImage) then
+    FreeAndNil(bmImage);
+end;
+
+procedure TClockShader.AddShader;
+begin
+  Enabled := False;
+//  ShaderText := LoadShader(TPath.Combine(ShaderPath,'progress.sksl'));
+  ShaderText := LoadShader(TPath.Combine(ShaderPath,'clock.sksl'));
+
+  var AErrorText := '';
+  Effect := TSkRuntimeEffect.MakeForShader(ShaderText, AErrorText);
+  if AErrorText <> '' then
+    raise Exception.Create('Error creating shader : ' + AErrorText);
+
+  Enabled := True;
+
+  OnDraw := DoDraw;
+end;
+
+function TClockShader.AddImage(const AImageFile: String): Boolean;
+begin
+  Result := False;
+  if FileExists(AImageFile) then
+    begin
+      ImageFile := AImageFile;
+      bmImage := TBitmap.Create;
+      bmImage.LoadFromFile(ImageFile);
+      Result := AddBitmap(bmImage);
+    end
+  else
+      ImageFile := String.Empty;
+end;
+
+function TClockShader.AddBitmap(const AImageBitmap: TBitmap): Boolean;
+var
+  ImImageInfo: TSkImageInfo;
+  HaveImage: Boolean;
+begin
+  HaveImage := False;
+
+  var ImageIdentifier: String := 'sImage';
+
+  if Assigned(AImageBitmap) and Effect.ChildExists(ImageIdentifier) then
+  begin
+    var TexImage: ISkImage := AImageBitmap.ToSkImage;
+
+    if Assigned(TexImage) then
+    begin
+      HaveImage := True;
+      Effect.ChildrenShaders[ImageIdentifier] := TexImage.MakeShader(TSKSamplingOptions.High);
+      if Effect.UniformExists(ImageIdentifier + 'Resolution') then
+        case Effect.UniformType[ImageIdentifier + 'Resolution'] of
+          TSkRuntimeEffectUniformType.Float2:
+            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectFloat2.Create(TexImage.Width, TexImage.Height));
+          TSkRuntimeEffectUniformType.Float3:
+            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectFloat3.Create(TexImage.Width, TexImage.Height, 0));
+          TSkRuntimeEffectUniformType.Int2:
+            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectInt2.Create(TexImage.Width, TexImage.Height));
+          TSkRuntimeEffectUniformType.Int3:
+            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectInt3.Create(TexImage.Width, TexImage.Height, 0));
+        end;
+
+      ImImageInfo := TexImage.ImageInfo;
+      ImWidth := ImImageInfo.Width;
+      ImHeight := ImImageInfo.Height;
+
+      if Owner is TAspectLayout then
+        begin
+          if (TAspectLayout(Parent).ChildMaxImHeight < ImHeight) or
+             (TAspectLayout(Parent).ChildMaxImWidth < ImWidth) then
+            begin
+              if (TAspectLayout(Parent).ChildMaxImHeight < ImHeight) then
+                TAspectLayout(Parent).ChildMaxImHeight := ImHeight;
+              if (TAspectLayout(Parent).ChildMaxImWidth < ImWidth) then
+                TAspectLayout(Parent).ChildMaxImWidth := ImWidth;
+              TAspectLayout(Parent).FitToContainer;
+            end;
+        end;
+
+    Painter := TSkPaint.Create;
+    Painter.Shader := Effect.MakeShader(False);
+    end;
+  end;
+  Result := HaveImage;
+end;
+
+procedure TClockShader.DoDraw(ASender: TObject;
+  const ACanvas: ISkCanvas; const ADest: TRectF; const AOpacity: Single);
+begin
+  if Assigned(Effect) and Assigned(Painter) then
+  begin
+    if Effect.UniformExists('iResolution') then
+    begin
+      if Effect.UniformType['iResolution'] = TSkRuntimeEffectUniformType.Float3 then
+        Effect.SetUniform('iResolution', [Single(ADest.Width), Single(ADest.Height), Single(0)])
+      else if Effect.UniformType['iResolution'] = TSkRuntimeEffectUniformType.Float2 then
+        Effect.SetUniform('iResolution', PointF(ADest.Width, ADest.Height))
+      else
+        Effect.SetUniform('iResolution', [Int(ADest.Width), Int(ADest.Height)]);
+    end;
+    if Effect.UniformExists('fPercentDone') then
+      Effect.SetUniform('fPercentDone', fPercentDone);
+
     if Effect.UniformExists('fImScale') then
       begin
         if fImScale > 0 then

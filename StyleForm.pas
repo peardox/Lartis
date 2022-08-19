@@ -16,17 +16,27 @@ type
     btnOpenFile: TButton;
     StyleLayout: TLayout;
     OpenDialog1: TOpenDialog;
+    Button2: TButton;
+    ProgressBar1: TProgressBar;
+    TrackBar1: TTrackBar;
+    lblStyleWeightKey: TLabel;
+    lblStyleWeightValue: TLabel;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnOpenFileClick(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure StyleLayoutResize(Sender: TObject);
+    procedure TrackBar1Change(Sender: TObject);
   private
     { Private declarations }
   public
     { Public declarations }
     Grid: TGridShader;
-    StyleLayer: TLayerShader;
-    OriginalLayer: TLayerShader;
+    ImageLayer: TLayerShader;
+    ClockLayer: TClockShader;
     Container: TAspectLayout;
+    procedure ShowStyleProgress(const AValue: Single);
+    procedure AddStyledImage(Sender: TObject; const AFileName: String);
   end;
 
 var
@@ -40,21 +50,63 @@ uses
 
 {$R *.fmx}
 
+procedure TfrmStyle.ShowStyleProgress(const AValue: Single);
+begin
+  ProgressBar1.Value := AValue;
+end;
+
+procedure TfrmStyle.StyleLayoutResize(Sender: TObject);
+begin
+  if Assigned(Container) then
+    begin
+      Container.FitToContainer;
+    end;
+end;
+
+procedure TfrmStyle.TrackBar1Change(Sender: TObject);
+begin
+  if Assigned(ImageLayer) then
+    begin
+      ImageLayer.fStyleWeight := (TrackBar1.Value / TrackBar1.Max);
+      lblStyleWeightValue.Text := FormatFloat('##0.00', ImageLayer.fStyleWeight * 100);
+    end;
+end;
+
 procedure TfrmStyle.btnOpenFileClick(Sender: TObject);
 begin
   if Assigned(PySys) then
     begin
       if OpenDialog1.Execute then
         begin
-          if Assigned(OriginalLayer) then
-            begin
-              FreeAndNil(OriginalLayer);
-              OriginalLayer := TLayerShader.Create(Container);
-            end;
+          if Assigned(ImageLayer) then
+            FreeAndNil(ImageLayer);
 
-          OriginalLayer.AddImage(Original, OpenDialog1.FileName);
- //         PySys.modStyle.Stylize(OpenDialog1.Filename);
+          ImageLayer := TLayerShader.Create(Container);
+          ImageLayer.AddImage(Original, OpenDialog1.FileName);
         end;
+    end;
+end;
+
+procedure TfrmStyle.AddStyledImage(Sender: TObject; const AFileName: String);
+begin
+  if Assigned(PySys) then
+    begin
+      if Assigned(ImageLayer) then
+        begin
+          PySys.Log('Adding Styled Image ' + AFileName);
+          ImageLayer.AddImage(Styled, AFileName);
+          ImageLayer.iPreserveTransparency := False;
+          ImageLayer.fStyleWeight := 1.0;
+        end;
+    end;
+end;
+
+procedure TfrmStyle.Button2Click(Sender: TObject);
+begin
+  if Assigned(PySys) and Assigned(ImageLayer) then
+    begin
+      if ImageLayer.OriginalImage <> String.Empty then
+        PySys.modStyle.Stylize(ImageLayer.OriginalImage);
     end;
 end;
 
@@ -67,16 +119,7 @@ end;
 procedure TfrmStyle.FormCreate(Sender: TObject);
 begin
       Container := TAspectLayout.Create(StyleLayout);
-
       Grid := TGridShader.Create(Container);
-
-
-      StyleLayer := TLayerShader.Create(Container);
-//      StyleLayer.AddImage(Styled, TPath.Combine(MediaPath, 'haywain-wall.jpg'));
-//      StyleLayer.AddImage(Original, TPath.Combine(MediaPath, 'haywain.jpg'));
-
-      OriginalLayer := TLayerShader.Create(Container);
-//      OriginalLayer.AddImage(Styled, TPath.Combine(MediaPath, 'fermin-6.jpg'));
 end;
 
 

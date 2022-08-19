@@ -4,7 +4,7 @@ object frmSetup: TfrmSetup
   BorderIcons = []
   BorderStyle = Single
   Caption = 'Form2'
-  ClientHeight = 240
+  ClientHeight = 226
   ClientWidth = 480
   Position = DesktopCenter
   FormFactor.Width = 320
@@ -18,10 +18,10 @@ object frmSetup: TfrmSetup
     DataDetectorTypes = []
     Align = Client
     Size.Width = 480.000000000000000000
-    Size.Height = 240.000000000000000000
+    Size.Height = 226.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
     Viewport.Width = 476.000000000000000000
-    Viewport.Height = 236.000000000000000000
+    Viewport.Height = 222.000000000000000000
   end
 end

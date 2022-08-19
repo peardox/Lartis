@@ -1,0 +1,37 @@
+object frmDebug: TfrmDebug
+  Left = 0
+  Top = 0
+  Caption = 'Debug'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object Layout1: TLayout
+    Align = Bottom
+    Position.Y = 430.000000000000000000
+    Size.Width = 640.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object btnClose: TButton
+      Align = Center
+      TabOrder = 0
+      Text = 'Close'
+      OnClick = btnCloseClick
+    end
+  end
+  object mmDebug: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Align = Client
+    Size.Width = 640.000000000000000000
+    Size.Height = 430.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Viewport.Width = 636.000000000000000000
+    Viewport.Height = 426.000000000000000000
+  end
+end

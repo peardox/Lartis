@@ -1,10 +1,12 @@
 unit PythonSystem;
 
+{$DEFINE USESAFEMASK}
+
 interface
 uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes,
   System.Classes, System.Variants, System.Threading, PyEnvironment,
-  FMX.Types, FMX.Memo, FMX.Forms,
+  FMX.Types, FMX.Memo, FMX.Forms, Math,
   PyEnvironment.Embeddable, PythonEngine, PyCommon,
   PyEnvironment.Embeddable.Res, PyEnvironment.Embeddable.Res.Python39,
   PyModule, PyPackage,
@@ -30,12 +32,11 @@ type
     SciPy: TSciPy;
     TorchVision: TTorchVision;
 
-    FakeTimerID: String;
-    FakeTimerCount: Integer;
-
     FLogTarget: TMemo;
     procedure PackageConfigureInstall(Sender: TObject);
+    procedure PackageBeforeInstall(Sender: TObject);
     procedure PackageAfterInstall(Sender: TObject);
+    procedure PackageAfterImport(Sender: TObject);
     procedure PackageBeforeImport(Sender: TObject);
     procedure PackageInstallError(Sender: TObject; AErrorMessage: string);
     procedure AddExtraUrl(APackage: TPyManagedPackage; const AUrl: string);
@@ -56,11 +57,7 @@ type
     modStyle: TModStyle;
     modTrain: TModTrain;
     modPyIO: TModPyIO;
-    FakeTimer: TTimer;
 
-    procedure DoFakeTimer(Sender: TObject);
-    procedure FakeProgressStart(const APackage: String);
-    procedure FakeProgressStop(const APackage: String);
     property LogTarget: TMemo read FLogTarget write SetLogTarget;
     constructor Create(AOwner: TComponent); override;
     procedure SetupSystem;
@@ -73,9 +70,12 @@ type
 
 var
   PySys: TPySys;
+  FPUMASK: TArithmeticExceptionMask;
 
 function EscapeBackslashForPython(const AStr: String): String;
 procedure GetAllModels(const AltModelDir: String = String.Empty; const ModelSubDir: String = String.Empty);
+procedure SafeMaskFPUExceptions(ExceptionsMasked : boolean;
+  MatchPythonPrecision : Boolean = True);
 
 implementation
 
@@ -85,6 +85,33 @@ uses
   SetupForm,
   PyPackage.Manager.Pip,
   PyPackage.Manager.Defs.Pip;
+
+procedure SafeMaskFPUExceptions(ExceptionsMasked : boolean;
+  MatchPythonPrecision : Boolean);
+begin
+  {$IFDEF USESAFEMASK}
+  {$IF Defined(CPUX86) or Defined(CPUX64)}
+  if ExceptionsMasked then
+    begin
+    FPUMASK := GetExceptionMask;
+    SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,
+      exOverflow, exUnderflow, exPrecision]);
+    end
+  else
+    SetExceptionMask(FPUMASK);
+  {$WARN SYMBOL_PLATFORM OFF}
+  {$IF Defined(FPC) or Defined(MSWINDOWS)}
+  if MatchPythonPrecision then
+      SetPrecisionMode(pmDouble)
+    else
+      SetPrecisionMode(pmExtended);
+  {$WARN SYMBOL_PLATFORM ON}
+  {$IFEND}
+  {$IFEND}
+  {$ELSE}
+    MaskFPUExceptions(ExceptionsMasked, MatchPythonPrecision);
+  {$IFEND}
+end;
 
 procedure GetAllModels(const AltModelDir: String = String.Empty; const ModelSubDir: String = String.Empty);
 var
@@ -155,11 +182,8 @@ constructor TPySys.Create(AOwner: TComponent);
 begin
   inherited;
   SystemActive := False;
-  FakeTimerID := String.Empty;
   PyIsReactivating := False;
   PyCleanOnExit := False;
-  FakeTimer := TTimer.Create(Self);
-  FakeTimer.Enabled := False;
   // Wipe Python when finished
   if not DirectoryExists(IncludeTrailingPathDelimiter(AppHome) + pyshim) then
     ForceDirectories(IncludeTrailingPathDelimiter(AppHome) + pyshim);
@@ -196,8 +220,7 @@ begin
 end;
 
 
-procedure TPySys.Log
-(const AMsg: String; const SameLine: Boolean = False);
+procedure TPySys.Log(const AMsg: String; const SameLine: Boolean = False);
 begin
   if TThread.CurrentThread.ThreadID <> MainThreadID then
     TThread.Synchronize(nil,
@@ -247,11 +270,12 @@ begin
   TPyManagedPackage(Sender).AutoImport := False;
   TPyManagedPackage(Sender).AutoInstall := False;
 
+  TPyManagedPackage(Sender).BeforeInstall := PackageBeforeInstall;
   TPyManagedPackage(Sender).AfterInstall := PackageAfterInstall;
   TPyManagedPackage(Sender).OnInstallError := PackageInstallError;
   TPyManagedPackage(Sender).BeforeImport := PackageBeforeImport;
+  TPyManagedPackage(Sender).AfterImport := PackageAfterImport;
 
-  MaskFPUExceptions(True);
   if TPyPackage(Sender).PyModuleName = 'torch' then
     begin
     Log('Installing ' + TPyPackage(Sender).PyModuleName + sLineBreak +
@@ -263,16 +287,27 @@ begin
     end;
 end;
 
+procedure TPySys.PackageBeforeInstall(Sender: TObject);
+begin
+  SafeMaskFPUExceptions(True);
+end;
+
 procedure TPySys.PackageAfterInstall(Sender: TObject);
 begin
+  SafeMaskFPUExceptions(False);
   Log('Installed ' + TPyPackage(Sender).PyModuleName);
   Inc(PyPackagesInstalled);
 end;
 
 procedure TPySys.PackageBeforeImport(Sender: TObject);
 begin
+  SafeMaskFPUExceptions(True);
   Log('Importing ' + TPyPackage(Sender).PyModuleName);
-  MaskFPUExceptions(True);
+end;
+
+procedure TPySys.PackageAfterImport(Sender: TObject);
+begin
+  SafeMaskFPUExceptions(False);
 end;
 
 procedure TPySys.PackageInstallError(Sender: TObject; AErrorMessage: string);
@@ -316,7 +351,7 @@ end;
 
 procedure TPySys.DoReady(Sender: TObject; const APythonVersion: string);
 begin
-  Log('Ready');
+  Log('Ready Event');
 end;
 
 procedure TPySys.SetupSystem;
@@ -343,50 +378,47 @@ begin
   PyEnv.AfterDeactivate := PyEnvAfterDeactivate;
   // Tidy up on exit (clean Python for testing)
 
-  Log('Calling Setup');
-
   PyEnv.EnvironmentPath := IncludeTrailingPathDelimiter(AppHome) + 'python';
   {$ifdef MACOS64}
   PyEng.DllPath := PyEnv.EnvironmentPath + '/' + pyver + '/lib/';
   PyEng.DllName := 'libpython' + pyver + '.dylib';
   {$endif}
-//  PyEng.SetPythonHome(IncludeTrailingPathDelimiter(PyEnv.EnvironmentPath) + pyver);
 
   Log('Env Path = ' + PyEnv.EnvironmentPath);
   Log('Eng Lib = ' + PyEng.DllName);
   Log('Eng Libpath = ' + PyEng.DllPath);
 
-  Log('Numpy');
+//  Log('Numpy');
   NumPy := TNumPy.Create(Self);
   SetupPackage(NumPy);
   // Create NumPy
 
-  Log('Scipy');
+//  Log('Scipy');
   SciPy := TSciPy.Create(Self);
   SetupPackage(SciPy);
   // Create SciPy
 
-  Log('AWS');
+//  Log('AWS');
   AWS := TBoto3.Create(Self);
   SetupPackage(AWS);
   // Create AWS
 
-  Log('PSUtil');
+//  Log('PSUtil');
   PSUtil := TPSUtil.Create(Self);
   SetupPackage(PSUtil);
   // Create PSUtil
 
-  Log('Totch');
+//  Log('Torch');
   Torch := TPyTorch.Create(Self);
   SetupPackage(Torch, 'https://download.pytorch.org/whl/cu116');
   // Create Torch
 
-  Log('TorchVision');
+//  Log('TorchVision');
   TorchVision := TTorchVision.Create(Self);
   SetupPackage(TorchVision, 'https://download.pytorch.org/whl/cu116');
   // Create TorchVision
 
-  Log('Add Modules');
+//  Log('Add Modules');
   modStyle := TModStyle.Create(Self);
   modStyle.Engine := PyEng;
   modStyle.ModuleName := 'pstyle';
@@ -399,51 +431,17 @@ begin
   modPyIO.Engine := PyEng;
   modPyIO.ModuleName := 'pinout';
 
-  Log('Call Setup');
+//  Log('Call Setup');
   FTask := TTask.Run(ThreadedSetup);
 
 end;
 
-procedure TPySys.FakeProgressStart(const APackage: String);
-begin
-  TThread.Synchronize(nil,
-    procedure()
-    begin
-      if Assigned(FakeTimer) then
-        begin
-          FakeTimerID := APackage;
-          FakeTimerCount := 0;
-          FakeTimer.OnTimer := DoFakeTimer;
-          FakeTimer.Enabled := True;
-        end;
-    end
-  );
-end;
-
-procedure TPySys.FakeProgressStop(const APackage: String);
-begin
-  TThread.Synchronize(nil,
-    procedure()
-    begin
-      if Assigned(FakeTimer) then
-        begin
-          FakeTimerID := String.Empty;
-          FakeTimer.OnTimer := Nil;
-          FakeTimer.Enabled := False;
-        end;
-    end
-  );
-end;
-
 procedure TPySys.ThreadedSetup;
 begin
-  Log('In Threaded Setup');
   PyEnv.Setup(pyver);
-  Log('Just ran PyEnv.Setup');
   FTask.CheckCanceled();
   // Install Python if required
 
-  Log('Calling Activate');
   // Show some important stuff
   Log('PyEng Libpath = ' + PyEng.DllPath);
   Log('PyEng Lib = ' + PyEng.DllName);
@@ -461,44 +459,31 @@ begin
   // Activate Python
 
   Log('Numpy Install');
-  FakeProgressStart('Numpy');
   NumPy.Install();
-  FakeProgressStop('Numpy');
   FTask.CheckCanceled();
   // Create NumPy
 
   Log('Scipy Install');
-  FakeProgressStart('Scipy');
   SciPy.Install();
-  FakeProgressStop('Scipy');
   FTask.CheckCanceled();
   // Create SciPy
 
   Log('AWS Install');
-  FakeProgressStart('AWS');
   AWS.Install();
-  FakeProgressStop('AWS');
-  FTask.CheckCanceled();
   // Create AWS
 
   Log('PSUtil Install');
-  FakeProgressStart('PSUtil');
   PSUtil.Install();
-  FakeProgressStop('PSUtil');
   FTask.CheckCanceled();
   // Create PSUtil
 
   Log('Torch Install');
-  FakeProgressStart('Torch');
   Torch.Install();
-  FakeProgressStop('Torch');
   FTask.CheckCanceled();
   // Create Torch
 
   Log('TorchVision Install');
-  FakeProgressStart('TorchVision');
   TorchVision.Install();
-  FakeProgressStop('TorchVision');
   FTask.CheckCanceled();
   // Create TorchVision
 
@@ -506,14 +491,21 @@ begin
     procedure()
     begin
       Log('Import All');
-      FakeProgressStart('Modules');
+{
+      Log('Numpy Import');
       Numpy.Import();
+      Log('SciPy Import');
       SciPy.Import();
+      Log('AWS Import');
       AWS.Import();
+      Log('PSUtil Import');
       PSUtil.Import();
+      Log('Torch Import');
       Torch.Import();
+      Log('TorchVision Import');
       TorchVision.Import();
-      FakeProgressStop('Modules');
+}
+      Log('All Imported');
 
       ShimSysPath(pyshim);
       RunSystem;
@@ -525,10 +517,8 @@ begin
     begin
       SystemActive := True;
       FLogTarget := Nil;
-//      frmSetup.Close;
     end
   );
-//  Log('Setup Finished');
 end;
 
 procedure TPySys.ShutdownSystem;
@@ -559,7 +549,9 @@ begin
     for var i := 0 to Shim.Count - 1 do
       Log(Shim[i]);
 
+    SafeMaskFPUExceptions(True);
     PyEng.ExecStrings(Shim);
+    SafeMaskFPUExceptions(False);
     LastShimPath := IncludeTrailingPathDelimiter(AppHome) + ShimPath;
   finally
     if not(Shim = Nil) then
@@ -581,8 +573,9 @@ begin
   // A little script to check we're working as expected
 
   try
-    MaskFPUExceptions(True);
+    SafeMaskFPUExceptions(True);
     PyEng.ExecStrings(PythonCode);
+    SafeMaskFPUExceptions(False);
   except
     on E: EPyImportError do
       begin
@@ -613,8 +606,6 @@ begin
         Log('Error : ' + E.Message);
       end;
   end;
-
-  MaskFPUExceptions(False);
 
   Log('Done');
 end;
@@ -622,8 +613,9 @@ end;
 procedure TPySys.RunSystem;
 begin
   try
-    MaskFPUExceptions(True);
+    SafeMaskFPUExceptions(True);
     PyEng.ExecStrings(SystemCode);
+    SafeMaskFPUExceptions(False);
   except
     on E: EPyImportError do
       begin
@@ -655,18 +647,8 @@ begin
       end;
   end;
 
-  MaskFPUExceptions(False);
   LogTarget := Nil;
   frmSetup.Close;
-  Log('Ready');
 end;
-
-procedure TPySys.DoFakeTimer(Sender: TObject);
-begin
-  Inc(FakeTimerCount);
-  Log(FakeTimerID + '(' + IntToStr(FakeTimerCount) + ') Fake Progress................', True);
-end;
-
-
 
 end.

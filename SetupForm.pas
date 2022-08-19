@@ -15,6 +15,7 @@ type
   private
     { Private declarations }
     SetupRunning: Boolean;
+    procedure LoadMainForm;
   public
     { Public declarations }
   end;
@@ -39,12 +40,6 @@ end;
 
 procedure TfrmSetup.FormShow(Sender: TObject);
 begin
-  with Parent as TForm do
-    begin;
-    //  Self.Top := Top; // + Floor(Height / 2);
-    //  Self.Left := Left; // + Floor(Width / 2);
-    end;
-
   if not SetupRunning and not SystemActive then
     begin
       SetupRunning := True;
@@ -54,5 +49,14 @@ begin
     end;
 end;
 
+procedure TfrmSetup.LoadMainForm;
+var
+  form: TForm;
+begin
+//  form := TMainForm.Create(Application);
+  form.Show;
+  Application.MainForm := form;
+  Close;
+end;
 
 end.

@@ -32,6 +32,7 @@ type
     ChoiceLayout: TLayout;
     OptionsMenu: TMenuItem;
     ExitMenu: TMenuItem;
+    DebugMenu: TMenuItem;
     {$IFDEF ENABLE_EVOLVE}
     EvolveLayout: TLayout;
     {$ENDIF}
@@ -41,12 +42,12 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
     procedure OptionsMenuClick(Sender: TObject);
     procedure ExitMenuClick(Sender: TObject);
+    procedure DebugMenuClick(Sender: TObject);
   private
     { Private declarations }
     function EmbedForm(AParent:TControl; AForm:TEmbeddedForm): TEmbeddedForm;
@@ -67,8 +68,10 @@ implementation
 uses
   Settings,
   Math,
+  FunctionLibrary,
   PythonSystem,
   OptionsForm,
+  DebugForm,
   ChoiceForm,
   StyleForm,
   TrainForm,
@@ -206,6 +209,11 @@ begin
   {$ENDIF}
 end;
 
+procedure TfrmMain.DebugMenuClick(Sender: TObject);
+begin
+  frmDebug.Show;
+end;
+
 procedure TfrmMain.ExitMenuClick(Sender: TObject);
 begin
   Application.Terminate;
@@ -220,12 +228,9 @@ procedure TfrmMain.Button1Click(Sender: TObject);
 var
   I: Integer;
 begin
- ShowMessage('Button1Click');
- Exit;
-
- if Assigned(PySys) then
+ if Assigned(PySys) and SystemActive then
     begin
-//    {$IFDEF MSWINDOWS}
+      frmDebug.Show;
       var gpu_count: Variant := PySys.Torch.torch.cuda.device_count();
       var cpu_cores: Variant := PySys.PSUtil.psutil.cpu_count(False);
       var cpu_threads: Variant := PySys.PSUtil.psutil.cpu_count(True);
@@ -251,26 +256,10 @@ begin
       PySys.Log('PSUtil returned cpu_freq = ' + cpu_freq.current);
       PySys.Log('PSUtil returned total_memory = ' + virtual_memory.total);
       PySys.Log('PSUtil returned available_memory = ' + virtual_memory.available);
-//    {$ENDIF}
-{
-      GetAllModels;
-      for var I := 0 to ModelList.Count - 1 do
-        Log(ModelList[I]);
-}
+
+//      PySys.Log(GetFileHash('Z:\models\mosaic\mosaic-100.pth'));
+
       end;
-end;
-
-procedure TfrmMain.Button2Click(Sender: TObject);
-begin
-
-  if Assigned(PySys) then
-    begin
-      if OpenDialog1.Execute then
-        begin
-          PySys.modStyle.Stylize(OpenDialog1.Filename);
-        end;
-    end;
-
 end;
 
 end.

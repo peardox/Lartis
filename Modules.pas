@@ -9,11 +9,13 @@ uses
 
 type
   TPyIOOptions = record
-    JsonLog: String;
-    StyleAbortFlag: Boolean;
+    TrainJsonLog: String;
     TrainAbortFlag: Boolean;
     TrainSampleFlag: Boolean;
     SampleFilename: String;
+    StyleAbortFlag: Boolean;
+    StyleFilename: String;
+    StyleJsonLog: String;
   end;
 
   TTrainOptions = record
@@ -72,12 +74,20 @@ type
     train_delta: Single;
   end;
 
+  TStyleLog = record
+    event: Integer;
+    subevent: Integer;
+    time: Single;
+  end;
+
   TModTrain = class(TPythonModule)
     procedure DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+    procedure DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
   private
     FTask: ITask;
     FOptions: TTrainOptions;
   public
+    ProgressCount: Integer;
     property Options: TTrainOptions read FOptions write FOptions;
     constructor Create(AOwner: TComponent); override;
     procedure CreateDefaultOptions;
@@ -92,10 +102,12 @@ type
 
   TModStyle = class(TPythonModule)
     procedure DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+    procedure DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
   private
     FTask: ITask;
     FOptions: TStyleOptions;
   public
+    ProgressCount: Integer;
     property Options: TStyleOptions read FOptions write FOptions;
     constructor Create(AOwner: TComponent); override;
     procedure CreateDefaultOptions;
@@ -130,6 +142,9 @@ implementation
 
 uses
   Settings,
+  StyleForm,
+//  TrainForm,
+  FMX.Forms,
   PythonSystem;
 
 ///// Helper for TPythonModule /////
@@ -196,6 +211,10 @@ begin
       ev := TEventDef.Create(Events);
       ev.Name := 'TrainProgress';
       ev.OnExecute := DoProgress;
+
+      ev := TEventDef.Create(Events);
+      ev.Name := 'TrainFinished';
+      ev.OnExecute := DoFinished;
     end;
 end;
 
@@ -461,6 +480,16 @@ begin
   Result := Engine.ReturnNone;
 end;
 
+procedure TModTrain.DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+var
+  jstr: Variant;
+begin
+  jstr := Engine.PyObjectAsString(Args);
+
+  PySys.Log(jstr);
+  Result := Engine.ReturnNone;
+end;
+
 ///// Train Module Procs /////
 procedure TModTrain.Train(const AFile: String; const AModel: String);
 begin
@@ -469,6 +498,7 @@ end;
 
 procedure TModTrain.Train(const AFile: String; const AModel: String; const StyleWeight: Double);
 begin
+  ProgressCount := 0;
   FOptions.style_image := AFile;
   FOptions.model_name := AModel;
   FOptions.model_dir := IncludeTrailingPathDelimiter(AppHome) + 'models';
@@ -554,6 +584,7 @@ end;
 
 procedure TModStyle.CreateDefaultOptions;
 begin
+  ProgressCount := 0;
   FOptions.content_image := 'input-images/haywain.jpg';
   FOptions.content_image_raw := String.Empty;
   FOptions.output_image := 'output-images/lartis-mosaic-vgg19.jpg';
@@ -581,6 +612,10 @@ begin
       ev := TEventDef.Create(Events);
       ev.Name := 'StyleProgress';
       ev.OnExecute := DoProgress;
+
+      ev := TEventDef.Create(Events);
+      ev.Name := 'StyleFinished';
+      ev.OnExecute := DoFinished;
 
     end;
 end;
@@ -719,12 +754,50 @@ end;
 ///// Style Module Events /////
 
 procedure TModStyle.DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
-var
-  jstr: Variant;
+  procedure HandleLogLine(const ALogLine: String);
+  var
+    lSerializer: TJsonSerializer;
+    log: TTrainLog;
+  begin
+    lSerializer := TJsonSerializer.Create;
+    try
+      try
+        log := lSerializer.Deserialize<TTrainLog>(ALogLine);
+        Inc(ProgressCount);
+        frmStyle.ShowStyleProgress(ProgressCount / 45);
+        Application.ProcessMessages;
+//        PySys.Log('Event => ' + ALogLine);
+      except
+       on E : Exception do
+       begin
+         PySys.Log('Exception class name = '+E.ClassName);
+         PySys.Log('Exception message = '+E.Message);
+         PySys.Log(ALogLine);
+       end;
+      end;
+    finally
+      FreeAndNil(lSerializer);
+    end;
+  end;
 begin
-  jstr := Engine.PyObjectAsString(Args);
+  if TThread.CurrentThread.ThreadID <> MainThreadID then
+    TThread.Synchronize(nil,
+      procedure()
+      begin
+        PySys.Log('InThread');
+      end)
+    else
+      HandleLogLine(PySys.modPyIO.Options.StyleJsonLog);
 
-  PySys.Log(jstr);
+//  PySys.Log('==> ' + );
+  Result := Engine.ReturnNone;
+end;
+
+procedure TModStyle.DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+begin
+  PySys.Log('FN > ' + PySys.modPyIO.Options.StyleFilename );
+  frmStyle.AddStyledImage(Self, PySys.modPyIO.Options.StyleFilename);
+  frmStyle.ShowStyleProgress(0);
   Result := Engine.ReturnNone;
 end;
 
@@ -732,6 +805,8 @@ end;
 
 function TModStyle.Stylize(const AFile: String): String;
 begin
+  ProgressCount := 0;
+  frmStyle.ShowStyleProgress(0);
   FOptions.content_image := AFile;
   FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-tile_test.jpg';
   FOptions.model := 'homer';
@@ -812,11 +887,13 @@ end;
 
 procedure TModPyIO.CreateDefaultOptions;
 begin
-  FOptions.JsonLog := String.Empty;
-  FOptions.StyleAbortFlag := False;
+  FOptions.TrainJsonLog := String.Empty;
   FOptions.TrainAbortFlag := False;
   FOptions.TrainSampleFlag := False;
   FOptions.SampleFilename:= String.Empty;
+  FOptions.StyleAbortFlag := False;
+  FOptions.StyleFilename := String.Empty;
+  FOptions.StyleJsonLog := String.Empty;
 end;
 
 procedure TModPyIO.InitializeModule(Sender: TObject);
@@ -836,16 +913,20 @@ begin
   with GetPythonEngine do
     if PyArg_ParseTuple( args, 's:GetProperty',@key ) <> 0 then
       begin
-        if key = 'JsonLog' then
-          Result := VariantAsPyObject(FOptions.JsonLog)
-        else if key = 'StyleAbortFlag' then
-          Result := VariantAsPyObject(FOptions.StyleAbortFlag)
+        if key = 'TrainJsonLog' then
+          Result := VariantAsPyObject(FOptions.TrainJsonLog)
         else if key = 'TrainAbortFlag' then
           Result := VariantAsPyObject(FOptions.TrainAbortFlag)
         else if key = 'TrainSampleFlag' then
           Result := VariantAsPyObject(FOptions.TrainSampleFlag)
         else if key = 'SampleFilename' then
           Result := VariantAsPyObject(FOptions.SampleFilename)
+        else if key = 'StyleAbortFlag' then
+          Result := VariantAsPyObject(FOptions.StyleAbortFlag)
+        else if key = 'StyleFilename' then
+          Result := VariantAsPyObject(FOptions.StyleFilename)
+        else if key = 'StyleJsonLog' then
+          Result := VariantAsPyObject(FOptions.StyleJsonLog)
         else
           begin
             PyErr_SetString (PyExc_AttributeError^, PAnsiChar(Format('Unknown property "%s"', [key])));
@@ -864,14 +945,9 @@ begin
   with GetPythonEngine do
     if PyArg_ParseTuple( args, 'sO:SetProperty',@key, @value ) <> 0 then
       begin
-        if key = 'JsonLog' then
+        if key = 'TrainJsonLog' then
           begin
-            FOptions.JsonLog := PyObjectAsVariant( value );
-            Result := ReturnNone;
-          end
-        else if key = 'StyleAbortFlag' then
-          begin
-            FOptions.StyleAbortFlag := PyObjectAsVariant( value );
+            FOptions.TrainJsonLog := PyObjectAsVariant( value );
             Result := ReturnNone;
           end
         else if key = 'TrainAbortFlag' then
@@ -889,6 +965,21 @@ begin
             FOptions.SampleFilename := PyObjectAsVariant( value );
             Result := ReturnNone;
           end
+        else if key = 'StyleAbortFlag' then
+          begin
+            FOptions.StyleAbortFlag := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
+        else if key = 'StyleFilename' then
+          begin
+            FOptions.StyleFilename := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
+        else if key = 'StyleJsonLog' then
+          begin
+            FOptions.StyleJsonLog := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
         else
           begin
             PyErr_SetString (PyExc_AttributeError^, PAnsiChar(Format('Unknown property "%s"', [key])));
@@ -903,10 +994,14 @@ function TModPyIO.GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
 begin
   with GetPythonEngine do
     begin
-      Result := PyList_New(3);
-      PyList_SetItem(Result, 0, PyUnicodeFromString('JsonLog'));
-      PyList_SetItem(Result, 1, PyUnicodeFromString('StyleAbortFlag'));
+      Result := PyList_New(7);
+      PyList_SetItem(Result, 0, PyUnicodeFromString('TrainJsonLog'));
       PyList_SetItem(Result, 2, PyUnicodeFromString('TrainAbortFlag'));
+      PyList_SetItem(Result, 3, PyUnicodeFromString('TrainSampleFlag'));
+      PyList_SetItem(Result, 3, PyUnicodeFromString('SampleFilename'));
+      PyList_SetItem(Result, 4, PyUnicodeFromString('StyleAbortFlag'));
+      PyList_SetItem(Result, 5, PyUnicodeFromString('StyleFilename'));
+      PyList_SetItem(Result, 6, PyUnicodeFromString('StyleJsonLog'));
     end;
 end;
 
