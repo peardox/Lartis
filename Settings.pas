@@ -13,6 +13,7 @@ var
   ShaderPath: String;
   ReportsPath: String;
   DataSetsPath: String;
+  OutImagePath: String;
   FrameCount: Integer;
 
 const
@@ -59,6 +60,12 @@ begin
   if not DirectoryExists(ReportsPath) then
     begin
       ForceDirectories(ReportsPath);
+    end;
+
+  OutImagePath := TPath.Combine(AppHome, 'output-images');;
+  if not DirectoryExists(OutImagePath) then
+    begin
+      ForceDirectories(OutImagePath);
     end;
 
 end;

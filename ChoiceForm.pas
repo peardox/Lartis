@@ -53,6 +53,7 @@ implementation
 {$R *.fmx}
 
 uses
+  Settings,
   Math,
   EvolveForm,
   MovieForm,
@@ -84,26 +85,12 @@ begin
 
   SetLength(SectionImages, Length(Sections));
 
-  BaseDir := '';
+  BaseDir := IncludeTrailingPathDelimiter(AppHome);
   {$IFDEF ANDROID}
   BaseDir := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetDocumentsPath);
   {$ENDIF}
-  {$IFDEF MACOS}
-  BaseDir := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetFullPath('../Resources/'));
-  {$ENDIF}
-  {$IFDEF MSWINDOWS}
-  BaseDir := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath);
-  {$ENDIF}
-  {$IFDEF LINUX64}
-  BaseDir := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath);
-  {$ENDIF}
-
   if DirectoryExists(BaseDir + 'images') then
     ImgDir := BaseDir + 'images'
-  {$IFDEF MSWINDOWS}
-  else if DirectoryExists(BaseDir + '../../images') then
-    ImgDir := BaseDir + '../../images'
-  {$ENDIF}
   else
     ShowMessage('Can''t find images - ' + BaseDir + sLineBreak + ImgDir);
 
