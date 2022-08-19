@@ -11,6 +11,7 @@ var
   ModelList: TStringList;
   SystemActive: Boolean;
   ShaderPath: String;
+  ReportsPath: String;
   DataSetsPath: String;
   FrameCount: Integer;
 
@@ -53,6 +54,12 @@ begin
       ForceDirectories(DataSetsPath);
     end;
 }
+
+  ReportsPath := TPath.Combine(AppHome, 'reports');;
+  if not DirectoryExists(ReportsPath) then
+    begin
+      ForceDirectories(ReportsPath);
+    end;
 
 end;
 

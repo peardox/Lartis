@@ -588,7 +588,7 @@ begin
   FOptions.content_image := 'input-images/haywain.jpg';
   FOptions.content_image_raw := String.Empty;
   FOptions.output_image := 'output-images/lartis-mosaic-vgg19.jpg';
-  FOptions.model := 'dae_mosaic_1-300';
+  FOptions.model := 'mosaic/mosaic-200';
   FOptions.model_dir := 'models';
   FOptions.model_ext := '.pth';
   FOptions.logfile := String.Empty;
@@ -809,7 +809,7 @@ begin
   frmStyle.ShowStyleProgress(0);
   FOptions.content_image := AFile;
   FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-tile_test.jpg';
-  FOptions.model := 'homer';
+  FOptions.model := 'mosaic/mosaic-150';
   FOptions.ignore_gpu := False;
   PySys.LogClear;
   if Assigned(FTask) then

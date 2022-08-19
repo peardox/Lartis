@@ -33,12 +33,14 @@ type
     TorchVision: TTorchVision;
 
     FLogTarget: TMemo;
-    procedure PackageConfigureInstall(Sender: TObject);
     procedure PackageBeforeInstall(Sender: TObject);
     procedure PackageAfterInstall(Sender: TObject);
+    procedure PackageInstallError(Sender: TObject; AErrorMessage: string);
     procedure PackageAfterImport(Sender: TObject);
     procedure PackageBeforeImport(Sender: TObject);
-    procedure PackageInstallError(Sender: TObject; AErrorMessage: string);
+    procedure PackageBeforeUnInstall(Sender: TObject);
+    procedure PackageAfterUnInstall(Sender: TObject);
+    procedure PackageUnInstallError(Sender: TObject; AErrorMessage: string);
     procedure AddExtraUrl(APackage: TPyManagedPackage; const AUrl: string);
     procedure PyEnvAfterDeactivate(Sender: TObject; const APythonVersion: string);
     procedure PyIOSendUniData(Sender: TObject; const Data: string);
@@ -265,54 +267,52 @@ begin
   popts.InstallOptions.ExtraIndexUrl := AUrl;
 end;
 
-procedure TPySys.PackageConfigureInstall(Sender: TObject);
-begin
-  TPyManagedPackage(Sender).AutoImport := False;
-  TPyManagedPackage(Sender).AutoInstall := False;
-
-  TPyManagedPackage(Sender).BeforeInstall := PackageBeforeInstall;
-  TPyManagedPackage(Sender).AfterInstall := PackageAfterInstall;
-  TPyManagedPackage(Sender).OnInstallError := PackageInstallError;
-  TPyManagedPackage(Sender).BeforeImport := PackageBeforeImport;
-  TPyManagedPackage(Sender).AfterImport := PackageAfterImport;
-
-  if TPyPackage(Sender).PyModuleName = 'torch' then
-    begin
-    Log('Installing ' + TPyPackage(Sender).PyModuleName + sLineBreak +
-      'This will take quite some time, please be patient');
-    end
-  else
-    begin
-      Log('Installing ' + TPyPackage(Sender).PyModuleName);
-    end;
-end;
-
 procedure TPySys.PackageBeforeInstall(Sender: TObject);
 begin
-  SafeMaskFPUExceptions(True);
+  Log('Installing ' + TPyPackage(Sender).PyModuleName);
+//  SafeMaskFPUExceptions(True);
 end;
 
 procedure TPySys.PackageAfterInstall(Sender: TObject);
 begin
-  SafeMaskFPUExceptions(False);
-  Log('Installed ' + TPyPackage(Sender).PyModuleName);
+//  Log('Installed ' + TPyPackage(Sender).PyModuleName);
   Inc(PyPackagesInstalled);
-end;
-
-procedure TPySys.PackageBeforeImport(Sender: TObject);
-begin
-  SafeMaskFPUExceptions(True);
-  Log('Importing ' + TPyPackage(Sender).PyModuleName);
-end;
-
-procedure TPySys.PackageAfterImport(Sender: TObject);
-begin
-  SafeMaskFPUExceptions(False);
+//  SafeMaskFPUExceptions(False);
 end;
 
 procedure TPySys.PackageInstallError(Sender: TObject; AErrorMessage: string);
 begin
-  Log(TPyPackage(Sender).PyModuleName + ' : ' + AErrorMessage);
+  Log('Error for ' + TPyPackage(Sender).PyModuleName + ' : ' + AErrorMessage);
+end;
+
+procedure TPySys.PackageBeforeUnInstall(Sender: TObject);
+begin
+  Log('UnInstalling ' + TPyPackage(Sender).PyModuleName);
+//  SafeMaskFPUExceptions(True);
+end;
+
+procedure TPySys.PackageAfterUnInstall(Sender: TObject);
+begin
+//  Log('UnInstalled ' + TPyPackage(Sender).PyModuleName);
+  Dec(PyPackagesInstalled);
+//  SafeMaskFPUExceptions(False);
+end;
+
+procedure TPySys.PackageUnInstallError(Sender: TObject; AErrorMessage: string);
+begin
+  Log('Error for ' + TPyPackage(Sender).PyModuleName + ' : ' + AErrorMessage);
+end;
+
+procedure TPySys.PackageBeforeImport(Sender: TObject);
+begin
+  Log('Importing ' + TPyPackage(Sender).PyModuleName);
+//  SafeMaskFPUExceptions(True);
+end;
+
+procedure TPySys.PackageAfterImport(Sender: TObject);
+begin
+//  Log('Imported ' + TPyPackage(Sender).PyModuleName);
+//  SafeMaskFPUExceptions(False);
 end;
 
 procedure TPySys.PyEnvAfterDeactivate(Sender: TObject;
@@ -344,7 +344,19 @@ procedure TPySys.SetupPackage(APackage: TPyManagedPackage; const AExtraURL: Stri
 begin
   APackage.PythonEngine := PyEng;
   APackage.PyEnvironment := PyEnv;
-  APackage.BeforeInstall := PackageConfigureInstall;
+
+  APackage.AutoImport := False;
+  APackage.AutoInstall := False;
+
+  APackage.BeforeInstall := PackageBeforeInstall;
+  APackage.AfterInstall := PackageAfterInstall;
+  APackage.OnInstallError := PackageInstallError;
+  APackage.BeforeImport := PackageBeforeImport;
+  APackage.AfterImport := PackageAfterImport;
+  APackage.BeforeUnInstall := PackageBeforeUnInstall;
+  APackage.AfterUnInstall := PackageAfterUnInstall;
+  APackage.OnUnInstallError := PackageUnInstallError;
+
   if (AExtraUrl <> '') then
     AddExtraUrl(APackage, AExtraUrl);
 end;
@@ -385,40 +397,32 @@ begin
   {$endif}
 
   Log('Env Path = ' + PyEnv.EnvironmentPath);
-  Log('Eng Lib = ' + PyEng.DllName);
-  Log('Eng Libpath = ' + PyEng.DllPath);
 
-//  Log('Numpy');
+  // Create NumPy
   NumPy := TNumPy.Create(Self);
   SetupPackage(NumPy);
-  // Create NumPy
 
-//  Log('Scipy');
+  // Create SciPy
   SciPy := TSciPy.Create(Self);
   SetupPackage(SciPy);
-  // Create SciPy
 
-//  Log('AWS');
+  // Create AWS
   AWS := TBoto3.Create(Self);
   SetupPackage(AWS);
-  // Create AWS
 
-//  Log('PSUtil');
+  // Create PSUtil
   PSUtil := TPSUtil.Create(Self);
   SetupPackage(PSUtil);
-  // Create PSUtil
 
-//  Log('Torch');
+  // Create Torch
   Torch := TPyTorch.Create(Self);
   SetupPackage(Torch, 'https://download.pytorch.org/whl/cu116');
-  // Create Torch
 
-//  Log('TorchVision');
+  // Create TorchVision
   TorchVision := TTorchVision.Create(Self);
   SetupPackage(TorchVision, 'https://download.pytorch.org/whl/cu116');
-  // Create TorchVision
 
-//  Log('Add Modules');
+  //  'Add Modules
   modStyle := TModStyle.Create(Self);
   modStyle.Engine := PyEng;
   modStyle.ModuleName := 'pstyle';
@@ -431,24 +435,21 @@ begin
   modPyIO.Engine := PyEng;
   modPyIO.ModuleName := 'pinout';
 
-//  Log('Call Setup');
+  //  Call Setup
   FTask := TTask.Run(ThreadedSetup);
 
 end;
 
 procedure TPySys.ThreadedSetup;
 begin
+  // Install Python if required
   PyEnv.Setup(pyver);
   FTask.CheckCanceled();
-  // Install Python if required
-
-  // Show some important stuff
-  Log('PyEng Libpath = ' + PyEng.DllPath);
-  Log('PyEng Lib = ' + PyEng.DllName);
 
   TThread.Synchronize(nil,
     procedure()
     begin
+      // Activate Python
       if PyEnv.Activate(pyver) then
         Log('Python activate returned true')
       else
@@ -456,56 +457,48 @@ begin
     end
   );
   FTask.CheckCanceled();
-  // Activate Python
 
-  Log('Numpy Install');
+  SafeMaskFPUExceptions(True);
   NumPy.Install();
+  SafeMaskFPUExceptions(False);
   FTask.CheckCanceled();
-  // Create NumPy
 
-  Log('Scipy Install');
+  SafeMaskFPUExceptions(True);
   SciPy.Install();
+  SafeMaskFPUExceptions(False);
   FTask.CheckCanceled();
-  // Create SciPy
 
-  Log('AWS Install');
+  SafeMaskFPUExceptions(True);
   AWS.Install();
-  // Create AWS
+  SafeMaskFPUExceptions(False);
+  FTask.CheckCanceled();
 
-  Log('PSUtil Install');
+  SafeMaskFPUExceptions(True);
   PSUtil.Install();
+  SafeMaskFPUExceptions(False);
   FTask.CheckCanceled();
-  // Create PSUtil
 
-  Log('Torch Install');
+  SafeMaskFPUExceptions(True);
   Torch.Install();
+  SafeMaskFPUExceptions(False);
   FTask.CheckCanceled();
-  // Create Torch
 
-  Log('TorchVision Install');
+  SafeMaskFPUExceptions(True);
   TorchVision.Install();
+  SafeMaskFPUExceptions(False);
   FTask.CheckCanceled();
-  // Create TorchVision
 
   TThread.Queue(nil,
     procedure()
     begin
-      Log('Import All');
-{
-      Log('Numpy Import');
+      SafeMaskFPUExceptions(True);
       Numpy.Import();
-      Log('SciPy Import');
       SciPy.Import();
-      Log('AWS Import');
       AWS.Import();
-      Log('PSUtil Import');
       PSUtil.Import();
-      Log('Torch Import');
       Torch.Import();
-      Log('TorchVision Import');
       TorchVision.Import();
-}
-      Log('All Imported');
+      SafeMaskFPUExceptions(False);
 
       ShimSysPath(pyshim);
       RunSystem;
@@ -546,12 +539,10 @@ begin
     Shim.Add('__embedded_python__ = True');
 
     Log('Shim');
-    for var i := 0 to Shim.Count - 1 do
-      Log(Shim[i]);
-
     SafeMaskFPUExceptions(True);
     PyEng.ExecStrings(Shim);
     SafeMaskFPUExceptions(False);
+
     LastShimPath := IncludeTrailingPathDelimiter(AppHome) + ShimPath;
   finally
     if not(Shim = Nil) then
