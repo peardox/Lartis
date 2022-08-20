@@ -8,6 +8,10 @@ uses
   PythonEngine, PyCommon, PyModule, VarPyth;
 
 type
+  TModProgressEvent = procedure(Sender: TObject; const AValue: Single) of object;
+  TModFinishedEvent = procedure(Sender: TObject; const AFile: String) of object;
+  TModErrorEvent = procedure(Sender: TObject; const AString: String) of object;
+
   TPyIOOptions = record
     TrainJsonLog: String;
     TrainAbortFlag: Boolean;
@@ -42,6 +46,7 @@ type
     force_size: Boolean;
     ignore_gpu: Boolean;
     log_event_api: Boolean;
+    calibrating: Boolean;
   end;
 
   TStyleOptions = record
@@ -57,6 +62,7 @@ type
     export_onnx: Boolean;
     add_model_ext: Boolean;
     log_event_api: Boolean;
+    calibrating: Boolean;
   end;
 
   TTrainLog = record
@@ -81,11 +87,17 @@ type
   end;
 
   TModTrain = class(TPythonModule)
-    procedure DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
-    procedure DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
   private
     FTask: ITask;
     FOptions: TTrainOptions;
+    FModProgressEvent: TModProgressEvent;
+    FModFinishedEvent: TModFinishedEvent;
+    FModErrorEvent: TModErrorEvent;
+    procedure DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+    procedure DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+    procedure DoModProgressEvent(const AValue: Single);
+    procedure DoModFinishedEvent(const AFile: String);
+    procedure DoModErrorEvent(const AString: String);
   public
     ProgressCount: Integer;
     property Options: TTrainOptions read FOptions write FOptions;
@@ -98,14 +110,24 @@ type
     procedure Train(const AFile: String; const AModel: String); overload;
     procedure Train(const AFile: String; const AModel: String; const StyleWeight: Double); overload;
     procedure TrainAll(const AFile: String);
+  published
+    property ModProgressEvent: TModProgressEvent read FModProgressEvent write FModProgressEvent;
+    property ModFinishedEvent: TModFinishedEvent read FModFinishedEvent write FModFinishedEvent;
+    property ModErrorEvent: TModErrorEvent read FModErrorEvent write FModErrorEvent;
   end;
 
   TModStyle = class(TPythonModule)
-    procedure DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
-    procedure DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
   private
     FTask: ITask;
     FOptions: TStyleOptions;
+    FModProgressEvent: TModProgressEvent;
+    FModFinishedEvent: TModFinishedEvent;
+    FModErrorEvent: TModErrorEvent;
+    procedure DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+    procedure DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+    procedure DoModProgressEvent(const AValue: Single);
+    procedure DoModFinishedEvent(const AFile: String);
+    procedure DoModErrorEvent(const AString: String);
   public
     ProgressCount: Integer;
     property Options: TStyleOptions read FOptions write FOptions;
@@ -117,6 +139,10 @@ type
     function GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function Stylize(const AFile: String): String;
     procedure StylizeAll(const AFile: String);
+  published
+    property ModProgressEvent: TModProgressEvent read FModProgressEvent write FModProgressEvent;
+    property ModFinishedEvent: TModFinishedEvent read FModFinishedEvent write FModFinishedEvent;
+    property ModErrorEvent: TModErrorEvent read FModErrorEvent write FModErrorEvent;
   end;
 
   TModPyIO = class(TPythonModule)
@@ -171,6 +197,24 @@ begin
   CreateDefaultOptions;
 end;
 
+procedure TModTrain.DoModProgressEvent(const AValue: Single);
+begin
+  if Assigned(FModProgressEvent) then
+    FModProgressEvent(Self, AValue);
+end;
+
+procedure TModTrain.DoModFinishedEvent(const AFile: String);
+begin
+  if Assigned(FModFinishedEvent) then
+    FModFinishedEvent(Self, AFile);
+end;
+
+procedure TModTrain.DoModErrorEvent(const AString: String);
+begin
+  if Assigned(FModErrorEvent) then
+    FModErrorEvent(Self, AString);
+end;
+
 procedure TModTrain.CreateDefaultOptions;
 begin
   FOptions.dataset := IncludeTrailingPathDelimiter(AppHome) + 'datasets/train/unsplash/lite/256';
@@ -196,6 +240,7 @@ begin
   FOptions.force_size := True;
   FOptions.ignore_gpu := False;
   FOptions.log_event_api := True;
+  FOptions.calibrating := False;
 end;
 
 procedure TModTrain.InitializeModule(Sender: TObject);
@@ -271,6 +316,8 @@ begin
           Result := VariantAsPyObject(FOptions.ignore_gpu)
         else if key = 'log_event_api' then
           Result := VariantAsPyObject(FOptions.log_event_api)
+        else if key = 'calibrating' then
+          Result := VariantAsPyObject(FOptions.calibrating)
         else
           begin
             PyErr_SetString (PyExc_AttributeError^, PAnsiChar(Format('Unknown property "%s"', [key])));
@@ -404,6 +451,11 @@ begin
             FOptions.log_event_api := PyObjectAsVariant( value );
             Result := ReturnNone;
           end
+        else if key = 'calibrating' then
+          begin
+            FOptions.calibrating := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
         else
           begin
             PyErr_SetString (PyExc_AttributeError^, PAnsiChar(Format('Unknown property "%s"', [key])));
@@ -418,7 +470,7 @@ function TModTrain.GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
 begin
   with GetPythonEngine do
     begin
-      Result := PyList_New(23);
+      Result := PyList_New(24);
       PyList_SetItem(Result,  0, PyUnicodeFromString('dataset'));
       PyList_SetItem(Result,  1, PyUnicodeFromString('style_image'));
       PyList_SetItem(Result,  2, PyUnicodeFromString('model_name'));
@@ -442,6 +494,7 @@ begin
       PyList_SetItem(Result, 20, PyUnicodeFromString('force_size'));
       PyList_SetItem(Result, 21, PyUnicodeFromString('ignore_gpu'));
       PyList_SetItem(Result, 22, PyUnicodeFromString('log_event_api'));
+      PyList_SetItem(Result, 23, PyUnicodeFromString('calibrating'));
     end;
 end;
 
@@ -582,6 +635,24 @@ begin
   CreateDefaultOptions;
 end;
 
+procedure TModStyle.DoModProgressEvent(const AValue: Single);
+begin
+  if Assigned(FModProgressEvent) then
+    FModProgressEvent(Self, AValue);
+end;
+
+procedure TModStyle.DoModFinishedEvent(const AFile: String);
+begin
+  if Assigned(FModFinishedEvent) then
+    FModFinishedEvent(Self, AFile);
+end;
+
+procedure TModStyle.DoModErrorEvent(const AString: String);
+begin
+  if Assigned(FModErrorEvent) then
+    FModErrorEvent(Self, AString);
+end;
+
 procedure TModStyle.CreateDefaultOptions;
 begin
   ProgressCount := 0;
@@ -597,6 +668,7 @@ begin
   FOptions.export_onnx := False;
   FOptions.add_model_ext := True;
   FOptions.log_event_api := True;
+  FOptions.calibrating := False;
 end;
 
 procedure TModStyle.InitializeModule(Sender: TObject);
@@ -649,6 +721,10 @@ begin
           Result := VariantAsPyObject(FOptions.export_onnx)
         else if key = 'add_model_ext' then
           Result := VariantAsPyObject(FOptions.add_model_ext)
+        else if key = 'log_event_api' then
+          Result := VariantAsPyObject(FOptions.log_event_api)
+        else if key = 'calibrating' then
+          Result := VariantAsPyObject(FOptions.calibrating)
         else
           begin
             PyErr_SetString (PyExc_AttributeError^, PAnsiChar(Format('Unknown property "%s"', [key])));
@@ -722,6 +798,16 @@ begin
             FOptions.add_model_ext := PyObjectAsVariant( value );
             Result := ReturnNone;
           end
+        else if key = 'log_event_api' then
+          begin
+            FOptions.log_event_api := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
+        else if key = 'calibrating' then
+          begin
+            FOptions.calibrating := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
         else
           begin
             PyErr_SetString (PyExc_AttributeError^, PAnsiChar(Format('Unknown property "%s"', [key])));
@@ -736,7 +822,7 @@ function TModStyle.GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
 begin
   with GetPythonEngine do
     begin
-      Result := PyList_New(11);
+      Result := PyList_New(13);
       PyList_SetItem(Result, 0, PyUnicodeFromString('content_image'));
       PyList_SetItem(Result, 1, PyUnicodeFromString('content_image_raw'));
       PyList_SetItem(Result, 2, PyUnicodeFromString('output_image'));
@@ -748,6 +834,8 @@ begin
       PyList_SetItem(Result, 8, PyUnicodeFromString('ignore_gpu'));
       PyList_SetItem(Result, 9, PyUnicodeFromString('export_onnx'));
       PyList_SetItem(Result, 10, PyUnicodeFromString('add_model_ext'));
+      PyList_SetItem(Result, 11, PyUnicodeFromString('log_event_api'));
+      PyList_SetItem(Result, 12, PyUnicodeFromString('calibrating'));
     end;
 end;
 
@@ -762,17 +850,19 @@ procedure TModStyle.DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Resu
     lSerializer := TJsonSerializer.Create;
     try
       try
-        log := lSerializer.Deserialize<TTrainLog>(ALogLine);
-        Inc(ProgressCount);
-        frmStyle.ShowStyleProgress(ProgressCount / 45);
-        Application.ProcessMessages;
-//        PySys.Log('Event => ' + ALogLine);
+        if ALogLine <> String.Empty then
+          begin
+            log := lSerializer.Deserialize<TTrainLog>(ALogLine);
+            Inc(ProgressCount);
+            frmStyle.ShowStyleProgress(Self, ProgressCount / 45);
+            Application.ProcessMessages;
+          end;
       except
        on E : Exception do
        begin
          PySys.Log('Exception class name = '+E.ClassName);
          PySys.Log('Exception message = '+E.Message);
-         PySys.Log(ALogLine);
+         PySys.Log('LogLine = ' + '"' + ALogLine + '"');
        end;
       end;
     finally
@@ -797,7 +887,7 @@ procedure TModStyle.DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Resu
 begin
   PySys.Log('FN > ' + PySys.modPyIO.Options.StyleFilename );
   frmStyle.AddStyledImage(Self, PySys.modPyIO.Options.StyleFilename);
-  frmStyle.ShowStyleProgress(0);
+  frmStyle.ShowStyleProgress(Self, 0);
   Result := Engine.ReturnNone;
 end;
 
@@ -806,10 +896,10 @@ end;
 function TModStyle.Stylize(const AFile: String): String;
 begin
   ProgressCount := 0;
-  frmStyle.ShowStyleProgress(0);
+  frmStyle.ShowStyleProgress(Self, 0);
   FOptions.content_image := AFile;
-  FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-tile_test.jpg';
-  FOptions.model := 'mosaic/mosaic-150';
+  FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-tile_test2.jpg';
+  FOptions.model := 'gothic-512/gothic-100';
   FOptions.ignore_gpu := False;
   PySys.LogClear;
   if Assigned(FTask) then

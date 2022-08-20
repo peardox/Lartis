@@ -14,6 +14,8 @@ uses
   Modules;
 
 type
+  TPySysFinishedEvent = procedure(Sender: TObject; const AStatus: Boolean) of object;
+
   TPySys = class(TComponent)
   private
     { Private declarations }
@@ -32,7 +34,11 @@ type
     SciPy: TSciPy;
     TorchVision: TTorchVision;
 
+    FPySysFinishedEvent: TPySysFinishedEvent;
     FLogTarget: TMemo;
+
+    procedure DoPySysFinishedEvent(const AStatus: Boolean);
+
     procedure PackageBeforeInstall(Sender: TObject);
     procedure PackageAfterInstall(Sender: TObject);
     procedure PackageInstallError(Sender: TObject; AErrorMessage: string);
@@ -62,12 +68,15 @@ type
 
     property LogTarget: TMemo read FLogTarget write SetLogTarget;
     constructor Create(AOwner: TComponent); override;
-    procedure SetupSystem;
+    destructor Destroy; override;
+    procedure SetupSystem(OnSetupComplete: TPySysFinishedEvent = Nil);
     procedure RunTest;
     procedure RunSystem;
     procedure ShutdownSystem;
     procedure Log(const AMsg: String; const SameLine: Boolean = False);
     procedure LogClear;
+  published
+    property PySysFinishedEvent: TPySysFinishedEvent read FPySysFinishedEvent write FPySysFinishedEvent;
   end;
 
 var
@@ -180,6 +189,29 @@ begin
   Result := StringReplace(AStr, '\', '\\', [rfIgnoreCase, rfReplaceAll]);
 end;
 
+destructor TPySys.Destroy;
+begin
+  if Assigned(SystemCode) then
+    FreeAndNil(SystemCode);
+
+  modStyle.Free;
+  modTrain.Free;
+  modPyIO.Free;
+
+  Torch.Free;
+  PSUtil.Free;
+  NumPy.Free;
+  SciPy.Free;
+  TorchVision.Free;
+  AWS.Free;
+
+  PyEng.Free;
+  PyEnv.Free;
+  PyIO.Free;
+
+  inherited;
+end;
+
 constructor TPySys.Create(AOwner: TComponent);
 begin
   inherited;
@@ -194,6 +226,12 @@ begin
       SystemCode := TStringList.Create;
       SystemCode.LoadFromFile(IncludeTrailingPathDelimiter(AppHome) + pycode)
     end;
+end;
+
+procedure TPySys.DoPySysFinishedEvent(const AStatus: Boolean);
+begin
+  if Assigned(FPySysFinishedEvent) then
+    FPySysFinishedEvent(Self, AStatus);
 end;
 
 procedure TPySys.SetLogTarget(AStringContainer: TMemo);
@@ -366,8 +404,10 @@ begin
   Log('Ready Event');
 end;
 
-procedure TPySys.SetupSystem;
+procedure TPySys.SetupSystem(OnSetupComplete: TPySysFinishedEvent = Nil);
 begin
+  PySysFinishedEvent := OnSetupComplete;
+
   PyIO := TPythonInputOutput.Create(Self);
   PyIO.UnicodeIO := True;
   PyIO.OnSendUniData := PyIOSendUniData;
@@ -492,12 +532,12 @@ begin
     procedure()
     begin
       SafeMaskFPUExceptions(True);
-      Numpy.Import();
-      SciPy.Import();
-      AWS.Import();
+//      Numpy.Import();
+//      SciPy.Import();
+//      AWS.Import();
       PSUtil.Import();
       Torch.Import();
-      TorchVision.Import();
+//      TorchVision.Import();
       SafeMaskFPUExceptions(False);
 
       ShimSysPath(pyshim);
@@ -508,8 +548,10 @@ begin
   TThread.Synchronize(nil,
     procedure()
     begin
+      Log('All Done');
       SystemActive := True;
       FLogTarget := Nil;
+      DoPySysFinishedEvent(True);
     end
   );
 end;
@@ -638,8 +680,6 @@ begin
       end;
   end;
 
-  LogTarget := Nil;
-  frmSetup.Close;
 end;
 
 end.

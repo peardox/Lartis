@@ -35,7 +35,7 @@ type
     ImageLayer: TLayerShader;
     ClockLayer: TClockShader;
     Container: TAspectLayout;
-    procedure ShowStyleProgress(const AValue: Single);
+    procedure ShowStyleProgress(Sender: TObject; const AValue: Single);
     procedure AddStyledImage(Sender: TObject; const AFileName: String);
   end;
 
@@ -50,7 +50,7 @@ uses
 
 {$R *.fmx}
 
-procedure TfrmStyle.ShowStyleProgress(const AValue: Single);
+procedure TfrmStyle.ShowStyleProgress(Sender: TObject; const AValue: Single);
 begin
   ProgressBar1.Value := AValue;
 end;

@@ -15,7 +15,10 @@ type
   private
     { Private declarations }
     SetupRunning: Boolean;
+    {$IFDEF SPLASH}
     procedure LoadMainForm;
+    {$ENDIF}
+    procedure SetupComplete(Sender: TObject; const AStatus: Boolean);
   public
     { Public declarations }
   end;
@@ -45,10 +48,16 @@ begin
       SetupRunning := True;
       PySys := TPySys.Create(Sender as TComponent);
       PySys.LogTarget := Memo1;
-      PySys.SetupSystem;
+      PySys.SetupSystem(SetupComplete);
     end;
 end;
 
+procedure TfrmSetup.SetupComplete(Sender: TObject; const AStatus: Boolean);
+begin
+  Close;
+end;
+
+{$IFDEF SPLASH}
 procedure TfrmSetup.LoadMainForm;
 var
   form: TForm;
@@ -58,5 +67,6 @@ begin
   Application.MainForm := form;
   Close;
 end;
+{$ENDIF}
 
 end.

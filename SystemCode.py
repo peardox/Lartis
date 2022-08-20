@@ -6,6 +6,7 @@ try:
 except Exception as e:
     # Most likely running from command line
     have_delphi = False
+    __embedded_python__ = False
     sys.path.append('pysrc')
     from delphifuncts import *
     print("Delphi Missing")
@@ -79,66 +80,6 @@ def show_elapsed(from_time):
     seconds = elapsed
     print("Elapsed time = %d hours %d mins %d secs" % (hour, minutes, seconds))
 
-def do_train(opts = None):
-    is_gpu_available = check_gpu()
-    
-    if opts == None:
-        opts = TTrain(dataset="/train/unsplash/256",
-            style_image="style-images/gig.jpg",
-            model_name="gig-256",
-            model_dir="models",
-            checkpoint_model_dir="cache",
-            model_ext = ".pth",
-            net="vgg19",
-            vgg16_path=None,
-            vgg19_path=None,
-            logfile="",
-            epochs=2,
-            limit=0,
-            batch_size=8,
-            image_size=256,
-            seed=42,
-            content_weight=1e5,
-            style_weight=1e10,
-            lr=1e-3,
-            style_scale=1.0,
-            channels=32,
-            force_size=True,
-            ignore_gpu=False,
-            log_event_api=False)
-
-#    check_paths(args)
-    trial_batch = opts.batch_size
-    start = time.time()
-
-    while(1):
-        oom = False
-        try:
-            print("Trying batch of ", trial_batch)
-            if opts.ignore_gpu:
-                train(opts, False, trial_batch)
-            else:
-                train(opts, is_gpu_available, trial_batch)
-        except RuntimeError as e:
-            print("Hit exception handler")
-            if trial_batch > 0:
-                oom = True
-            else:
-                print(e)
-                return(1)
-        else:
-            break
-
-        if oom:
-            trial_batch -= 1
-            if is_gpu_available and not opts.ignore_gpu:
-                torch.cuda.empty_cache()
-            if trial_batch == 0:
-                print("No batch size found to run current training session (style image too large)")
-                return(1)
-
-    show_elapsed(start)
-    
 def do_stylize(opts = None):
     is_gpu_available = check_gpu()
     
@@ -154,7 +95,8 @@ def do_stylize(opts = None):
             ignore_gpu = True,
             export_onnx = False,
             add_model_ext = True,
-            log_event_api = False)
+            log_event_api = False,
+            calibrating = False)
 
     start = time.time()
     if opts.ignore_gpu:
@@ -163,35 +105,35 @@ def do_stylize(opts = None):
         stylize(opts, is_gpu_available)
     show_elapsed(start)
 
-def do_test(opts = None):
+def do_cmd_style(opts = None):
     # is_gpu_available = check_gpu()
     
     if opts == None:
-        opts = TStylize( content_image = "input-images\\haywain.jpg",
+        opts = TStylize( content_image = "input-images\\calibration.jpg",
             content_image_raw = "",
-            output_image = "output-images\\test-dae-sketch1-512.jpg",
-            model = "test-dae-sketch1-512",
-            # model = "mosaic-vgg16-1010-512",
-            model_dir = "models",
+            output_image = "output-images\\calibration.jpg",
+            model = "mosaic-100",
+            model_dir = "models/mosain",
             model_ext = ".pth",
             logfile = "",
             content_scale = 1,
             ignore_gpu = False,
             export_onnx = False,
             add_model_ext = True,
-            log_event_api = False
+            log_event_api = False,
+            calibrating = False
             )
 
     for k, v in opts.items():
         print(k, '=', v)
 
-def delphi_train():
+def delphi_train(trainopts = None):
     is_gpu_available = check_gpu()
 
-    trainopts = TDelphiTrain()
-
-    for i in ptrain.GetPropertyList():
-        print(i, '=', ptrain.GetProperty(i))
+    if trainopts == None:
+        trainopts = TDelphiTrain()
+        for i in ptrain.GetPropertyList():
+            print(i, '=', ptrain.GetProperty(i))
     
     rval = None
     
@@ -202,18 +144,25 @@ def delphi_train():
     while(1):
         oom = False
         try:
-            print("Trying batch of ", trial_batch)
+            if trial_batch == 0:
+                break
+            if not trainopts.calibrating:
+                print("Trying batch of ", trial_batch)
+                
             if trainopts.ignore_gpu:
                 rval = train(trainopts, False, trial_batch)
             else:
                 rval = train(trainopts, is_gpu_available, trial_batch)
         except RuntimeError as e:
-            print("Hit exception handler")
-            if trial_batch > 0:
-                oom = True
+            if trainopts.calibrating:
+                break
             else:
-                print(e)
-                return("Unrecoverable Error")
+                print("Hit exception handler")
+                if trial_batch > 0:
+                    oom = True
+                else:
+                    print(e)
+                    return("Unrecoverable Error")
         else:
             break
 
@@ -221,30 +170,208 @@ def delphi_train():
             trial_batch -= 1
             if is_gpu_available and not trainopts.ignore_gpu:
                 torch.cuda.empty_cache()
-            if trial_batch == 0:
-                return("No batch size found to run current training session (style image too large)")
 
-    show_elapsed(start)
+    if trial_batch == 0:
+        print("No batch size found to run current training session (style image too large)")
+
+    if not trainopts.calibrating:
+        show_elapsed(start)
+        
     return (rval)
     
-def delphi_style():
+def do_cmd_calibration_train(batch):
+    opts = TTrain(dataset="datasets/train/unsplash/lite/256",
+        style_image="temp/calibration-input.jpg",
+        model_name="calibration",
+        model_dir="temp",
+        checkpoint_model_dir="",
+        model_ext = ".pth",
+        net="vgg19",
+        vgg16_path=None,
+        vgg19_path=None,
+        logfile="",
+        epochs=1,
+        limit=10,
+        batch_size=batch,
+        image_size=256,
+        seed=42,
+        content_weight=1e5,
+        style_weight=1e10,
+        lr=1e-3,
+        style_scale=1.0,
+        channels=32,
+        force_size=True,
+        ignore_gpu=False,
+        log_event_api=False,
+        calibrating = True)
+        
+    return delphi_train(opts)
+
+def cmd_calibration_train(batch = 1):
+    import PIL
+
+    fail_count = 0
+    starting_size = 16
+    size = starting_size
+    window_size = size
+    calibration_result = True
+    last_good = size
+#    print("Batch =", batch)
+    
+    while calibration_result and (window_size >= 1):
+#        print("Trying", size);
+        if os.path.isfile('temp/calibration-input.jpg'):
+            os.remove('temp/calibration-input.jpg')
+        im = PIL.Image.new(mode="RGB", size=(size, size), color = (153, 153, 255))
+        im.save('temp/calibration-input.jpg')
+        torch.cuda.empty_cache()
+        calibration_result = do_cmd_calibration_train(batch)
+        if calibration_result:
+#            print('Good -', size, '-', calibration_result)
+            last_good = size
+            if window_size == size:
+                size = size * 2
+                window_size = size
+            else:
+                window_size = window_size // 2;
+                size = size + window_size
+        else:
+#            print('Bad -', size, '-', calibration_result)
+            fail_count = fail_count + 1
+            if window_size == size:
+                window_size = window_size // 4;
+                size = size - window_size
+            else:
+                window_size = window_size // 2;
+                size = size - window_size
+            if fail_count < 16:
+                calibration_result = True
+                
+    if last_good == starting_size:
+        return 0
+    else:
+        return last_good
+
+        
+def delphi_style(styleopts = None):
     is_gpu_available = check_gpu()
 
-    styleopts = TDelphiStylize()
+    if styleopts == None:
+        styleopts = TDelphiStylize()
 
-    for i in pstyle.GetPropertyList():
-        print(i, '=', pstyle.GetProperty(i))
+        for i in pstyle.GetPropertyList():
+            print(i, '=', pstyle.GetProperty(i))
 
-    start = time.time()
+    if styleopts.ignore_gpu and is_gpu_available:
+        print("Ignoring GPU")
+        is_gpu_available = False
+    
+    rval = False
+    oom = False
 
-    if styleopts.ignore_gpu:
-        rval = stylize(styleopts, False)
-    else:
-        rval = stylize(styleopts, is_gpu_available)
-
-    show_elapsed(start)
+    retry = True
+    while retry:
+        retry = False
+        try:
+            start = time.time()
+            if not is_gpu_available:
+                if not styleopts.calibrating:
+                    print("Styling without GPU")
+                rval = stylize(styleopts, False)
+            else:
+                if not styleopts.calibrating:
+                    print("Styling with GPU")
+                rval = stylize(styleopts, is_gpu_available)
+        except RuntimeError as e:
+            # print("Hit exception handler, is_gpu_available =", is_gpu_available)
+            if styleopts.calibrating:
+                pass
+            else:
+                oom = True
+                if is_gpu_available:
+                    retry = True
+                    is_gpu_available = False
+                    print("Retry enabled")
+                
+    if not styleopts.calibrating:
+        show_elapsed(start)
+        
     return (rval)
     
+def do_cmd_calibration_style():
+    opts = TStylize( content_image = "input-images/calibration.jpg",
+        content_image_raw = "",
+        output_image = "output-images/calibration.jpg",
+        model = "mosaic-100",
+        model_dir = "models/mosaic",
+        model_ext = ".pth",
+        logfile = "",
+        content_scale = 1,
+        ignore_gpu = False,
+        export_onnx = False,
+        add_model_ext = True,
+        log_event_api = False,
+        calibrating = True
+        )
+        
+    return delphi_style(opts)
+
+def cmd_calibration_style():
+    import PIL
+
+    fail_count = 0
+    starting_size = 16
+    size = starting_size
+    window_size = size
+    calibration_result = True
+    last_good = size
+    
+    while calibration_result and (window_size >= 1):
+#        print("Trying", size);
+        if os.path.isfile('input-images/calibration.jpg'):
+            os.remove('input-images/calibration.jpg')
+        if os.path.isfile('output-images/calibration.jpg'):
+            os.remove('output-images/calibration.jpg')
+        im = PIL.Image.new(mode="RGB", size=(size, size), color = (153, 153, 255))
+        im.save('input-images/calibration.jpg')
+        calibration_result = do_cmd_calibration_style()
+        if calibration_result:
+#            print('Good -', size, '-', calibration_result)
+            last_good = size
+            if window_size == size:
+                size = size * 2
+                window_size = size
+            else:
+                window_size = window_size // 2;
+                size = size + window_size
+        else:
+#            print('Bad -', size, '-', calibration_result)
+            fail_count = fail_count + 1
+            if window_size == size:
+                window_size = window_size // 4;
+                size = size - window_size
+            else:
+                window_size = window_size // 2;
+                size = size - window_size
+            if fail_count < 16:
+                calibration_result = True
+                
+    if last_good == starting_size:
+        return 0
+    else:
+        return last_good
+
+def do_main():
+    print("Running from command line")
+    # do_stylize()
+    # print("Biggest image =", cmd_calibration_style())
+    for batch in range(64):
+        biggest = cmd_calibration_train(batch + 1)
+        if biggest > 0:
+            print(batch + 1, ",", biggest)
+        else:
+            break
+            
 class TStylize(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -270,10 +397,6 @@ class TProperties:
             tmp = tmp + i + " = " + str(getattr(Self,i))
         return tmp
 
-def do_main():
-   print("Running from command line");
-   do_stylize()
-    
 try:
     if not __embedded_python__:
         do_main()

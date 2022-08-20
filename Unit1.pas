@@ -11,7 +11,7 @@ uses
   System.Classes, System.Variants, System.Threading, FMX.Types,
   FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, PyCommon,
-  PyModule, PyPackage, PSUtil, FMX.Menus, FMX.Layouts,
+  PyModule, PyPackage, PSUtil, FMX.Menus, FMX.Layouts, FMX.Styles,
   EmbeddedForm;
 
 type
@@ -184,7 +184,10 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
-//  StatusBar1.Visible := False;
+{
+  if DirectoryExists(ShaderPath) then
+    TStyleManager.SetStyleFromFile(TPath.Combine(StylesPath, 'Blend.style'));
+}
 
   frmStyle := EmbedForm(StyleLayout, TfrmStyle.Create(Self)) as TfrmStyle;
   frmTrain := EmbedForm(TrainLayout, TfrmTrain.Create(Self)) as TfrmTrain;
