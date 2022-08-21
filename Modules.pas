@@ -137,7 +137,7 @@ type
     function GetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function SetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
-    function Stylize(const AFile: String): String;
+    procedure Stylize(const AFile: String; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil);
     procedure StylizeAll(const AFile: String);
   published
     property ModProgressEvent: TModProgressEvent read FModProgressEvent write FModProgressEvent;
@@ -854,7 +854,7 @@ procedure TModStyle.DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Resu
           begin
             log := lSerializer.Deserialize<TTrainLog>(ALogLine);
             Inc(ProgressCount);
-            frmStyle.ShowStyleProgress(Self, ProgressCount / 45);
+            DoModProgressEvent(ProgressCount / 45);
             Application.ProcessMessages;
           end;
       except
@@ -886,17 +886,23 @@ end;
 procedure TModStyle.DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
 begin
   PySys.Log('FN > ' + PySys.modPyIO.Options.StyleFilename );
-  frmStyle.AddStyledImage(Self, PySys.modPyIO.Options.StyleFilename);
-  frmStyle.ShowStyleProgress(Self, 0);
+//  frmStyle.ShowStyledImage(Self, PySys.modPyIO.Options.StyleFilename);
+  DoModFinishedEvent(PySys.modPyIO.Options.StyleFilename);
   Result := Engine.ReturnNone;
 end;
 
 ///// Style Module Procs /////
 
-function TModStyle.Stylize(const AFile: String): String;
+procedure TModStyle.Stylize(const AFile: String; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil);
 begin
   ProgressCount := 0;
-  frmStyle.ShowStyleProgress(Self, 0);
+
+  FModProgressEvent := OnProgress;
+  FModFinishedEvent := OnFinished;
+  FModErrorEvent := OnError;
+
+  DoModProgressEvent(0);
+
   FOptions.content_image := AFile;
   FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-tile_test2.jpg';
   FOptions.model := 'gothic-512/gothic-100';
@@ -927,8 +933,6 @@ begin
   else
     Pysys.Log('Back from Python Stylize - Task ID = UnAssigned');
 
-
-  Result := ''; // _im;
 //  Pysys.Log('_im (' + Result + ') is a ' + VarTypeAsText(VarType(_im)));
 end;
 

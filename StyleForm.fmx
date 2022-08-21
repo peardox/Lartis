@@ -58,7 +58,7 @@ object frmStyle: TfrmStyle
       Text = 'Button2'
       OnClick = Button2Click
     end
-    object TrackBar1: TTrackBar
+    object trkStyleWeight: TTrackBar
       CanParentFocus = True
       Max = 1.000000000000000000
       Orientation = Horizontal
@@ -68,7 +68,7 @@ object frmStyle: TfrmStyle
       Size.Height = 19.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 2
-      OnChange = TrackBar1Change
+      OnChange = trkStyleWeightChange
     end
     object lblStyleWeightKey: TLabel
       Position.X = 8.000000000000000000

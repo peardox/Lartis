@@ -11,7 +11,9 @@ type
   TLayerBitmap = record
     ImageFile: String;
     Bitmap: TBitmap;
+    SkImage: ISkImage;
   end;
+
   TLayerImages = Array[0..1] of TLayerBitmap;
 
   TAspectLayout = class(TRectangle)
@@ -102,16 +104,17 @@ type
     property OnChangeInvertAlpha: TNotifyEvent read FOnChangeInvertAlpha write FOnChangeInvertAlpha;
   end;
 
-  TClockShader = class(TBaseShader)
+  TProgressShader = class(TBaseShader)
   private
     fImScale: Single;
     fImOffsetX: Integer;
     fImOffsetY: Integer;
-    fPercentDone: Single;
+    fProgress: Single;
     bmImage: TBitmap;
     ImWidth: Integer;
     ImHeight: Integer;
-    ImageFile: String;
+    FImageFile: String;
+    FSkImage: ISkImage;
     procedure DoDraw(ASender: TObject; const ACanvas: ISkCanvas; const ADest: TRectF; const AOpacity: Single);
   public
     constructor Create(AOwner: TComponent); override;
@@ -121,6 +124,9 @@ type
     function AddBitmap(const AImageBitmap: TBitmap): Boolean;
   published
     property OnDraw;
+    property Progress: Single read fProgress write fProgress;
+    property ImageFile: String read FImageFile write FImageFile;
+    property Bitmap: TBitmap read bmImage write bmImage;
   end;
 
 
@@ -254,13 +260,15 @@ destructor TLayerShader.Destroy;
 var
   I: Integer;
 begin
-  inherited;
   for I := 0 to Length(bmImages) - 1 do
     if Assigned(bmImages[I].Bitmap) then
       begin
         bmImages[I].ImageFile := String.Empty;
         FreeAndNil(bmImages[I].Bitmap);
+        if Assigned(bmImages[I].SkImage) then
+          bmImages[I].SkImage.Release;
       end;
+  inherited;
 end;
 
 procedure TLayerShader.SetStyleWeight(const AValue: Single);
@@ -382,14 +390,16 @@ function TLayerShader.AddBitmap(const ImageType: TLayerImageType;
 var
   ImImageInfo: TSkImageInfo;
   HaveImage: Boolean;
+  TexImage: ISkImage;
 begin
   HaveImage := False;
-
   var ImageIdentifier: String := LayerImageNames[Ord(ImageType)];
 
   if Assigned(ImageBitmap) and Effect.ChildExists(ImageIdentifier) then
   begin
-    var TexImage: ISkImage := ImageBitmap.ToSkImage;
+    bmImages[Ord(ImageType)].SkImage := ImageBitmap.ToSkImage;
+
+    TexImage := bmImages[Ord(ImageType)].SkImage;
 
     if Assigned(TexImage) then
     begin
@@ -493,26 +503,28 @@ begin
   end;
 end;
 
-constructor TClockShader.Create(AOwner: TComponent);
+constructor TProgressShader.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   fImScale := 1;
   fImOffsetX := 0;
   fImOffsetY := 0;
-  fPercentDone := 1;
-  ImageFile := String.Empty;
+  fProgress := 1;
+  FImageFile := String.Empty;
 
   AddShader;
 end;
 
-destructor TClockShader.Destroy;
+destructor TProgressShader.Destroy;
 begin
-  inherited;
   if Assigned(bmImage) then
     FreeAndNil(bmImage);
+  if Assigned(FSkImage) then
+    FSkImage.Release;
+  inherited;
 end;
 
-procedure TClockShader.AddShader;
+procedure TProgressShader.AddShader;
 begin
   Enabled := False;
 //  ShaderText := LoadShader(TPath.Combine(ShaderPath,'progress.sksl'));
@@ -528,21 +540,21 @@ begin
   OnDraw := DoDraw;
 end;
 
-function TClockShader.AddImage(const AImageFile: String): Boolean;
+function TProgressShader.AddImage(const AImageFile: String): Boolean;
 begin
   Result := False;
   if FileExists(AImageFile) then
     begin
-      ImageFile := AImageFile;
+      FImageFile := AImageFile;
       bmImage := TBitmap.Create;
-      bmImage.LoadFromFile(ImageFile);
+      bmImage.LoadFromFile(FImageFile);
       Result := AddBitmap(bmImage);
     end
   else
-      ImageFile := String.Empty;
+      FImageFile := String.Empty;
 end;
 
-function TClockShader.AddBitmap(const AImageBitmap: TBitmap): Boolean;
+function TProgressShader.AddBitmap(const AImageBitmap: TBitmap): Boolean;
 var
   ImImageInfo: TSkImageInfo;
   HaveImage: Boolean;
@@ -553,25 +565,25 @@ begin
 
   if Assigned(AImageBitmap) and Effect.ChildExists(ImageIdentifier) then
   begin
-    var TexImage: ISkImage := AImageBitmap.ToSkImage;
+    FSkImage := AImageBitmap.ToSkImage;
 
-    if Assigned(TexImage) then
+    if Assigned(FSkImage) then
     begin
       HaveImage := True;
-      Effect.ChildrenShaders[ImageIdentifier] := TexImage.MakeShader(TSKSamplingOptions.High);
+      Effect.ChildrenShaders[ImageIdentifier] := FSkImage.MakeShader(TSKSamplingOptions.High);
       if Effect.UniformExists(ImageIdentifier + 'Resolution') then
         case Effect.UniformType[ImageIdentifier + 'Resolution'] of
           TSkRuntimeEffectUniformType.Float2:
-            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectFloat2.Create(TexImage.Width, TexImage.Height));
+            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectFloat2.Create(FSkImage.Width, FSkImage.Height));
           TSkRuntimeEffectUniformType.Float3:
-            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectFloat3.Create(TexImage.Width, TexImage.Height, 0));
+            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectFloat3.Create(FSkImage.Width, FSkImage.Height, 0));
           TSkRuntimeEffectUniformType.Int2:
-            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectInt2.Create(TexImage.Width, TexImage.Height));
+            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectInt2.Create(FSkImage.Width, FSkImage.Height));
           TSkRuntimeEffectUniformType.Int3:
-            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectInt3.Create(TexImage.Width, TexImage.Height, 0));
+            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectInt3.Create(FSkImage.Width, FSkImage.Height, 0));
         end;
 
-      ImImageInfo := TexImage.ImageInfo;
+      ImImageInfo := FSkImage.ImageInfo;
       ImWidth := ImImageInfo.Width;
       ImHeight := ImImageInfo.Height;
 
@@ -595,7 +607,7 @@ begin
   Result := HaveImage;
 end;
 
-procedure TClockShader.DoDraw(ASender: TObject;
+procedure TProgressShader.DoDraw(ASender: TObject;
   const ACanvas: ISkCanvas; const ADest: TRectF; const AOpacity: Single);
 begin
   if Assigned(Effect) and Assigned(Painter) then
@@ -610,7 +622,7 @@ begin
         Effect.SetUniform('iResolution', [Int(ADest.Width), Int(ADest.Height)]);
     end;
     if Effect.UniformExists('fPercentDone') then
-      Effect.SetUniform('fPercentDone', fPercentDone);
+      Effect.SetUniform('fPercentDone', fProgress);
 
     if Effect.UniformExists('fImScale') then
       begin
