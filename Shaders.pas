@@ -11,7 +11,6 @@ type
   TLayerBitmap = record
     ImageFile: String;
     Bitmap: TBitmap;
-    SkImage: ISkImage;
   end;
 
   TLayerImages = Array[0..1] of TLayerBitmap;
@@ -114,7 +113,6 @@ type
     ImWidth: Integer;
     ImHeight: Integer;
     FImageFile: String;
-    FSkImage: ISkImage;
     procedure DoDraw(ASender: TObject; const ACanvas: ISkCanvas; const ADest: TRectF; const AOpacity: Single);
   public
     constructor Create(AOwner: TComponent); override;
@@ -265,8 +263,6 @@ begin
       begin
         bmImages[I].ImageFile := String.Empty;
         FreeAndNil(bmImages[I].Bitmap);
-//        if Assigned(bmImages[I].SkImage) then
-//          bmImages[I].SkImage.Release;
       end;
   inherited;
 end;
@@ -397,9 +393,7 @@ begin
 
   if Assigned(ImageBitmap) and Effect.ChildExists(ImageIdentifier) then
   begin
-    bmImages[Ord(ImageType)].SkImage := ImageBitmap.ToSkImage;
-
-    TexImage := bmImages[Ord(ImageType)].SkImage;
+    TexImage := ImageBitmap.ToSkImage;
 
     if Assigned(TexImage) then
     begin
@@ -519,16 +513,14 @@ destructor TProgressShader.Destroy;
 begin
   if Assigned(bmImage) then
     FreeAndNil(bmImage);
-//  if Assigned(FSkImage) then
-//    FSkImage.Release;
   inherited;
 end;
 
 procedure TProgressShader.AddShader;
 begin
   Enabled := False;
-//  ShaderText := LoadShader(TPath.Combine(ShaderPath,'progress.sksl'));
-  ShaderText := LoadShader(TPath.Combine(ShaderPath,'clock.sksl'));
+  ShaderText := LoadShader(TPath.Combine(ShaderPath,'progress.sksl'));
+//  ShaderText := LoadShader(TPath.Combine(ShaderPath,'clock.sksl'));
 
   var AErrorText := '';
   Effect := TSkRuntimeEffect.MakeForShader(ShaderText, AErrorText);
@@ -558,6 +550,7 @@ function TProgressShader.AddBitmap(const AImageBitmap: TBitmap): Boolean;
 var
   ImImageInfo: TSkImageInfo;
   HaveImage: Boolean;
+  TexImage: ISkImage;
 begin
   HaveImage := False;
 
@@ -565,25 +558,25 @@ begin
 
   if Assigned(AImageBitmap) and Effect.ChildExists(ImageIdentifier) then
   begin
-    FSkImage := AImageBitmap.ToSkImage;
+    TexImage := AImageBitmap.ToSkImage;
 
-    if Assigned(FSkImage) then
+    if Assigned(TexImage) then
     begin
       HaveImage := True;
-      Effect.ChildrenShaders[ImageIdentifier] := FSkImage.MakeShader(TSKSamplingOptions.High);
+      Effect.ChildrenShaders[ImageIdentifier] := TexImage.MakeShader(TSKSamplingOptions.High);
       if Effect.UniformExists(ImageIdentifier + 'Resolution') then
         case Effect.UniformType[ImageIdentifier + 'Resolution'] of
           TSkRuntimeEffectUniformType.Float2:
-            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectFloat2.Create(FSkImage.Width, FSkImage.Height));
+            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectFloat2.Create(TexImage.Width, TexImage.Height));
           TSkRuntimeEffectUniformType.Float3:
-            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectFloat3.Create(FSkImage.Width, FSkImage.Height, 0));
+            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectFloat3.Create(TexImage.Width, TexImage.Height, 0));
           TSkRuntimeEffectUniformType.Int2:
-            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectInt2.Create(FSkImage.Width, FSkImage.Height));
+            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectInt2.Create(TexImage.Width, TexImage.Height));
           TSkRuntimeEffectUniformType.Int3:
-            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectInt3.Create(FSkImage.Width, FSkImage.Height, 0));
+            Effect.SetUniform(ImageIdentifier + 'Resolution', TSkRuntimeEffectInt3.Create(TexImage.Width, TexImage.Height, 0));
         end;
 
-      ImImageInfo := FSkImage.ImageInfo;
+      ImImageInfo := TexImage.ImageInfo;
       ImWidth := ImImageInfo.Width;
       ImHeight := ImImageInfo.Height;
 
