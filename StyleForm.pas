@@ -67,8 +67,8 @@ procedure TfrmStyle.TrackBar1Change(Sender: TObject);
 begin
   if Assigned(ImageLayer) then
     begin
-      ImageLayer.fStyleWeight := (TrackBar1.Value / TrackBar1.Max);
-      lblStyleWeightValue.Text := FormatFloat('##0.00', ImageLayer.fStyleWeight * 100);
+      ImageLayer.StyleWeight := (TrackBar1.Value / TrackBar1.Max);
+      lblStyleWeightValue.Text := FormatFloat('##0.00', ImageLayer.StyleWeight * 100);
     end;
 end;
 
@@ -95,8 +95,8 @@ begin
         begin
           PySys.Log('Adding Styled Image ' + AFileName);
           ImageLayer.AddImage(Styled, AFileName);
-          ImageLayer.iPreserveTransparency := False;
-          ImageLayer.fStyleWeight := 1.0;
+          ImageLayer.PreserveTransparency := False;
+          ImageLayer.StyleWeight := 1.0;
         end;
     end;
 end;

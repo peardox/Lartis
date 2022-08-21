@@ -48,47 +48,72 @@ type
 
   TLayerShader = class(TBaseShader)
   private
-    procedure DoDraw(ASender: TObject; const ACanvas: ISkCanvas; const ADest: TRectF; const AOpacity: Single);
-    procedure MakeAlphaMap(const APixmap: ISkPixmap);
-  public
+    FOnChangeStyleWeight: TNotifyEvent;
+    FStyleWeight: Single;
+    FOnChangeAlphaThreshold: TNotifyEvent;
+    FAlphaThreshold: Single;
+    FOnChangeOriginalColors: TNotifyEvent;
+    FOriginalColors: Boolean;
+    FOnChangePreserveTransparency: TNotifyEvent;
+    FPreserveTransparency: Boolean;
+    FInvertAlpha: Boolean;
+    FOnChangeInvertAlpha: TNotifyEvent;
+
+    bmImages: TLayerImages;
     ImWidth: Integer;
     ImHeight: Integer;
     fImScale: Single;
     fImOffsetX: Integer;
     fImOffsetY: Integer;
-    fStyleWeight: Single;
-    fAlphaThreshold: Single;
-    iOriginalColors: Boolean;
-    iPreserveTransparency: Boolean;
-    iInvertAlpha: Boolean;
-    bmImages: TLayerImages;
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    procedure AddShader;
+    procedure DoDraw(ASender: TObject; const ACanvas: ISkCanvas; const ADest: TRectF; const AOpacity: Single);
+    procedure MakeAlphaMap(const APixmap: ISkPixmap);
+
     function GetStyleImage: String;
     function GetOriginalImage: String;
     Procedure SetStyleImage(const AFileName: String);
     procedure SetOriginalImage(const AFileName: String);
+
+    procedure SetStyleWeight(const AValue: Single);
+    procedure SetAlphaThreshold(const AValue: Single);
+    procedure SetOriginalColors(const AValue: Boolean);
+    procedure SetPreserveTransparency(const AValue: Boolean);
+    procedure SetInvertAlpha(const AValue: Boolean);
+
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure AddShader;
     function AddImage(const ImageType: TLayerImageType; const AImageFile: String): Boolean;
     function AddBitmap(const ImageType: TLayerImageType; const ImageBitmap: TBitmap): Boolean;
   published
     property OnDraw;
     property StyleImage: String read GetStyleImage write SetStyleImage;
     property OriginalImage: String read GetOriginalImage write SetOriginalImage;
+
+    property StyleWeight: Single read FStyleWeight write SetStyleWeight;
+    property OnChangeStyleWeight: TNotifyEvent read FOnChangeStyleWeight write FOnChangeStyleWeight;
+    property AlphaThreshold: Single read FAlphaThreshold write SetAlphaThreshold;
+    property OnChangeAlphaThreshold: TNotifyEvent read FOnChangeAlphaThreshold write FOnChangeAlphaThreshold;
+    property OriginalColors: Boolean read FOriginalColors write SetOriginalColors;
+    property OnChangeOriginalColors: TNotifyEvent read FOnChangeOriginalColors write FOnChangeOriginalColors;
+    property PreserveTransparency: Boolean read FPreserveTransparency write SetPreserveTransparency;
+    property OnChangePreserveTransparency: TNotifyEvent read FOnChangePreserveTransparency write FOnChangePreserveTransparency;
+    property InvertAlpha: Boolean read FInvertAlpha write SetInvertAlpha;
+    property OnChangeInvertAlpha: TNotifyEvent read FOnChangeInvertAlpha write FOnChangeInvertAlpha;
   end;
 
   TClockShader = class(TBaseShader)
   private
-    procedure DoDraw(ASender: TObject; const ACanvas: ISkCanvas; const ADest: TRectF; const AOpacity: Single);
-  public
-    ImWidth: Integer;
-    ImHeight: Integer;
     fImScale: Single;
     fImOffsetX: Integer;
     fImOffsetY: Integer;
     fPercentDone: Single;
     bmImage: TBitmap;
+    ImWidth: Integer;
+    ImHeight: Integer;
     ImageFile: String;
+    procedure DoDraw(ASender: TObject; const ACanvas: ISkCanvas; const ADest: TRectF; const AOpacity: Single);
+  public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure AddShader;
@@ -217,11 +242,11 @@ begin
   fImScale := 1;
   fImOffsetX := 0;
   fImOffsetY := 0;
-  fStyleWeight := 1;
+  FStyleWeight := 1;
   fAlphaThreshold := 0.95;
-  iOriginalColors := False;
-  iPreserveTransparency := False;
-  iInvertAlpha := False;
+  FOriginalColors := False;
+  FPreserveTransparency := False;
+  FInvertAlpha := False;
   AddShader;
 end;
 
@@ -236,6 +261,56 @@ begin
         bmImages[I].ImageFile := String.Empty;
         FreeAndNil(bmImages[I].Bitmap);
       end;
+end;
+
+procedure TLayerShader.SetStyleWeight(const AValue: Single);
+begin
+  if FStyleWeight <> AValue then
+    begin
+      FStyleWeight := AValue;
+      if Assigned(FOnChangeStyleWeight) then
+        FOnChangeStyleWeight(Self);
+    end;
+end;
+
+procedure TLayerShader.SetAlphaThreshold(const AValue: Single);
+begin
+  if FAlphaThreshold <> AValue then
+    begin
+      FAlphaThreshold := AValue;
+      if Assigned(FOnChangeAlphaThreshold) then
+        FOnChangeAlphaThreshold(Self);
+    end;
+end;
+
+procedure TLayerShader.SetOriginalColors(const AValue: Boolean);
+begin
+  if FOriginalColors <> AValue then
+    begin
+      FOriginalColors := AValue;
+      if Assigned(FOnChangeOriginalColors) then
+        FOnChangeOriginalColors(Self);
+    end;
+end;
+
+procedure TLayerShader.SetPreserveTransparency(const AValue: Boolean);
+begin
+  if FPreserveTransparency <> AValue then
+    begin
+      FPreserveTransparency := AValue;
+      if Assigned(FOnChangePreserveTransparency) then
+        FOnChangePreserveTransparency(Self);
+    end;
+end;
+
+procedure TLayerShader.SetInvertAlpha(const AValue: Boolean);
+begin
+  if FInvertAlpha <> AValue then
+    begin
+      FInvertAlpha := AValue;
+      if Assigned(FOnChangeInvertAlpha) then
+        FOnChangeInvertAlpha(Self);
+    end;
 end;
 
 procedure TLayerShader.MakeAlphaMap(const APixmap: ISkPixmap);
@@ -394,16 +469,16 @@ begin
         Effect.SetUniform('iResolution', [Int(ADest.Width), Int(ADest.Height)]);
     end;
     if Effect.UniformExists('fStyleWeight') then
-      Effect.SetUniform('fStyleWeight', fStyleWeight);
+      Effect.SetUniform('fStyleWeight', FStyleWeight);
     if Effect.UniformExists('fAlphaThreshold') then
-      Effect.SetUniform('fAlphaThreshold', fAlphaThreshold);
+      Effect.SetUniform('fAlphaThreshold', FAlphaThreshold);
 
     if Effect.UniformExists('bOriginalColors') then
-      Effect.SetUniform('bOriginalColors', BoolToInt(iOriginalColors));
+      Effect.SetUniform('bOriginalColors', BoolToInt(FOriginalColors));
     if Effect.UniformExists('bPreserveTransparency') then
-      Effect.SetUniform('bPreserveTransparency', BoolToInt(iPreserveTransparency));
+      Effect.SetUniform('bPreserveTransparency', BoolToInt(FPreserveTransparency));
     if Effect.UniformExists('bInvertAlpha') then
-      Effect.SetUniform('bInvertAlpha', BoolToInt(iInvertAlpha));
+      Effect.SetUniform('bInvertAlpha', BoolToInt(FInvertAlpha));
     if Effect.UniformExists('fImScale') then
       begin
         if fImScale > 0 then
