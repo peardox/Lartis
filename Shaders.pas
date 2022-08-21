@@ -265,8 +265,8 @@ begin
       begin
         bmImages[I].ImageFile := String.Empty;
         FreeAndNil(bmImages[I].Bitmap);
-        if Assigned(bmImages[I].SkImage) then
-          bmImages[I].SkImage.Release;
+//        if Assigned(bmImages[I].SkImage) then
+//          bmImages[I].SkImage.Release;
       end;
   inherited;
 end;
@@ -519,8 +519,8 @@ destructor TProgressShader.Destroy;
 begin
   if Assigned(bmImage) then
     FreeAndNil(bmImage);
-  if Assigned(FSkImage) then
-    FSkImage.Release;
+//  if Assigned(FSkImage) then
+//    FSkImage.Release;
   inherited;
 end;
 
