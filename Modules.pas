@@ -913,7 +913,7 @@ begin
   else
     Pysys.Log('Calling Python Stylize - Task ID = UnAssigned');
 
-  // _im :=
+  SafeMaskFPUExceptions(True);
   FTask := TTask.Run(
     procedure()
       begin
@@ -921,13 +921,12 @@ begin
           procedure()
           begin
             MainModule.delphi_style();
-            // FTask.CheckCanceled();
-            PySys.Log('Style Task Finished');
           end
           )
       end
     );
-//  MainModule.delphi_style();
+  SafeMaskFPUExceptions(False);
+
   if Assigned(FTask) then
     Pysys.Log('Back from Python Stylize - Task ID = ' + IntToHex(FTask.GetId))
   else
