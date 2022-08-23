@@ -85,7 +85,7 @@ type
     destructor Destroy; override;
     procedure AddShader;
     function AddImage(const ImageType: TLayerImageType; const AImageFile: String): Boolean;
-    function AddBitmap(const ImageType: TLayerImageType; const ImageBitmap: TBitmap): Boolean;
+    function AddBitmap(const ImageType: TLayerImageType; const ImageBitmap: TBitmap; const CopySrc: Boolean = False): Boolean;
     function IsImageStyled: Boolean;
   published
     property OnDraw;
@@ -388,18 +388,28 @@ begin
 end;
 
 function TLayerShader.AddBitmap(const ImageType: TLayerImageType;
-  const ImageBitmap: TBitmap): Boolean;
+  const ImageBitmap: TBitmap; const CopySrc: Boolean = False): Boolean;
 var
   ImImageInfo: TSkImageInfo;
   HaveImage: Boolean;
   TexImage: ISkImage;
+  LBitmap: TBitmap;
 begin
+  if CopySrc then
+    begin
+      LBitmap := TBitmap.Create;
+      LBitmap.Assign(ImageBitmap);
+      bmImages[Ord(ImageType)].Bitmap := LBitmap;
+    end
+  else
+    LBitmap := ImageBitmap;
+
   HaveImage := False;
   var ImageIdentifier: String := LayerImageNames[Ord(ImageType)];
 
-  if Assigned(ImageBitmap) and Effect.ChildExists(ImageIdentifier) then
+  if Assigned(LBitmap) and Effect.ChildExists(ImageIdentifier) then
   begin
-    TexImage := ImageBitmap.ToSkImage;
+    TexImage := LBitmap.ToSkImage;
 
     if Assigned(TexImage) then
     begin
@@ -549,7 +559,7 @@ begin
       Result := AddBitmap(bmImage);
     end
   else
-      FImageFile := String.Empty;
+    FImageFile := String.Empty;
 end;
 
 function TProgressShader.AddBitmap(const AImageBitmap: TBitmap): Boolean;

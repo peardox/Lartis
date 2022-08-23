@@ -172,24 +172,21 @@ end;
 procedure TfrmStyle.ShowStyledImage(Sender: TObject; const AFileName: String);
 var
   CurrentImage: String;
-//  CurrentBitMap: TBitmap;
+  CurrentBitMap: TBitmap;
 begin
-//  CurrentBitMap := Nil;
+  CurrentBitMap := Nil;
   if Assigned(ImageLayer) then
     begin
       if ImageLayer is TProgressShader then
         begin
           PySys.Log('Removing ProgressShader');
           CurrentImage := TProgressShader(ImageLayer).ImageFile;
-          {
           if Assigned(TProgressShader(ImageLayer).Bitmap) then
             begin
-              CurrentBitmap := TBitmap.Create(TProgressShader(ImageLayer).Bitmap.Width, TProgressShader(ImageLayer).Bitmap.Height);
-              CurrentBitmap.CopyFromBitmap(TProgressShader(ImageLayer).Bitmap);
+              CurrentBitmap := TBitmap.Create;
+              CurrentBitmap.Assign(TProgressShader(ImageLayer).Bitmap);
             end;
-            }
-//          if (CurrentImage <> String.Empty) and Assigned(CurrentBitmap) then
-          if (CurrentImage <> String.Empty) then
+          if Assigned(CurrentBitmap) then
             begin
               TProgressShader(ImageLayer).Free;
 
@@ -199,8 +196,7 @@ begin
                 begin
                   PySys.Log('Adding Original ' + CurrentImage);
                   OriginalImage := CurrentImage;
-//                  AddBitmap(Original, CurrentBitmap);
-                  AddImage(Original, CurrentImage);
+                  AddBitmap(Original, CurrentBitmap, True);
                   PySys.Log('Adding Styled ' + AFileName);
                   AddImage(Styled, AFileName);
                   PreserveTransparency := False;
@@ -209,6 +205,7 @@ begin
                   trkAlphaThreshold.Value := 0.95;
                   ProgressBar1.Value := 0;
                 end;
+                FreeAndNil(CurrentBitMap);
             end;
         end;
     end;
