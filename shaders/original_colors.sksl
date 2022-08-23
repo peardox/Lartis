@@ -1,6 +1,6 @@
 uniform float  	fStyleWeight; 	 		// Style Weight
 uniform float 	fAlphaThreshold;		// Alpha Threshold
-uniform int 	bOriginalColors;		// Use Original Colours
+uniform int 	iColorMode;				// Colours - 0 = Styled, 1 = YUV, 2 = HLS
 uniform int 	bPreserveTransparency; 	// Preserve Transparency
 uniform int 	bInvertAlpha;			// Used to keep background rather than foreground
 uniform float3 	iResolution;      		// Viewport resolution (pixels)
@@ -53,9 +53,7 @@ float4 main( in float2 fragCoord )
 	bool StyledValid = (StyledValid != 0);
 	bool OriginalValid = (OriginalValid != 0);
 	bool bInvertAlpha = (bInvertAlpha != 0);
-	bool bOriginalColors = (bOriginalColors != 0);
 	bool bPreserveTransparency = (bPreserveTransparency != 0);
-	int iColorModel = 0; // 0 = YUV, 1 = HSV
 	
 	float4 styled = float4(0, 0, 0, 0);
 	
@@ -84,22 +82,20 @@ float4 main( in float2 fragCoord )
 				original.a = 1 - original.a;
 			}
 
-			if(bOriginalColors) {
-				if(iColorModel == 1) {
-					float3 styled_yuv = rgb2hsv(styled.rgb);
-					float3 original_yuv = rgb2hsv(original.rgb);
-					
-					float3 preserved_yuv = float3((styled_yuv.x * fStyleWeight) + ((1-fStyleWeight) * original_yuv.x), original_yuv.yz);
-					
-					styled = float4(hsv2rgb(preserved_yuv), 1);
-				} else {
-					float3 styled_yuv = rgb2yuv(styled.rgb);
-					float3 original_yuv = rgb2yuv(original.rgb);
-					
-					float3 preserved_yuv = float3((styled_yuv.x * fStyleWeight) + ((1-fStyleWeight) * original_yuv.x), original_yuv.yz);
-					
-					styled = float4(yuv2rgb(preserved_yuv), 1);
-				}
+			if(iColorMode == 2) {
+				float3 styled_yuv = rgb2hsv(styled.rgb);
+				float3 original_yuv = rgb2hsv(original.rgb);
+				
+				float3 preserved_yuv = float3((styled_yuv.x * fStyleWeight) + ((1-fStyleWeight) * original_yuv.x), original_yuv.yz);
+				
+				styled = float4(hsv2rgb(preserved_yuv), 1);
+			} else if(iColorMode == 1) {
+				float3 styled_yuv = rgb2yuv(styled.rgb);
+				float3 original_yuv = rgb2yuv(original.rgb);
+				
+				float3 preserved_yuv = float3((styled_yuv.x * fStyleWeight) + ((1-fStyleWeight) * original_yuv.x), original_yuv.yz);
+				
+				styled = float4(yuv2rgb(preserved_yuv), 1);
 			} else {
 				styled = float4((styled.rgb * fStyleWeight) + ((1-fStyleWeight) * original.rgb), 1);
 			}

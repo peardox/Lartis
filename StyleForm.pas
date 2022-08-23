@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
   EmbeddedForm, FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts,
-  Shaders;
+  Shaders, FMX.ListBox;
 
 type
   TfrmStyle = class(TEmbeddedForm)
@@ -21,20 +21,32 @@ type
     trkStyleWeight: TTrackBar;
     lblStyleWeightKey: TLabel;
     lblStyleWeightValue: TLabel;
+    Expander1: TExpander;
+    Splitter1: TSplitter;
+    ComboBox1: TComboBox;
+    CheckBox1: TCheckBox;
+    lblAlphaThresholdKey: TLabel;
+    trkAlphaThreshold: TTrackBar;
+    lblAlphaThresholdValue: TLabel;
+    CheckBox2: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnOpenFileClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure StyleLayoutResize(Sender: TObject);
     procedure trkStyleWeightChange(Sender: TObject);
+    procedure ComboBox1Change(Sender: TObject);
+    procedure CheckBox1Change(Sender: TObject);
+    procedure CheckBox2Change(Sender: TObject);
+    procedure trkAlphaThresholdChange(Sender: TObject);
   private
     { Private declarations }
     Grid: TGridShader;
     ImageLayer: TBaseShader;
-    ProgressLayer: TProgressShader;
     Container: TAspectLayout;
   public
     { Public declarations }
+    procedure ProjectInitialise;
     procedure ShowStyleProgress(Sender: TObject; const AValue: Single);
     procedure ShowStyledImage(Sender: TObject; const AFileName: String);
   end;
@@ -49,6 +61,27 @@ uses
   PythonSystem;
 
 {$R *.fmx}
+
+procedure TfrmStyle.FormCreate(Sender: TObject);
+begin
+  ProjectInitialise;
+end;
+
+procedure TfrmStyle.ProjectInitialise;
+begin
+  ComboBox1.Items.Add('Use Styled Colors');
+  ComboBox1.Items.Add('Use Original (YUV)');
+  ComboBox1.Items.Add('Use Original (HLS)');
+  ComboBox1.ItemIndex := 0;
+
+  trkStyleWeight.Max := 10000;
+  trkAlphaThreshold.Max := 10000;
+  trkStyleWeight.Value := 1.00;
+  trkAlphaThreshold.Value := 0.95;
+  lblAlphaThresholdValue.Text := FormatFloat('##0.00', 100.00);
+  lblStyleWeightValue.Text := FormatFloat('##0.00', 100.00);
+  Expander1.Enabled := True;
+end;
 
 procedure TfrmStyle.ShowStyleProgress(Sender: TObject; const AValue: Single);
 begin
@@ -66,6 +99,23 @@ begin
   if Assigned(Container) then
     begin
       Container.FitToContainer;
+    end;
+end;
+
+procedure TfrmStyle.trkAlphaThresholdChange(Sender: TObject);
+begin
+  if Assigned(ImageLayer) then
+    begin
+      if ImageLayer is TLayerShader then // Track StyleWeight for LayerShader
+        with ImageLayer as TLayerShader do
+          begin
+            AlphaThreshold := (trkAlphaThreshold.Value / trkAlphaThreshold.Max);
+            lblAlphaThresholdValue.Text := FormatFloat('##0.00', AlphaThreshold * 100);
+          end;
+      if ImageLayer is TProgressShader then // Fake StyleWeight for ProgressShader
+        begin
+          lblAlphaThresholdValue.Text := FormatFloat('##0.00', (trkAlphaThreshold.Value / trkAlphaThreshold.Max) * 100);
+        end;
     end;
 end;
 
@@ -111,7 +161,7 @@ begin
           with ImageLayer as TProgressShader do
             begin
               AddImage(OpenDialog1.FileName);
-              trkStyleWeight.Value := 1;
+              trkStyleWeight.Value := 1.00;
               trkStyleWeight.Enabled := False;
             end;
 
@@ -154,8 +204,9 @@ begin
                   PySys.Log('Adding Styled ' + AFileName);
                   AddImage(Styled, AFileName);
                   PreserveTransparency := False;
-                  trkStyleWeight.Value := 0.5;
+                  trkStyleWeight.Value := 1.00;
                   trkStyleWeight.Enabled := True;
+                  trkAlphaThreshold.Value := 0.95;
                   ProgressBar1.Value := 0;
                 end;
             end;
@@ -177,16 +228,31 @@ begin
     end;
 end;
 
+procedure TfrmStyle.CheckBox1Change(Sender: TObject);
+begin
+  if Assigned(ImageLayer) then
+    if ImageLayer is TLayerShader then
+      TLayerShader(ImageLayer).PreserveTransparency :=  CheckBox1.IsChecked;
+end;
+
+procedure TfrmStyle.CheckBox2Change(Sender: TObject);
+begin
+  if Assigned(ImageLayer) then
+    if ImageLayer is TLayerShader then
+      TLayerShader(ImageLayer).InvertAlpha :=  CheckBox2.IsChecked;
+end;
+
+procedure TfrmStyle.ComboBox1Change(Sender: TObject);
+begin
+  if Assigned(ImageLayer) then
+    if ImageLayer is TLayerShader then
+      TLayerShader(ImageLayer).ColorMode :=  ComboBox1.ItemIndex;
+end;
+
 procedure TfrmStyle.Button1Click(Sender: TObject);
 begin
   if Assigned(CloseMyself) then
       CloseMyself(Self);
-end;
-
-procedure TfrmStyle.FormCreate(Sender: TObject);
-begin
-//      Container := TAspectLayout.Create(StyleLayout);
-//      Grid := TGridShader.Create(Container);
 end;
 
 

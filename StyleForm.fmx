@@ -86,8 +86,77 @@ object frmStyle: TfrmStyle
       Size.Height = 17.000000000000000000
       Size.PlatformDefault = False
       TextSettings.HorzAlign = Trailing
-      Text = '0.00'
+      Text = '1.00'
       TabOrder = 4
+    end
+    object Expander1: TExpander
+      Position.X = 8.000000000000000000
+      Position.Y = 120.000000000000000000
+      ShowCheck = False
+      Size.Width = 145.000000000000000000
+      Size.Height = 129.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Transparency'
+      TabOrder = 5
+      ContentSize = '104'
+      object CheckBox1: TCheckBox
+        Position.X = 8.000000000000000000
+        Size.Width = 129.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Text = 'Enable Transparency'
+        OnChange = CheckBox1Change
+      end
+      object lblAlphaThresholdKey: TLabel
+        Position.X = 8.000000000000000000
+        Position.Y = 48.000000000000000000
+        Size.Width = 81.000000000000000000
+        Size.Height = 17.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Threshold'
+        TabOrder = 2
+      end
+      object trkAlphaThreshold: TTrackBar
+        CanParentFocus = True
+        Orientation = Horizontal
+        Position.X = 8.000000000000000000
+        Position.Y = 72.000000000000000000
+        Size.Width = 129.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 3
+        OnChange = trkAlphaThresholdChange
+      end
+      object lblAlphaThresholdValue: TLabel
+        Position.X = 104.000000000000000000
+        Position.Y = 48.000000000000000000
+        Size.Width = 40.000000000000000000
+        Size.Height = 17.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.HorzAlign = Trailing
+        Text = '1.00'
+        TabOrder = 4
+      end
+      object CheckBox2: TCheckBox
+        Position.X = 8.000000000000000000
+        Position.Y = 24.000000000000000000
+        Size.Width = 129.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'Invert Alpha'
+        OnChange = CheckBox2Change
+      end
+    end
+    object ComboBox1: TComboBox
+      Position.X = 8.000000000000000000
+      Position.Y = 88.000000000000000000
+      Size.Width = 145.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 6
+      OnChange = ComboBox1Change
     end
   end
   object StyleLayout: TLayout
@@ -97,6 +166,15 @@ object frmStyle: TfrmStyle
     Size.PlatformDefault = False
     TabOrder = 4
     OnResize = StyleLayoutResize
+    object Splitter1: TSplitter
+      Align = Right
+      Cursor = crHSplit
+      MinSize = 20.000000000000000000
+      Position.X = 472.000000000000000000
+      Size.Width = 8.000000000000000000
+      Size.Height = 436.000000000000000000
+      Size.PlatformDefault = False
+    end
   end
   object OpenDialog1: TOpenDialog
     Left = 320

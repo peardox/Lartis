@@ -53,8 +53,8 @@ type
     FStyleWeight: Single;
     FOnChangeAlphaThreshold: TNotifyEvent;
     FAlphaThreshold: Single;
-    FOnChangeOriginalColors: TNotifyEvent;
-    FOriginalColors: Boolean;
+    FOnChangeColorMode: TNotifyEvent;
+    FColorMode: Integer;
     FOnChangePreserveTransparency: TNotifyEvent;
     FPreserveTransparency: Boolean;
     FInvertAlpha: Boolean;
@@ -76,7 +76,7 @@ type
 
     procedure SetStyleWeight(const AValue: Single);
     procedure SetAlphaThreshold(const AValue: Single);
-    procedure SetOriginalColors(const AValue: Boolean);
+    procedure SetColorMode(const AValue: Integer);
     procedure SetPreserveTransparency(const AValue: Boolean);
     procedure SetInvertAlpha(const AValue: Boolean);
 
@@ -86,6 +86,7 @@ type
     procedure AddShader;
     function AddImage(const ImageType: TLayerImageType; const AImageFile: String): Boolean;
     function AddBitmap(const ImageType: TLayerImageType; const ImageBitmap: TBitmap): Boolean;
+    function IsImageStyled: Boolean;
   published
     property OnDraw;
     property StyleImage: String read GetStyleImage write SetStyleImage;
@@ -95,8 +96,8 @@ type
     property OnChangeStyleWeight: TNotifyEvent read FOnChangeStyleWeight write FOnChangeStyleWeight;
     property AlphaThreshold: Single read FAlphaThreshold write SetAlphaThreshold;
     property OnChangeAlphaThreshold: TNotifyEvent read FOnChangeAlphaThreshold write FOnChangeAlphaThreshold;
-    property OriginalColors: Boolean read FOriginalColors write SetOriginalColors;
-    property OnChangeOriginalColors: TNotifyEvent read FOnChangeOriginalColors write FOnChangeOriginalColors;
+    property ColorMode: Integer read FColorMode write SetColorMode;
+    property OnChangeColorMode: TNotifyEvent read FOnChangeColorMode write FOnChangeColorMode;
     property PreserveTransparency: Boolean read FPreserveTransparency write SetPreserveTransparency;
     property OnChangePreserveTransparency: TNotifyEvent read FOnChangePreserveTransparency write FOnChangePreserveTransparency;
     property InvertAlpha: Boolean read FInvertAlpha write SetInvertAlpha;
@@ -248,7 +249,7 @@ begin
   fImOffsetY := 0;
   FStyleWeight := 1;
   fAlphaThreshold := 0.95;
-  FOriginalColors := False;
+  FColorMode := 0;
   FPreserveTransparency := False;
   FInvertAlpha := False;
   AddShader;
@@ -287,13 +288,13 @@ begin
     end;
 end;
 
-procedure TLayerShader.SetOriginalColors(const AValue: Boolean);
+procedure TLayerShader.SetColorMode(const AValue: Integer);
 begin
-  if FOriginalColors <> AValue then
+  if FColorMode <> AValue then
     begin
-      FOriginalColors := AValue;
-      if Assigned(FOnChangeOriginalColors) then
-        FOnChangeOriginalColors(Self);
+      FColorMode := AValue;
+      if Assigned(FOnChangeColorMode) then
+        FOnChangeColorMode(Self);
     end;
 end;
 
@@ -345,6 +346,11 @@ begin
 
       ShowMessage('AlphasUsed = ' + IntToStr(AlphasUsed));
     end;
+end;
+
+function TLayerShader.IsImageStyled: Boolean;
+begin
+  Result := Assigned(bmImages[0].Bitmap) and Assigned(bmImages[1].Bitmap);
 end;
 
 function TLayerShader.GetStyleImage: String;
@@ -477,8 +483,8 @@ begin
     if Effect.UniformExists('fAlphaThreshold') then
       Effect.SetUniform('fAlphaThreshold', FAlphaThreshold);
 
-    if Effect.UniformExists('bOriginalColors') then
-      Effect.SetUniform('bOriginalColors', BoolToInt(FOriginalColors));
+    if Effect.UniformExists('iColorMode') then
+      Effect.SetUniform('iColorMode', FColorMode);
     if Effect.UniformExists('bPreserveTransparency') then
       Effect.SetUniform('bPreserveTransparency', BoolToInt(FPreserveTransparency));
     if Effect.UniformExists('bInvertAlpha') then
