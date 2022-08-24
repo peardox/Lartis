@@ -13,32 +13,36 @@ type
     TopPanel: TPanel;
     Button1: TButton;
     ControlLayout: TLayout;
-    btnOpenFile: TButton;
+    btnAddLayer: TButton;
     StyleLayout: TLayout;
     OpenDialog1: TOpenDialog;
-    Button2: TButton;
-    ProgressBar1: TProgressBar;
+    btnStylize: TButton;
+    prgStyleBatch: TProgressBar;
     trkStyleWeight: TTrackBar;
     lblStyleWeightKey: TLabel;
     lblStyleWeightValue: TLabel;
-    Expander1: TExpander;
+    expTransparency: TExpander;
     Splitter1: TSplitter;
-    ComboBox1: TComboBox;
+    cbxColourMode: TComboBox;
     CheckBox1: TCheckBox;
     lblAlphaThresholdKey: TLabel;
     trkAlphaThreshold: TTrackBar;
     lblAlphaThresholdValue: TLabel;
     CheckBox2: TCheckBox;
+    vsbLayers: TFramedVertScrollBox;
+    GridLayout1: TGridLayout;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure btnOpenFileClick(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure btnAddLayerClick(Sender: TObject);
+    procedure btnStylizeClick(Sender: TObject);
     procedure StyleLayoutResize(Sender: TObject);
     procedure trkStyleWeightChange(Sender: TObject);
-    procedure ComboBox1Change(Sender: TObject);
+    procedure cbxColourModeChange(Sender: TObject);
     procedure CheckBox1Change(Sender: TObject);
     procedure CheckBox2Change(Sender: TObject);
     procedure trkAlphaThresholdChange(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure expTransparencyExpandedChanged(Sender: TObject);
   private
     { Private declarations }
     Grid: TGridShader;
@@ -54,6 +58,9 @@ type
 var
   frmStyle: TfrmStyle;
 
+const
+  ControlMargin = 8;
+
 implementation
 
 uses
@@ -67,20 +74,58 @@ begin
   ProjectInitialise;
 end;
 
+procedure TfrmStyle.expTransparencyExpandedChanged(Sender: TObject);
+begin
+  btnAddLayer.Position.X := ControlMargin;
+  btnAddLayer.Position.Y := expTransparency.Position.Y + expTransparency.Size.Height + ControlMargin;
+  btnAddLayer.Size.Width := ControlLayout.Width - (ControlMargin * 2);
+
+  btnStylize.Position.X := ControlMargin;
+  btnStylize.Position.Y := btnAddLayer.Position.Y + 24;
+  btnStylize.Size.Width := ControlLayout.Width - (ControlMargin * 2);
+
+  vsbLayers.Position.X := ControlMargin;
+  vsbLayers.Position.Y := btnStylize.Position.Y + 24;
+  vsbLayers.Size.Width := ControlLayout.Width - (ControlMargin * 2);
+
+end;
+
+procedure TfrmStyle.FormResize(Sender: TObject);
+begin
+  lblStyleWeightKey.Position.X := ControlMargin;
+  lblStyleWeightKey.Position.Y := ControlMargin;
+
+  lblStyleWeightValue.Position.X := ControlLayout.Width - 56;
+  lblStyleWeightValue.Position.Y := ControlMargin;
+
+  trkStyleWeight.Position.X := ControlMargin;
+  trkStyleWeight.Position.Y := lblStyleWeightKey.Position.Y + 24;
+  trkStyleWeight.Size.Width := ControlLayout.Width - (ControlMargin * 2);
+
+  cbxColourMode.Position.X := ControlMargin;
+  cbxColourMode.Position.Y := trkStyleWeight.Position.Y + 32;
+  cbxColourMode.Size.Width := ControlLayout.Width - (ControlMargin * 2);
+
+  expTransparency.Position.X := ControlMargin - 2;
+  expTransparency.Position.Y := cbxColourMode.Position.Y + 32;
+
+  expTransparencyExpandedChanged(Self);
+end;
+
 procedure TfrmStyle.ProjectInitialise;
 begin
-  ComboBox1.Items.Add('Use Styled Colors');
-  ComboBox1.Items.Add('Use Original (YUV)');
-  ComboBox1.Items.Add('Use Original (HLS)');
-  ComboBox1.ItemIndex := 0;
+  cbxColourMode.Items.Add('Use Styled Colors');
+  cbxColourMode.Items.Add('Use Original (YUV)');
+  cbxColourMode.Items.Add('Use Original (HLS)');
+  cbxColourMode.ItemIndex := 0;
 
   trkStyleWeight.Max := 10000;
   trkAlphaThreshold.Max := 10000;
-  trkStyleWeight.Value := 1.00;
-  trkAlphaThreshold.Value := 0.95;
+  trkStyleWeight.Value := trkStyleWeight.Max;
+  trkAlphaThreshold.Value := trkAlphaThreshold.Max;
   lblAlphaThresholdValue.Text := FormatFloat('##0.00', 100.00);
   lblStyleWeightValue.Text := FormatFloat('##0.00', 100.00);
-  Expander1.Enabled := True;
+  expTransparency.Enabled := True;
 end;
 
 procedure TfrmStyle.ShowStyleProgress(Sender: TObject; const AValue: Single);
@@ -90,7 +135,7 @@ begin
       if ImageLayer is TProgressShader then
         begin
           TProgressShader(ImageLayer).Progress := AValue;
-          ProgressBar1.Value := AValue;
+          prgStyleBatch.Value := AValue;
         end;
 end;
 
@@ -136,7 +181,7 @@ begin
     end;
 end;
 
-procedure TfrmStyle.btnOpenFileClick(Sender: TObject);
+procedure TfrmStyle.btnAddLayerClick(Sender: TObject);
 begin
   if Assigned(PySys) then
     begin
@@ -203,7 +248,7 @@ begin
                   trkStyleWeight.Value := 1.00;
                   trkStyleWeight.Enabled := True;
                   trkAlphaThreshold.Value := 0.95;
-                  ProgressBar1.Value := 0;
+                  prgStyleBatch.Value := 0;
                 end;
                 FreeAndNil(CurrentBitMap);
             end;
@@ -212,7 +257,7 @@ begin
 
 end;
 
-procedure TfrmStyle.Button2Click(Sender: TObject);
+procedure TfrmStyle.btnStylizeClick(Sender: TObject);
 begin
   if Assigned(PySys) and Assigned(ImageLayer) then
     begin
@@ -239,11 +284,11 @@ begin
       TLayerShader(ImageLayer).InvertAlpha :=  CheckBox2.IsChecked;
 end;
 
-procedure TfrmStyle.ComboBox1Change(Sender: TObject);
+procedure TfrmStyle.cbxColourModeChange(Sender: TObject);
 begin
   if Assigned(ImageLayer) then
     if ImageLayer is TLayerShader then
-      TLayerShader(ImageLayer).ColorMode :=  ComboBox1.ItemIndex;
+      TLayerShader(ImageLayer).ColorMode :=  cbxColourMode.ItemIndex;
 end;
 
 procedure TfrmStyle.Button1Click(Sender: TObject);

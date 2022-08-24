@@ -26,4 +26,28 @@ object frmTrain: TfrmTrain
       OnClick = Button1Click
     end
   end
+  object TrackBar1: TTrackBar
+    CanParentFocus = True
+    Orientation = Horizontal
+    Position.X = 168.000000000000000000
+    Position.Y = 192.000000000000000000
+    TabOrder = 1
+  end
+  object Label1: TLabel
+    Position.X = 288.000000000000000000
+    Position.Y = 192.000000000000000000
+    Text = 'Label1'
+    TabOrder = 2
+  end
+  object Button2: TButton
+    Position.X = 240.000000000000000000
+    Position.Y = 272.000000000000000000
+    TabOrder = 3
+    Text = 'Button2'
+    OnClick = Button2Click
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 224
+    Top = 104
+  end
 end

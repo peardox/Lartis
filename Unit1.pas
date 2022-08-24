@@ -16,14 +16,7 @@ uses
 
 type
   TfrmMain = class(TForm)
-    StatusBar1: TStatusBar;
-    CheckBox1: TCheckBox;
-    Button1: TButton;
-    Button2: TButton;
     OpenDialog1: TOpenDialog;
-    Button3: TButton;
-    TrackBar1: TTrackBar;
-    Label1: TLabel;
     StyleBook1: TStyleBook;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
@@ -40,11 +33,8 @@ type
     MovieLayout: TLayout;
     {$ENDIF}
     procedure FormCreate(Sender: TObject);
-    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure Button1Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
-    procedure FormActivate(Sender: TObject);
-    procedure TrackBar1Change(Sender: TObject);
     procedure OptionsMenuClick(Sender: TObject);
     procedure ExitMenuClick(Sender: TObject);
     procedure DebugMenuClick(Sender: TObject);
@@ -54,7 +44,6 @@ type
     procedure ChildCloser(Sender: TObject);
     procedure ChildSwitcher(Sender: TObject);
     procedure SwitchToForm(AForm: TEmbeddedForm);
-    procedure TrackToScale;
   public
     { Public declarations }
     ActiveForm: TEmbeddedForm;
@@ -85,32 +74,6 @@ uses
 
 {$R *.fmx}
 {$R *.Windows.fmx MSWINDOWS}
-
-function ScalePower(const n: Single): Single;
-var
-  base: Single;
-  power10: Single;
-begin
-  base := ((n / 4) - floor(n / 4)) * 10;
-  if base = 0 then
-    base := 1;
-  power10 := floor(n / 4) + 8;
-  PySys.Log('Base = ' + FloatToStr(base) + ', Power = ' + FloatToStr(power10));
-  Result := base * Power(10, power10);
-end;
-
-procedure TfrmMain.TrackToScale;
-var
-  DispWeight: Single;
-begin
-  DispWeight := ScalePower(TrackBar1.Value);
-  Label1.Text := FormatFloat('0.0E+', DispWeight);
-end;
-
-procedure TfrmMain.TrackBar1Change(Sender: TObject);
-begin
-  TrackToScale;
-end;
 
 procedure TfrmMain.ChildCloser(Sender: TObject);
 begin
@@ -152,21 +115,6 @@ ShowMessage('Button3Click');
 }
 end;
 
-procedure TfrmMain.FormActivate(Sender: TObject);
-begin
-{
-  if not SystemActive then
-    frmSetup.BringToFront;
-}
-end;
-
-procedure TfrmMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-begin
-//  PyCleanOnExit := CheckBox1.IsChecked;
-  if Assigned(PySys) then
-    PySys.ShutdownSystem;
-end;
-
 function TfrmMain.EmbedForm(AParent:TControl; AForm: TEmbeddedForm): TEmbeddedForm;
 begin
   while AForm.ChildrenCount>0 do
@@ -184,10 +132,10 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
-{
-  if DirectoryExists(ShaderPath) then
-    TStyleManager.SetStyleFromFile(TPath.Combine(StylesPath, 'Blend.style'));
-}
+
+//  if DirectoryExists(ShaderPath) then
+//    TStyleManager.SetStyleFromFile(TPath.Combine(StylesPath, 'Blend.style'));
+
 
   frmStyle := EmbedForm(StyleLayout, TfrmStyle.Create(Self)) as TfrmStyle;
   frmTrain := EmbedForm(TrainLayout, TfrmTrain.Create(Self)) as TfrmTrain;
