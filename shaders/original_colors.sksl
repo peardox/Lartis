@@ -15,7 +15,11 @@ uniform float2	fImOffset;				// Image Offset
 
 float3 rgb2yuv(float3 rgb){
     float y = 0.299*rgb.r + 0.587*rgb.g + 0.114*rgb.b;
-    return clamp(float3(y, 0.493*(rgb.b-y), 0.877*(rgb.r-y)), 0, 1);
+    return float3(
+		clamp(y, 0, 1), 
+		clamp(0.493*(rgb.b-y), -0.436, 0.436), 
+		clamp(0.877*(rgb.r-y), -0.615, 0.615)
+		);
 }
 
 float3 yuv2rgb(float3 yuv){
@@ -82,20 +86,18 @@ float4 main( in float2 fragCoord )
 				original.a = 1 - original.a;
 			}
 
-			if(iColorMode == 2) {
-				float3 styled_yuv = rgb2hsv(styled.rgb);
-				float3 original_yuv = rgb2hsv(original.rgb);
-				
-				float3 preserved_yuv = float3((styled_yuv.x * fStyleWeight) + ((1-fStyleWeight) * original_yuv.x), original_yuv.yz);
-				
-				styled = float4(hsv2rgb(preserved_yuv), 1);
+			if(iColorMode == 2) { // HSV
+				float3 styled_hsv = rgb2hsv(styled.rgb);
+				float3 original_hsv = rgb2hsv(original.rgb);
+				float3 preserved_hsv = float3(original_hsv.x, styled_hsv.yz);
+				float3 preserved = hsv2rgb(preserved_hsv);
+				styled = float4((preserved.rgb * fStyleWeight) + ((1-fStyleWeight) * original.rgb), 1);
 			} else if(iColorMode == 1) {
 				float3 styled_yuv = rgb2yuv(styled.rgb);
 				float3 original_yuv = rgb2yuv(original.rgb);
-				
-				float3 preserved_yuv = float3((styled_yuv.x * fStyleWeight) + ((1-fStyleWeight) * original_yuv.x), original_yuv.yz);
-				
-				styled = float4(yuv2rgb(preserved_yuv), 1);
+				float3 preserved_yuv = float3(styled_yuv.x, original_yuv.yz);
+				float3 preserved = yuv2rgb(preserved_yuv);
+				styled = float4((preserved.rgb * fStyleWeight) + ((1-fStyleWeight) * original.rgb), 1);
 			} else {
 				styled = float4((styled.rgb * fStyleWeight) + ((1-fStyleWeight) * original.rgb), 1);
 			}

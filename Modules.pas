@@ -905,7 +905,7 @@ begin
 
   FOptions.content_image := AFile;
   FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-tile_test2.jpg';
-  FOptions.model := 'gothic-512/gothic-100';
+  FOptions.model := 'mosaic/mosaic-100';
   FOptions.ignore_gpu := False;
   PySys.LogClear;
   if Assigned(FTask) then

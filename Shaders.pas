@@ -4,7 +4,7 @@ interface
 
 uses
   System.Classes, System.Types, System.TypInfo, FMX.Types, FMX.Graphics,
-  FMX.Controls, FMX.Objects, FMX.Layouts, Skia, Skia.FMX;
+  FMX.Controls, FMX.Objects, FMX.Layouts, Skia, Skia.FMX, FunctionLibrary;
 
 type
   TLayerImageType = (Styled, Original);
@@ -67,7 +67,7 @@ type
     fImOffsetX: Integer;
     fImOffsetY: Integer;
     procedure DoDraw(ASender: TObject; const ACanvas: ISkCanvas; const ADest: TRectF; const AOpacity: Single);
-    procedure MakeAlphaMap(const APixmap: ISkPixmap);
+    function MakeAlphaMap(const ABitmap: TBitmap): TAlphaMap;
 
     function GetStyleImage: String;
     function GetOriginalImage: String;
@@ -80,6 +80,8 @@ type
     procedure SetPreserveTransparency(const AValue: Boolean);
     procedure SetInvertAlpha(const AValue: Boolean);
 
+    function GetStyleAlphaMap: TAlphaMap;
+    function GetOriginalAlphaMap: TAlphaMap;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -91,7 +93,8 @@ type
     property OnDraw;
     property StyleImage: String read GetStyleImage write SetStyleImage;
     property OriginalImage: String read GetOriginalImage write SetOriginalImage;
-
+    property StyleAlphaMap: TAlphaMap read GetStyleAlphaMap;
+    property OriginalAlphaMap: TAlphaMap read GetOriginalAlphaMap;
     property StyleWeight: Single read FStyleWeight write SetStyleWeight;
     property OnChangeStyleWeight: TNotifyEvent read FOnChangeStyleWeight write FOnChangeStyleWeight;
     property AlphaThreshold: Single read FAlphaThreshold write SetAlphaThreshold;
@@ -115,6 +118,8 @@ type
     ImHeight: Integer;
     FImageFile: String;
     procedure DoDraw(ASender: TObject; const ACanvas: ISkCanvas; const ADest: TRectF; const AOpacity: Single);
+    function MakeAlphaMap(const ABitmap: TBitmap): TAlphaMap;
+    function GetAlphaMap: TAlphaMap;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -126,6 +131,7 @@ type
     property Progress: Single read fProgress write fProgress;
     property ImageFile: String read FImageFile write FImageFile;
     property Bitmap: TBitmap read bmImage write bmImage;
+    property AlphaMap: TAlphaMap read GetAlphaMap;
   end;
 
 
@@ -136,7 +142,7 @@ implementation
 
 uses
   Settings, System.SysUtils, System.UITypes, FMX.Dialogs,
-  Math, IOUtils, FunctionLibrary;
+  Math, IOUtils;
 
 constructor TAspectLayout.Create(AOwner: TComponent);
 begin
@@ -318,34 +324,21 @@ begin
     end;
 end;
 
-procedure TLayerShader.MakeAlphaMap(const APixmap: ISkPixmap);
-var
-  Alpha: Integer;
-  AlphaMap: Array [0..255] of Integer;
-  I: Integer;
-  AlphasUsed: Integer;
+function TLayerShader.MakeAlphaMap(const ABitmap: TBitmap): TAlphaMap;
 begin
-  if Assigned(APixmap) then
-    begin
-      AlphasUsed := 0;
-      for I := 0 to 255 do
-        AlphaMap[I] := 0;
+  // SBDbg
+end;
 
-      for var x := 0 to APixmap.Width do
-        for var y := 0 to APixmap.Height do
-          begin
-          {$RANGECHECKS ON}
-            Alpha := round(APixmap.Alphas[x, y] * 255);
-            Inc(AlphaMap[Alpha]);
-          {$RANGECHECKS OFF}
-          end;
+function TLayerShader.GetStyleAlphaMap: TAlphaMap;
+begin
+  if Assigned(bmImages[0].Bitmap) then
+    Result := MakeAlphaMap(bmImages[0].Bitmap);
+end;
 
-      for I := 0 to 255 do
-        if AlphaMap[I] > 0 then
-          Inc(AlphasUsed);
-
-      ShowMessage('AlphasUsed = ' + IntToStr(AlphasUsed));
-    end;
+function TLayerShader.GetOriginalAlphaMap: TAlphaMap;
+begin
+  if Assigned(bmImages[1].Bitmap) then
+    Result := MakeAlphaMap(bmImages[1].Bitmap);
 end;
 
 function TLayerShader.IsImageStyled: Boolean;
@@ -372,7 +365,6 @@ procedure TLayerShader.SetOriginalImage(const AFileName: String);
 begin
   bmImages[1].ImageFile := AFileName;
 end;
-
 
 function TLayerShader.AddImage(const ImageType: TLayerImageType; const AImageFile: String): Boolean;
 begin
@@ -461,13 +453,23 @@ begin
   ShaderText := LoadShader(TPath.Combine(ShaderPath,'original_colors.sksl'));
 
   var AErrorText := '';
-  Effect := TSkRuntimeEffect.MakeForShader(ShaderText, AErrorText);
-  if AErrorText <> '' then
-    raise Exception.Create('Error creating shader : ' + AErrorText);
-  if Effect.UniformExists('StyledValid') then
-    Effect.SetUniform('StyledValid', BoolToInt(False));
-  if Effect.UniformExists('OriginalValid') then
-    Effect.SetUniform('OriginalValid', BoolToInt(False));
+  try
+    Effect := TSkRuntimeEffect.MakeForShader(ShaderText, AErrorText);
+    if AErrorText <> '' then
+      raise Exception.Create('Error creating shader : ' + AErrorText);
+    if Effect.UniformExists('StyledValid') then
+      Effect.SetUniform('StyledValid', BoolToInt(False));
+    if Effect.UniformExists('OriginalValid') then
+      Effect.SetUniform('OriginalValid', BoolToInt(False));
+  except
+          on E: Exception do
+            begin
+              ShowMessage('Unhandled Exception'
+                + sLineBreak + 'Class : ' + E.ClassName
+                + sLineBreak + 'Error : ' + E.Message
+                + sLineBreak + 'Message : ' + AErrorText);
+            end;
+  end;
 
   Enabled := True;
 
@@ -646,6 +648,18 @@ begin
     ACanvas.DrawRect(ADest, Painter);
   end;
 end;
+
+function TProgressShader.MakeAlphaMap(const ABitmap: TBitmap): TAlphaMap;
+begin
+  Result := CreateAlphaMap(Bitmap);
+end;
+
+function TProgressShader.GetAlphaMap: TAlphaMap;
+begin
+  if Assigned(Bitmap) then
+    Result := MakeAlphaMap(Bitmap);
+end;
+
 
 end.
 

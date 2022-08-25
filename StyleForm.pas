@@ -9,28 +9,30 @@ uses
   Shaders, FMX.ListBox;
 
 type
+  TLayerArray = Array of TBaseShader;
+
   TfrmStyle = class(TEmbeddedForm)
     TopPanel: TPanel;
     Button1: TButton;
     ControlLayout: TLayout;
-    btnAddLayer: TButton;
     StyleLayout: TLayout;
     OpenDialog1: TOpenDialog;
-    btnStylize: TButton;
     prgStyleBatch: TProgressBar;
-    trkStyleWeight: TTrackBar;
-    lblStyleWeightKey: TLabel;
-    lblStyleWeightValue: TLabel;
-    expTransparency: TExpander;
-    Splitter1: TSplitter;
+    vsbLayers: TFramedVertScrollBox;
+    GridLayout1: TGridLayout;
+    layControls: TLayout;
+    btnAddLayer: TButton;
+    btnStylize: TButton;
     cbxColourMode: TComboBox;
-    CheckBox1: TCheckBox;
+    expTransparency: TExpander;
+    chkEnableTransparency: TCheckBox;
     lblAlphaThresholdKey: TLabel;
     trkAlphaThreshold: TTrackBar;
     lblAlphaThresholdValue: TLabel;
-    CheckBox2: TCheckBox;
-    vsbLayers: TFramedVertScrollBox;
-    GridLayout1: TGridLayout;
+    chkInvertAlpha: TCheckBox;
+    lblStyleWeightKey: TLabel;
+    lblStyleWeightValue: TLabel;
+    trkStyleWeight: TTrackBar;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
@@ -38,21 +40,24 @@ type
     procedure StyleLayoutResize(Sender: TObject);
     procedure trkStyleWeightChange(Sender: TObject);
     procedure cbxColourModeChange(Sender: TObject);
-    procedure CheckBox1Change(Sender: TObject);
-    procedure CheckBox2Change(Sender: TObject);
+    procedure chkEnableTransparencyChange(Sender: TObject);
+    procedure chkInvertAlphaChange(Sender: TObject);
     procedure trkAlphaThresholdChange(Sender: TObject);
-    procedure FormResize(Sender: TObject);
     procedure expTransparencyExpandedChanged(Sender: TObject);
+    procedure ControlLayoutResize(Sender: TObject);
   private
     { Private declarations }
     Grid: TGridShader;
     ImageLayer: TBaseShader;
     Container: TAspectLayout;
-  public
-    { Public declarations }
+    Layers: TLayerArray;
+    LayerCount: Integer;
+    procedure AddLayer;
     procedure ProjectInitialise;
     procedure ShowStyleProgress(Sender: TObject; const AValue: Single);
     procedure ShowStyledImage(Sender: TObject; const AFileName: String);
+  public
+    { Public declarations }
   end;
 
 var
@@ -65,60 +70,76 @@ implementation
 
 uses
   Settings,
+  FunctionLibrary,
   PythonSystem;
 
 {$R *.fmx}
 
 procedure TfrmStyle.FormCreate(Sender: TObject);
 begin
-  ProjectInitialise;
-end;
-
-procedure TfrmStyle.expTransparencyExpandedChanged(Sender: TObject);
-begin
-  btnAddLayer.Position.X := ControlMargin;
-  btnAddLayer.Position.Y := expTransparency.Position.Y + expTransparency.Size.Height + ControlMargin;
-  btnAddLayer.Size.Width := ControlLayout.Width - (ControlMargin * 2);
-
-  btnStylize.Position.X := ControlMargin;
-  btnStylize.Position.Y := btnAddLayer.Position.Y + 24;
-  btnStylize.Size.Width := ControlLayout.Width - (ControlMargin * 2);
-
-  vsbLayers.Position.X := ControlMargin;
-  vsbLayers.Position.Y := btnStylize.Position.Y + 24;
-  vsbLayers.Size.Width := ControlLayout.Width - (ControlMargin * 2);
-
-end;
-
-procedure TfrmStyle.FormResize(Sender: TObject);
-begin
-  lblStyleWeightKey.Position.X := ControlMargin;
-  lblStyleWeightKey.Position.Y := ControlMargin;
-
-  lblStyleWeightValue.Position.X := ControlLayout.Width - 56;
-  lblStyleWeightValue.Position.Y := ControlMargin;
-
-  trkStyleWeight.Position.X := ControlMargin;
-  trkStyleWeight.Position.Y := lblStyleWeightKey.Position.Y + 24;
-  trkStyleWeight.Size.Width := ControlLayout.Width - (ControlMargin * 2);
-
-  cbxColourMode.Position.X := ControlMargin;
-  cbxColourMode.Position.Y := trkStyleWeight.Position.Y + 32;
-  cbxColourMode.Size.Width := ControlLayout.Width - (ControlMargin * 2);
-
-  expTransparency.Position.X := ControlMargin - 2;
-  expTransparency.Position.Y := cbxColourMode.Position.Y + 32;
-
-  expTransparencyExpandedChanged(Self);
-end;
-
-procedure TfrmStyle.ProjectInitialise;
-begin
   cbxColourMode.Items.Add('Use Styled Colors');
   cbxColourMode.Items.Add('Use Original (YUV)');
   cbxColourMode.Items.Add('Use Original (HLS)');
   cbxColourMode.ItemIndex := 0;
 
+  LayerCount := 0;
+
+  ProjectInitialise;
+end;
+
+procedure TfrmStyle.expTransparencyExpandedChanged(Sender: TObject);
+begin
+  ControlLayoutResize(Self);
+end;
+
+procedure TfrmStyle.ControlLayoutResize(Sender: TObject);
+var
+  ch: Single;
+begin
+  ch := lblStyleWeightKey.Size.Height +
+    trkStyleWeight.Size.Height +
+    cbxColourMode.Size.Height +
+
+    expTransparency.Size.Height +
+
+    btnAddLayer.Size.Height +
+    btnStylize.Size.Height +
+    (ControlMargin * 7);
+
+  layControls.Height := ch;
+
+  lblStyleWeightKey.Position.X := ControlMargin;
+  lblStyleWeightKey.Position.Y := ControlMargin;
+
+  lblStyleWeightValue.Position.X := layControls.Width - 56;
+  lblStyleWeightValue.Position.Y := ControlMargin;
+
+  trkStyleWeight.Position.X := ControlMargin;
+  trkStyleWeight.Position.Y := lblStyleWeightKey.Position.Y + 24;
+  trkStyleWeight.Size.Width := layControls.Width - (ControlMargin * 2);
+
+  cbxColourMode.Position.X := ControlMargin;
+  cbxColourMode.Position.Y := trkStyleWeight.Position.Y + 32;
+  cbxColourMode.Size.Width := layControls.Width - (ControlMargin * 2);
+
+  expTransparency.Position.X := ControlMargin - 2;
+  expTransparency.Position.Y := cbxColourMode.Position.Y + 32;
+
+  btnAddLayer.Position.X := ControlMargin;
+  btnAddLayer.Position.Y := expTransparency.Position.Y + expTransparency.Size.Height + ControlMargin;
+  btnAddLayer.Size.Width := layControls.Width - (ControlMargin * 2);
+
+  btnStylize.Position.X := ControlMargin;
+  btnStylize.Position.Y := btnAddLayer.Position.Y + 24;
+  btnStylize.Size.Width := layControls.Width - (ControlMargin * 2);
+
+  vsbLayers.Position.X := ControlMargin;
+  vsbLayers.Position.Y := ControlMargin;
+  vsbLayers.Size.Width := layControls.Width - (ControlMargin * 2);
+end;
+
+procedure TfrmStyle.ProjectInitialise;
+begin
   trkStyleWeight.Max := 10000;
   trkAlphaThreshold.Max := 10000;
   trkStyleWeight.Value := trkStyleWeight.Max;
@@ -183,6 +204,29 @@ end;
 
 procedure TfrmStyle.btnAddLayerClick(Sender: TObject);
 begin
+  if LayerCount = 0 then
+    begin
+    {
+      if Assigned(Grid) then
+        FreeAndNil(Grid);
+      if Assigned(Container) then
+        FreeAndNil(Container);
+    }
+      Container := TAspectLayout.Create(StyleLayout);
+      Grid := TGridShader.Create(Container);
+    end;
+
+  Inc(LayerCount);
+  SetLength(Layers, LayerCount);
+  ImageLayer := Layers[LayerCount - 1];
+
+  AddLayer;
+end;
+
+procedure TfrmStyle.AddLayer;
+var
+  LBitmap: TBitmap;
+begin
   if Assigned(PySys) then
     begin
       if OpenDialog1.Execute then
@@ -194,13 +238,7 @@ begin
               if ImageLayer is TProgressShader then
                 FreeAndNil(TProgressShader(ImageLayer));
             end;
-          if Assigned(Grid) then
-            FreeAndNil(Grid);
-          if Assigned(Container) then
-            FreeAndNil(Container);
 
-          Container := TAspectLayout.Create(StyleLayout);
-          Grid := TGridShader.Create(Container);
           ImageLayer := TProgressShader.Create(Container);
 
           with ImageLayer as TProgressShader do
@@ -208,6 +246,8 @@ begin
               AddImage(OpenDialog1.FileName);
               trkStyleWeight.Value := 1.00;
               trkStyleWeight.Enabled := False;
+              if Assigned(TProgressShader(ImageLayer).Bitmap) then
+                TProgressShader(ImageLayer).AlphaMap;
             end;
 
         end;
@@ -270,18 +310,18 @@ begin
     end;
 end;
 
-procedure TfrmStyle.CheckBox1Change(Sender: TObject);
+procedure TfrmStyle.chkEnableTransparencyChange(Sender: TObject);
 begin
   if Assigned(ImageLayer) then
     if ImageLayer is TLayerShader then
-      TLayerShader(ImageLayer).PreserveTransparency :=  CheckBox1.IsChecked;
+      TLayerShader(ImageLayer).PreserveTransparency :=  chkEnableTransparency.IsChecked;
 end;
 
-procedure TfrmStyle.CheckBox2Change(Sender: TObject);
+procedure TfrmStyle.chkInvertAlphaChange(Sender: TObject);
 begin
   if Assigned(ImageLayer) then
     if ImageLayer is TLayerShader then
-      TLayerShader(ImageLayer).InvertAlpha :=  CheckBox2.IsChecked;
+      TLayerShader(ImageLayer).InvertAlpha :=  chkInvertAlpha.IsChecked;
 end;
 
 procedure TfrmStyle.cbxColourModeChange(Sender: TObject);
