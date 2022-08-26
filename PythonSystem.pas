@@ -419,10 +419,6 @@ begin
 end;
 
 procedure TPySys.ThreadedSetup;
-{$ifdef MACOS64}
-var
-  EnvVar: String;
-{$endif}
 begin
   // Install Python if required
   PyEnv.Setup(pyver);
@@ -432,12 +428,13 @@ begin
     procedure()
     begin
     {$ifdef MACOS64}
+      var EnvVar: String;
       EnvVar := GetEnvironmentVariable('DYLD_LIBRARY_PATH');
-      if EnvEvr == String.Empty then
+      if EnvVar = String.Empty then
         EnvVar := PyEnv.EnvironmentPath + '/' + pyver + '/lib'
       else
         EnvVar := PyEnv.EnvironmentPath + '/' + pyver + '/lib:' + EnvVar;
-      SetEnvironmentVariable('DYLD_LIBRARY_PATH', EnvVar);
+//      SetEnvironmentVariable('DYLD_LIBRARY_PATH', EnvVar);
       Log('Environment needs ' + EnvVar);
       {$endif}
       Log('Env Path = ' + PyEnv.EnvironmentPath);
