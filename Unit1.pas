@@ -183,7 +183,7 @@ var
   JsonText: String;
   data: TModelStyleCollection;
 begin
-
+{$IFDEF JSONTEST}
   GetModelJson;
   if JsonList.Count > 0 then
     begin
@@ -196,6 +196,7 @@ begin
       {$O+}
       exit;
     end;
+{$ENDIF}
 
   if Assigned(PySys) and SystemActive then
     begin
