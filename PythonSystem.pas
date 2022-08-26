@@ -371,11 +371,10 @@ begin
 
   PyEnv.EnvironmentPath := IncludeTrailingPathDelimiter(AppHome) + 'python';
   {$ifdef MACOS64}
-  PyEng.DllPath := PyEnv.EnvironmentPath + '/' + pyver + '/lib/';
-  PyEng.DllName := 'libpython' + pyver + '.dylib';
+//  PyEnv.EnvironmentPath := '';
+//  PyEng.DllPath := PyEnv.EnvironmentPath + '/' + pyver + '/lib/';
+//  PyEng.DllName := 'libpython' + pyver + '.dylib';
   {$endif}
-
-  Log('Env Path = ' + PyEnv.EnvironmentPath);
 
   // Create NumPy
   NumPy := TNumPy.Create(Self);
@@ -428,11 +427,26 @@ begin
   TThread.Synchronize(nil,
     procedure()
     begin
+//      PyEnv.EnvironmentPath :=  PyEnv.EnvironmentPath + '/3.9/';
+      Log('Env Path = ' + PyEnv.EnvironmentPath);
+      Log('Eng DLLPath = ' + PyEng.DllPath);
+      Log('Eng DLLName = ' + PyEng.DllName);
+      Log('pyver = ' + pyver);
+
+      try
       // Activate Python
       if PyEnv.Activate(pyver) then
         Log('Python activate returned true')
       else
         Log('Python activate returned false');
+      except
+        on E: Exception do
+          begin
+            Log('Unhandled Exception');
+            Log('Class : ' + E.ClassName);
+            Log('Error : ' + E.Message);
+          end;
+      end;
     end
   );
   FTask.CheckCanceled();

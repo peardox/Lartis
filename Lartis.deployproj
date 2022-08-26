@@ -8,6 +8,15 @@
         <DeviceId Condition="'$(Platform)'=='Android64'"/>
     </PropertyGroup>
     <ItemGroup Condition="'$(Platform)'=='OSX64'">
+        <DeployFile Include="images\free\movie.png" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis.app\Contents\Resources\images\free\</RemoteDir>
+            <RemoteName>movie.png</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
         <DeployFile Include="images\licensed\evolve.png" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis.app\Contents\Resources\images/licensed\</RemoteDir>
             <RemoteName>evolve.png</RemoteName>
@@ -83,7 +92,7 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-macos-3.9.12-x86_64.zip" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-macos-3.9.12-x86_64.zip" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis.app\Contents\MacOS\</RemoteDir>
             <RemoteName>python3-macos-3.9.12-x86_64.zip</RemoteName>
             <DeployClass>Python</DeployClass>
@@ -93,7 +102,7 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-macos-3.9.12-x86_64.zip" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-macos-3.9.12-x86_64.zip" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis.app\Contents\MacOS\</RemoteDir>
             <RemoteName>python3-macos-3.9.12-x86_64.zip</RemoteName>
             <DeployClass>Python</DeployClass>
@@ -184,18 +193,9 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="images\free\movie.png" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis.app\Contents\Resources\images\free\</RemoteDir>
-            <RemoteName>movie.png</RemoteName>
-            <DeployClass>File</DeployClass>
-            <Operation>0</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
     </ItemGroup>
     <ItemGroup Condition="'$(Platform)'=='Win32'">
-        <DeployFile Include="$(SKIADIR)\Binary\Win32\Release\sk4d.dll" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(SKIADIR)\Binary\Win32\Release\sk4d.dll" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\</RemoteDir>
             <RemoteName>sk4d.dll</RemoteName>
             <DeployClass>Skia</DeployClass>
@@ -205,7 +205,7 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(SKIADIR)\Binary\Win32\Release\sk4d.dll" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="$(SKIADIR)\Binary\Win32\Release\sk4d.dll" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\</RemoteDir>
             <RemoteName>sk4d.dll</RemoteName>
             <DeployClass>Skia</DeployClass>
@@ -225,16 +225,6 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-windows-3.9.12-win32.zip" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis\</RemoteDir>
-            <RemoteName>python3-windows-3.9.12-win32.zip</RemoteName>
-            <DeployClass>Python</DeployClass>
-            <Operation>0</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-            <Required>True</Required>
-        </DeployFile>
         <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-windows-3.9.12-win32.zip" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\</RemoteDir>
             <RemoteName>python3-windows-3.9.12-win32.zip</RemoteName>
@@ -245,9 +235,95 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-windows-3.9.12-win32.zip" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis\</RemoteDir>
+            <RemoteName>python3-windows-3.9.12-win32.zip</RemoteName>
+            <DeployClass>Python</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+            <Required>True</Required>
+        </DeployFile>
     </ItemGroup>
-    <ItemGroup Condition="'$(Platform)'=='OSXARM64'"/>
+    <ItemGroup Condition="'$(Platform)'=='OSXARM64'">
+        <DeployFile Include="OSXARM64\Debug\Lartis.entitlements" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis.app\..\</RemoteDir>
+            <RemoteName>Lartis.entitlements</RemoteName>
+            <DeployClass>ProjectOSXEntitlements</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="OSXARM64\Debug\Lartis.info.plist" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis.app\Contents\</RemoteDir>
+            <RemoteName>Info.plist</RemoteName>
+            <DeployClass>ProjectOSXInfoPList</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="$(SKIADIR)\Binary\OSXARM64\Release\sk4d.dylib" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>sk4d.dylib</RemoteName>
+            <DeployClass>Skia</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+            <Required>True</Required>
+        </DeployFile>
+        <DeployFile Include="OSXARM64\Debug\Lartis" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>Lartis</RemoteName>
+            <DeployClass>ProjectOutput</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+            <Required>True</Required>
+        </DeployFile>
+        <DeployFile Include="$(BDS)\bin\delphi_PROJECTICNS.icns" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis.app\Contents\Resources\</RemoteDir>
+            <RemoteName>Lartis.icns</RemoteName>
+            <DeployClass>ProjectOSXResource</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-macos-3.9.12-universal2.zip" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>python3-macos-3.9.12-universal2.zip</RemoteName>
+            <DeployClass>Python</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+            <Required>True</Required>
+        </DeployFile>
+        <DeployFile Include="OSXARM64\Debug\Lartis.dSYM" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis.app\..\$(PROJECTNAME).app.dSYM\Contents\Resources\DWARF\</RemoteDir>
+            <RemoteName>Lartis</RemoteName>
+            <DeployClass>ProjectOSXDebug</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+    </ItemGroup>
     <ItemGroup Condition="'$(Platform)'=='Android64'">
+        <DeployFile Include="images\licensed\style.png" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis\assets\internal\</RemoteDir>
+            <RemoteName>style.png</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
         <DeployFile Include="images\licensed\style.png" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\assets\internal\</RemoteDir>
             <RemoteName>style.png</RemoteName>
@@ -266,7 +342,7 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_72x72.png" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_72x72.png" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\res\drawable-hdpi\</RemoteDir>
             <RemoteName>ic_launcher.png</RemoteName>
             <DeployClass>Android_LauncherIcon72</DeployClass>
@@ -275,7 +351,7 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_72x72.png" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_72x72.png" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\res\drawable-hdpi\</RemoteDir>
             <RemoteName>ic_launcher.png</RemoteName>
             <DeployClass>Android_LauncherIcon72</DeployClass>
@@ -331,6 +407,15 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
+        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_144x144.png" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis\res\drawable-xxhdpi\</RemoteDir>
+            <RemoteName>ic_launcher.png</RemoteName>
+            <DeployClass>Android_LauncherIcon144</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
         <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_48x48.png" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\res\drawable-mdpi\</RemoteDir>
             <RemoteName>ic_launcher.png</RemoteName>
@@ -349,11 +434,11 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_144x144.png" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis\res\drawable-xxhdpi\</RemoteDir>
-            <RemoteName>ic_launcher.png</RemoteName>
-            <DeployClass>Android_LauncherIcon144</DeployClass>
-            <Operation>1</Operation>
+        <DeployFile Include="images\licensed\movie.png" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis\</RemoteDir>
+            <RemoteName>movie.png</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
@@ -367,16 +452,7 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="images\licensed\movie.png" Condition="'$(Config)'=='Debug'">
-            <RemoteDir>Lartis\</RemoteDir>
-            <RemoteName>movie.png</RemoteName>
-            <DeployClass>File</DeployClass>
-            <Operation>0</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
-        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_SplashImage_640x480.png" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_SplashImage_640x480.png" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\res\drawable-large\</RemoteDir>
             <RemoteName>splash_image.png</RemoteName>
             <DeployClass>Android_SplashImage640</DeployClass>
@@ -385,7 +461,7 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_SplashImage_640x480.png" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_SplashImage_640x480.png" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\res\drawable-large\</RemoteDir>
             <RemoteName>splash_image.png</RemoteName>
             <DeployClass>Android_SplashImage640</DeployClass>
@@ -404,7 +480,7 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\android\3.9.12\arm\python3.9" Condition="'$(Config)'=='Release' And '$(AndroidAppBundle)'=='true'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\android\3.9.12\arm\python3.9" Condition="'$(Config)'=='Debug' And '$(AndroidAppBundle)'=='true'">
             <RemoteDir>Lartis\library\lib\armeabi-v7a\</RemoteDir>
             <RemoteName>python3.9</RemoteName>
             <DeployClass>Python</DeployClass>
@@ -414,7 +490,7 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\android\3.9.12\arm\python3.9" Condition="'$(Config)'=='Debug' And '$(AndroidAppBundle)'=='true'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\android\3.9.12\arm\python3.9" Condition="'$(Config)'=='Release' And '$(AndroidAppBundle)'=='true'">
             <RemoteDir>Lartis\library\lib\armeabi-v7a\</RemoteDir>
             <RemoteName>python3.9</RemoteName>
             <DeployClass>Python</DeployClass>
@@ -451,19 +527,19 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="Android64\Debug\classes.dex" Condition="'$(Config)'=='Debug'">
-            <RemoteDir>Lartis\classes\</RemoteDir>
-            <RemoteName>classes.dex</RemoteName>
-            <DeployClass>AndroidClassesDexFile</DeployClass>
+        <DeployFile Include="$(BDS)\lib\android\debug\mips\libnative-activity.so" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis\library\lib\mips\</RemoteDir>
+            <RemoteName>libLartis.so</RemoteName>
+            <DeployClass>AndroidLibnativeMipsFile</DeployClass>
             <Operation>1</Operation>
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(BDS)\lib\android\debug\mips\libnative-activity.so" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis\library\lib\mips\</RemoteDir>
-            <RemoteName>libLartis.so</RemoteName>
-            <DeployClass>AndroidLibnativeMipsFile</DeployClass>
+        <DeployFile Include="Android64\Debug\classes.dex" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis\classes\</RemoteDir>
+            <RemoteName>classes.dex</RemoteName>
+            <DeployClass>AndroidClassesDexFile</DeployClass>
             <Operation>1</Operation>
             <LocalCommand/>
             <RemoteCommand/>
@@ -582,7 +658,7 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-android-3.9.12-arm64.zip" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-android-3.9.12-arm64.zip" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\assets\internal\</RemoteDir>
             <RemoteName>python3-android-3.9.12-arm64.zip</RemoteName>
             <DeployClass>Python</DeployClass>
@@ -592,7 +668,7 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-android-3.9.12-arm64.zip" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-android-3.9.12-arm64.zip" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\assets\internal\</RemoteDir>
             <RemoteName>python3-android-3.9.12-arm64.zip</RemoteName>
             <DeployClass>Python</DeployClass>
@@ -647,7 +723,7 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(BDS)\lib\android\debug\armeabi\libnative-activity.so" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(BDS)\lib\android\debug\armeabi\libnative-activity.so" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\library\lib\armeabi\</RemoteDir>
             <RemoteName>libLartis.so</RemoteName>
             <DeployClass>AndroidLibnativeArmeabiFile</DeployClass>
@@ -656,7 +732,7 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(BDS)\lib\android\debug\armeabi\libnative-activity.so" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="$(BDS)\lib\android\debug\armeabi\libnative-activity.so" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\library\lib\armeabi\</RemoteDir>
             <RemoteName>libLartis.so</RemoteName>
             <DeployClass>AndroidLibnativeArmeabiFile</DeployClass>
@@ -685,15 +761,6 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="images\licensed\train.png" Condition="'$(Config)'=='Debug'">
-            <RemoteDir>Lartis\assets\internal\</RemoteDir>
-            <RemoteName>train.png</RemoteName>
-            <DeployClass>File</DeployClass>
-            <Operation>0</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
         <DeployFile Include="Android64\Debug\colors.xml" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\res\values\</RemoteDir>
             <RemoteName>colors.xml</RemoteName>
@@ -703,7 +770,7 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="images\licensed\train.png" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="images\licensed\train.png" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\assets\internal\</RemoteDir>
             <RemoteName>train.png</RemoteName>
             <DeployClass>File</DeployClass>
@@ -721,7 +788,7 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_36x36.png" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_36x36.png" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\res\drawable-hdpi\</RemoteDir>
             <RemoteName>ic_notification.png</RemoteName>
             <DeployClass>Android_NotificationIcon36</DeployClass>
@@ -730,7 +797,7 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_36x36.png" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_36x36.png" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\res\drawable-hdpi\</RemoteDir>
             <RemoteName>ic_notification.png</RemoteName>
             <DeployClass>Android_NotificationIcon36</DeployClass>
@@ -748,7 +815,16 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\android\3.9.12\arm64\libpython3.9.so" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="images\licensed\train.png" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis\assets\internal\</RemoteDir>
+            <RemoteName>train.png</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\android\3.9.12\arm64\libpython3.9.so" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\library\lib\arm64-v8a\</RemoteDir>
             <RemoteName>libpython3.9.so</RemoteName>
             <DeployClass>Python</DeployClass>
@@ -758,7 +834,7 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\android\3.9.12\arm64\libpython3.9.so" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\android\3.9.12\arm64\libpython3.9.so" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\library\lib\arm64-v8a\</RemoteDir>
             <RemoteName>libpython3.9.so</RemoteName>
             <DeployClass>Python</DeployClass>
@@ -833,24 +909,6 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_24x24.png" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis\res\drawable-mdpi\</RemoteDir>
-            <RemoteName>ic_notification.png</RemoteName>
-            <DeployClass>Android_NotificationIcon24</DeployClass>
-            <Operation>1</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
-        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_SplashImage_960x720.png" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis\res\drawable-xlarge\</RemoteDir>
-            <RemoteName>splash_image.png</RemoteName>
-            <DeployClass>Android_SplashImage960</DeployClass>
-            <Operation>1</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
         <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_24x24.png" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\res\drawable-mdpi\</RemoteDir>
             <RemoteName>ic_notification.png</RemoteName>
@@ -860,7 +918,25 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
+        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_24x24.png" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis\res\drawable-mdpi\</RemoteDir>
+            <RemoteName>ic_notification.png</RemoteName>
+            <DeployClass>Android_NotificationIcon24</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
         <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_SplashImage_960x720.png" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis\res\drawable-xlarge\</RemoteDir>
+            <RemoteName>splash_image.png</RemoteName>
+            <DeployClass>Android_SplashImage960</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_SplashImage_960x720.png" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\res\drawable-xlarge\</RemoteDir>
             <RemoteName>splash_image.png</RemoteName>
             <DeployClass>Android_SplashImage960</DeployClass>
@@ -905,15 +981,6 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_72x72.png" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis\res\drawable-xxhdpi\</RemoteDir>
-            <RemoteName>ic_notification.png</RemoteName>
-            <DeployClass>Android_NotificationIcon72</DeployClass>
-            <Operation>1</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
         <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_72x72.png" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\res\drawable-xxhdpi\</RemoteDir>
             <RemoteName>ic_notification.png</RemoteName>
@@ -923,10 +990,10 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_SplashImage_470x320.png" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis\res\drawable-normal\</RemoteDir>
-            <RemoteName>splash_image.png</RemoteName>
-            <DeployClass>Android_SplashImage470</DeployClass>
+        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_72x72.png" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis\res\drawable-xxhdpi\</RemoteDir>
+            <RemoteName>ic_notification.png</RemoteName>
+            <DeployClass>Android_NotificationIcon72</DeployClass>
             <Operation>1</Operation>
             <LocalCommand/>
             <RemoteCommand/>
@@ -941,27 +1008,17 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="images\licensed\style.png" Condition="'$(Config)'=='Debug'">
-            <RemoteDir>Lartis\assets\internal\</RemoteDir>
-            <RemoteName>style.png</RemoteName>
-            <DeployClass>File</DeployClass>
-            <Operation>0</Operation>
+        <DeployFile Include="$(BDS)\bin\Artwork\Android\FM_SplashImage_470x320.png" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis\res\drawable-normal\</RemoteDir>
+            <RemoteName>splash_image.png</RemoteName>
+            <DeployClass>Android_SplashImage470</DeployClass>
+            <Operation>1</Operation>
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
     </ItemGroup>
     <ItemGroup Condition="'$(Platform)'=='Android'">
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-android-3.9.12-arm.zip" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis\assets\internal\</RemoteDir>
-            <RemoteName>python3-android-3.9.12-arm.zip</RemoteName>
-            <DeployClass>Python</DeployClass>
-            <Operation>0</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-            <Required>True</Required>
-        </DeployFile>
         <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-android-3.9.12-arm.zip" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\assets\internal\</RemoteDir>
             <RemoteName>python3-android-3.9.12-arm.zip</RemoteName>
@@ -972,7 +1029,17 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\android\3.9.12\arm\python3.9" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-android-3.9.12-arm.zip" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis\assets\internal\</RemoteDir>
+            <RemoteName>python3-android-3.9.12-arm.zip</RemoteName>
+            <DeployClass>Python</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+            <Required>True</Required>
+        </DeployFile>
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\android\3.9.12\arm\python3.9" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\library\lib\armeabi-v7a\</RemoteDir>
             <RemoteName>python3.9</RemoteName>
             <DeployClass>Python</DeployClass>
@@ -982,7 +1049,7 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\android\3.9.12\arm\python3.9" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\android\3.9.12\arm\python3.9" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\library\lib\armeabi-v7a\</RemoteDir>
             <RemoteName>python3.9</RemoteName>
             <DeployClass>Python</DeployClass>
@@ -1034,20 +1101,20 @@
         </DeployFile>
     </ItemGroup>
     <ItemGroup Condition="'$(Platform)'=='Win64'">
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-windows-3.9.12-amd64.zip" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="Win64\Release\Lartis.exe" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\</RemoteDir>
-            <RemoteName>python3-windows-3.9.12-amd64.zip</RemoteName>
-            <DeployClass>Python</DeployClass>
+            <RemoteName>Lartis.exe</RemoteName>
+            <DeployClass>ProjectOutput</DeployClass>
             <Operation>0</Operation>
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="Win64\Release\Lartis.exe" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(SKIADIR)\Binary\Win64\Release\sk4d.dll" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\</RemoteDir>
-            <RemoteName>Lartis.exe</RemoteName>
-            <DeployClass>ProjectOutput</DeployClass>
+            <RemoteName>sk4d.dll</RemoteName>
+            <DeployClass>Skia</DeployClass>
             <Operation>0</Operation>
             <LocalCommand/>
             <RemoteCommand/>
@@ -1074,10 +1141,10 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(SKIADIR)\Binary\Win64\Release\sk4d.dll" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-windows-3.9.12-amd64.zip" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\</RemoteDir>
-            <RemoteName>sk4d.dll</RemoteName>
-            <DeployClass>Skia</DeployClass>
+            <RemoteName>python3-windows-3.9.12-amd64.zip</RemoteName>
+            <DeployClass>Python</DeployClass>
             <Operation>0</Operation>
             <LocalCommand/>
             <RemoteCommand/>
@@ -1104,16 +1171,6 @@
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
-        </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-linux-3.9.12-x86_64.zip" Condition="'$(Config)'=='Debug'">
-            <RemoteDir>Lartis\</RemoteDir>
-            <RemoteName>python3-linux-3.9.12-x86_64.zip</RemoteName>
-            <DeployClass>Python</DeployClass>
-            <Operation>0</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-            <Required>True</Required>
         </DeployFile>
         <DeployFile Include="images\free\movie.png" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\images\free\</RemoteDir>
@@ -1203,6 +1260,16 @@
             <RemoteName>Lartis</RemoteName>
             <DeployClass>ProjectOutput</DeployClass>
             <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+            <Required>True</Required>
+        </DeployFile>
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-linux-3.9.12-x86_64.zip" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis\</RemoteDir>
+            <RemoteName>python3-linux-3.9.12-x86_64.zip</RemoteName>
+            <DeployClass>Python</DeployClass>
+            <Operation>0</Operation>
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
