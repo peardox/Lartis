@@ -26,6 +26,7 @@ type
     OptionsMenu: TMenuItem;
     ExitMenu: TMenuItem;
     DebugMenu: TMenuItem;
+    Button1: TButton;
     {$IFDEF ENABLE_EVOLVE}
     EvolveLayout: TLayout;
     {$ENDIF}
@@ -56,6 +57,7 @@ implementation
 
 uses
   Settings,
+  StyleModel,
   Math,
   FunctionLibrary,
   PythonSystem,
@@ -136,7 +138,6 @@ begin
 //  if DirectoryExists(ShaderPath) then
 //    TStyleManager.SetStyleFromFile(TPath.Combine(StylesPath, 'Blend.style'));
 
-
   frmStyle := EmbedForm(StyleLayout, TfrmStyle.Create(Self)) as TfrmStyle;
   frmTrain := EmbedForm(TrainLayout, TfrmTrain.Create(Self)) as TfrmTrain;
   {$IFDEF ENABLE_EVOLVE}
@@ -178,8 +179,25 @@ end;
 procedure TfrmMain.Button1Click(Sender: TObject);
 var
   I: Integer;
+  fn: String;
+  JsonText: String;
+  data: TModelStyleCollection;
 begin
- if Assigned(PySys) and SystemActive then
+
+  GetModelJson;
+  if JsonList.Count > 0 then
+    begin
+      fn := JsonList[0] + System.IOUtils.TPath.DirectorySeparatorChar + 'styles.json';
+      PySys.Log(fn);
+      JsonText := LoadJson(fn);
+      PySys.Log(JsonText);
+      {$O-}
+      data := DecodeJsonStyle(JsonText);
+      {$O+}
+      exit;
+    end;
+
+  if Assigned(PySys) and SystemActive then
     begin
       frmDebug.Show;
       var gpu_count: Variant := PySys.Torch.torch.cuda.device_count();

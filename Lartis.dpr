@@ -1,7 +1,6 @@
 program Lartis;
 
 uses
-//  System.StartUpCopy,
   FMX.Forms,
   FMX.Types,
   FMX.Styles,
@@ -21,7 +20,8 @@ uses
   FunctionLibrary in 'FunctionLibrary.pas',
   Shaders in 'Shaders.pas',
   Settings in 'Settings.pas',
-  DebugForm in 'DebugForm.pas' {frmDebug};
+  DebugForm in 'DebugForm.pas' {frmDebug},
+  StyleModel in 'StyleModel.pas';
 
 {$R *.res}
 
@@ -40,7 +40,7 @@ begin
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmOptions, frmOptions);
   Application.CreateForm(TfrmDebug, frmDebug);
-//  Application.CreateForm(TfrmEvolve, frmEvolve);
+  //  Application.CreateForm(TfrmEvolve, frmEvolve);
 //  Application.CreateForm(TfrmMovie, frmMovie);
 //  Application.CreateForm(TfrmChoice, frmChoice);
 //  Application.CreateForm(TfrmStyle, frmStyle);

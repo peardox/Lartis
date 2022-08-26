@@ -9,12 +9,14 @@ uses
 var
   AppHome: String;
   ModelList: TStringList;
+  JsonList: TStringList;
   SystemActive: Boolean;
   ShaderPath: String;
   StylesPath: String;
   DataSetsPath: String;
   OutImagePath: String;
   FrameCount: Integer;
+  EnableGPU: Boolean;
 
 const
   appname: String = 'Lartis';

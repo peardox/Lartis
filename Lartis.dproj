@@ -296,6 +296,7 @@
         <DCCReference Include="DebugForm.pas">
             <Form>frmDebug</Form>
         </DCCReference>
+        <DCCReference Include="StyleModel.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -818,6 +819,12 @@
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\images/licensed\</RemoteDir>
                         <RemoteName>evolve.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\Lartis.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>Lartis.rsm</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

@@ -84,7 +84,6 @@ var
   FPUMASK: TArithmeticExceptionMask;
 
 function EscapeBackslashForPython(const AStr: String): String;
-procedure GetAllModels(const AltModelDir: String = String.Empty; const ModelSubDir: String = String.Empty);
 procedure SafeMaskFPUExceptions(ExceptionsMasked : boolean;
   MatchPythonPrecision : Boolean = True);
 
@@ -122,66 +121,6 @@ begin
   {$ELSE}
     MaskFPUExceptions(ExceptionsMasked, MatchPythonPrecision);
   {$IFEND}
-end;
-
-procedure GetAllModels(const AltModelDir: String = String.Empty; const ModelSubDir: String = String.Empty);
-var
-  SearchRec: TSearchRec;
-  modeldir: String;
-  filespec: String;
-  FileName: String;
-begin
-  if (AltModelDir = String.Empty) then
-    Modeldir := IncludeTrailingPathDelimiter(AppHome) + 'models'
-  else
-    modeldir := AltModelDir;
-
-  if (ModelSubDir = String.Empty) then
-    filespec := IncludeTrailingPathDelimiter(modeldir)
-  else
-    filespec := IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(modeldir) + ModelSubDir);
-
-  {$ifdef MSWINDOWS}
-  filespec := filespec + '*.*';
-  {$ELSE}
-  filespec := filespec + '*';
-  {$ENDIF}
-
-  if not Assigned(ModelList) then
-    ModelList := TStringList.Create
-  else if (ModelSubDir = String.Empty) then
-    ModelList.Clear;
-
-  if DirectoryExists(modeldir) then
-    begin
-      if (FindFirst(filespec, faAnyFile, SearchRec) = 0) then
-        begin
-          repeat
-            FileName := SearchRec.Name;
-            if ((SearchRec.Attr and faDirectory) = 0) then
-            begin
-              if FileName.ToLower.EndsWith('.pth') then
-                begin
-                  FileName := FileName.Remove(Length(Filename) - 4);
-                  if (ModelSubDir <> String.Empty) then
-                    FileName := ModelSubDir + System.IOUtils.TPath.DirectorySeparatorChar + FileName;
-                  ModelList.Add(FileName);
-                end;
-            end
-          else
-            begin
-              if (FileName <> '.') and (FileName <> '..') then
-                begin
-                  if (ModelSubDir = String.Empty) then
-                    GetAllModels(modeldir, FileName)
-                  else
-                    GetAllModels(modeldir, ModelSubDir + System.IOUtils.TPath.DirectorySeparatorChar + FileName);
-                end;
-            end;
-          until FindNext(SearchRec) <> 0;
-          FindClose(SearchRec);
-        end;
-    end;
 end;
 
 function EscapeBackslashForPython(const AStr: String): String;
@@ -580,7 +519,6 @@ begin
     Shim.Add('os.chdir("' + EscapeBackslashForPython(AppHome) + '")');
     Shim.Add('__embedded_python__ = True');
 
-    Log('Shim');
     SafeMaskFPUExceptions(True);
     PyEng.ExecStrings(Shim);
     SafeMaskFPUExceptions(False);
@@ -640,7 +578,7 @@ begin
       end;
   end;
 
-  Log('Done');
+  Log('Ready');
 end;
 
 procedure TPySys.RunSystem;

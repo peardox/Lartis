@@ -168,9 +168,10 @@ implementation
 
 uses
   Settings,
-  StyleForm,
+//  StyleForm,
 //  TrainForm,
   FMX.Forms,
+  FunctionLibrary,
   PythonSystem;
 
 ///// Helper for TPythonModule /////
@@ -565,7 +566,7 @@ begin
   FOptions.image_size := 256;
   FOptions.style_scale := 1;
   FOptions.style_weight := StyleWeight;
-//  FOptions.ignore_gpu := True;
+  FOptions.ignore_gpu := not EnableGPU;
 //  FOptions.batch_size := 1;
 
 //  FOptions.ignore_gpu := True
@@ -614,7 +615,7 @@ begin
 
   FOptions.style_image := AFile;
 //  FOptions.model_dir := 'zoom_models';
-//  FOptions.ignore_gpu := True;
+  FOptions.ignore_gpu :=  not EnableGPU;
 
   for var I := 0 to ModelList.Count - 1 do
     begin
@@ -906,7 +907,7 @@ begin
   FOptions.content_image := AFile;
   FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-tile_test2.jpg';
   FOptions.model := 'mosaic/mosaic-100';
-  FOptions.ignore_gpu := False;
+  FOptions.ignore_gpu :=  not EnableGPU;
   PySys.LogClear;
   if Assigned(FTask) then
     Pysys.Log('Calling Python Stylize - Task ID = ' + IntToHex(FTask.GetId))
@@ -954,7 +955,7 @@ begin
   FOptions.content_image := AFile;
   FOptions.model_dir := IncludeTrailingPathDelimiter(AppHome) +
     'models/mosaic';
-//  FOptions.ignore_gpu := True;
+  FOptions.ignore_gpu :=  not EnableGPU;
 
   for var I := 0 to ModelList.Count - 1 do
     begin

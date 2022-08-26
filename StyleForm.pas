@@ -33,6 +33,7 @@ type
     lblStyleWeightKey: TLabel;
     lblStyleWeightValue: TLabel;
     trkStyleWeight: TTrackBar;
+    chkEnableGPU: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
@@ -45,6 +46,8 @@ type
     procedure trkAlphaThresholdChange(Sender: TObject);
     procedure expTransparencyExpandedChanged(Sender: TObject);
     procedure ControlLayoutResize(Sender: TObject);
+    procedure TopPanelResize(Sender: TObject);
+    procedure chkEnableGPUChange(Sender: TObject);
   private
     { Private declarations }
     Grid: TGridShader;
@@ -70,6 +73,7 @@ implementation
 
 uses
   Settings,
+  Math,
   FunctionLibrary,
   PythonSystem;
 
@@ -81,6 +85,8 @@ begin
   cbxColourMode.Items.Add('Use Original (YUV)');
   cbxColourMode.Items.Add('Use Original (HLS)');
   cbxColourMode.ItemIndex := 0;
+
+  chkEnableGPU.IsChecked := EnableGPU;
 
   LayerCount := 0;
 
@@ -166,6 +172,12 @@ begin
     begin
       Container.FitToContainer;
     end;
+end;
+
+procedure TfrmStyle.TopPanelResize(Sender: TObject);
+begin
+  chkEnableGPU.Position.X := TopPanel.Width - chkEnableGPU.Size.Width - ControlMargin;
+  chkEnableGPU.Position.Y := floor((TopPanel.Height - chkEnableGPU.Size.Height) / 2);
 end;
 
 procedure TfrmStyle.trkAlphaThresholdChange(Sender: TObject);
@@ -308,6 +320,11 @@ begin
               PySys.modStyle.Stylize(ImageFile, ShowStyleProgress, ShowStyledImage);
           end;
     end;
+end;
+
+procedure TfrmStyle.chkEnableGPUChange(Sender: TObject);
+begin
+   EnableGPU := chkEnableGPU.IsChecked;
 end;
 
 procedure TfrmStyle.chkEnableTransparencyChange(Sender: TObject);

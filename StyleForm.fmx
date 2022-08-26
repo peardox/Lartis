@@ -15,6 +15,7 @@ object frmStyle: TfrmStyle
     Size.Height = 24.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
+    OnResize = TopPanelResize
     object Button1: TButton
       Align = Left
       RotationAngle = 180.000000000000000000
@@ -25,6 +26,12 @@ object frmStyle: TfrmStyle
       TabOrder = 0
       Text = 'Button1'
       OnClick = Button1Click
+    end
+    object chkEnableGPU: TCheckBox
+      Position.X = 952.000000000000000000
+      TabOrder = 1
+      Text = 'Enable GPU'
+      OnChange = chkEnableGPUChange
     end
   end
   object ControlLayout: TLayout
