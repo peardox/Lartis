@@ -419,6 +419,10 @@ begin
 end;
 
 procedure TPySys.ThreadedSetup;
+{$ifdef MACOS64}
+var
+  EnvVar: String;
+{$endif}
 begin
   // Install Python if required
   PyEnv.Setup(pyver);
@@ -427,7 +431,15 @@ begin
   TThread.Synchronize(nil,
     procedure()
     begin
-//      PyEnv.EnvironmentPath :=  PyEnv.EnvironmentPath + '/3.9/';
+    {$ifdef MACOS64}
+      EnvVar := GetEnvironmentVariable('DYLD_LIBRARY_PATH');
+      if EnvEvr == String.Empty then
+        EnvVar := PyEnv.EnvironmentPath + '/' + pyver + '/lib'
+      else
+        EnvVar := PyEnv.EnvironmentPath + '/' + pyver + '/lib:' + EnvVar;
+      SetEnvironmentVariable('DYLD_LIBRARY_PATH', EnvVar);
+      Log('Environment needs ' + EnvVar);
+      {$endif}
       Log('Env Path = ' + PyEnv.EnvironmentPath);
       Log('Eng DLLPath = ' + PyEng.DllPath);
       Log('Eng DLLName = ' + PyEng.DllName);
@@ -502,6 +514,7 @@ begin
     procedure()
     begin
       Log('All Done');
+      FLogTarget.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'startup.log');
       SystemActive := True;
       FLogTarget := Nil;
       DoPySysFinishedEvent(True);
