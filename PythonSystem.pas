@@ -462,7 +462,6 @@ begin
   );
   FTask.CheckCanceled();
 
-  {$IFDEF USEP4D}
   SafeMaskFPUExceptions(True);
   NumPy.Install();
   SafeMaskFPUExceptions(False);
@@ -494,13 +493,11 @@ begin
   TorchVision.Install();
   SafeMaskFPUExceptions(False);
   FTask.CheckCanceled();
-  {$ENDIF}
 
   TThread.Queue(nil,
     procedure()
     begin
       SafeMaskFPUExceptions(True);
-      {$IFDEF USEP4D}
 //      Numpy.Import();
 //      SciPy.Import();
 //      AWS.Import();
@@ -509,7 +506,6 @@ begin
       {$ENDIF}
       Torch.Import();
 //      TorchVision.Import();
-      {$ENDIF}
       SafeMaskFPUExceptions(False);
 
       ShimSysPath(pyshim);

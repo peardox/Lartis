@@ -73,6 +73,8 @@ type
     function GetOriginalImage: String;
     Procedure SetStyleImage(const AFileName: String);
     procedure SetOriginalImage(const AFileName: String);
+    function GetOriginalBitmap: TBitmap;
+    function GetStyleBitmap: TBitmap;
 
     procedure SetStyleWeight(const AValue: Single);
     procedure SetAlphaThreshold(const AValue: Single);
@@ -92,7 +94,9 @@ type
   published
     property OnDraw;
     property StyleImage: String read GetStyleImage write SetStyleImage;
+    property StyleBitmap: TBitmap read GetStyleBitmap;
     property OriginalImage: String read GetOriginalImage write SetOriginalImage;
+    property OriginalBitmap: TBitmap read GetOriginalBitmap;
     property StyleAlphaMap: TAlphaMap read GetStyleAlphaMap;
     property OriginalAlphaMap: TAlphaMap read GetOriginalAlphaMap;
     property StyleWeight: Single read FStyleWeight write SetStyleWeight;
@@ -125,7 +129,7 @@ type
     destructor Destroy; override;
     procedure AddShader;
     function AddImage(const AImageFile: String): Boolean;
-    function AddBitmap(const AImageBitmap: TBitmap): Boolean;
+    function AddBitmap(const AImageBitmap: TBitmap; const CopySrc: Boolean = False): Boolean;
   published
     property OnDraw;
     property Progress: Single read fProgress write fProgress;
@@ -339,6 +343,18 @@ function TLayerShader.GetOriginalAlphaMap: TAlphaMap;
 begin
   if Assigned(bmImages[1].Bitmap) then
     Result := MakeAlphaMap(bmImages[1].Bitmap);
+end;
+
+function TLayerShader.GetStyleBitmap: TBitmap;
+begin
+  if Assigned(bmImages[0].Bitmap) then
+    Result := bmImages[0].Bitmap;
+end;
+
+function TLayerShader.GetOriginalBitmap: TBitmap;
+begin
+  if Assigned(bmImages[1].Bitmap) then
+    Result := bmImages[1].Bitmap;
 end;
 
 function TLayerShader.IsImageStyled: Boolean;
@@ -564,19 +580,28 @@ begin
     FImageFile := String.Empty;
 end;
 
-function TProgressShader.AddBitmap(const AImageBitmap: TBitmap): Boolean;
+function TProgressShader.AddBitmap(const AImageBitmap: TBitmap; const CopySrc: Boolean = False): Boolean;
 var
   ImImageInfo: TSkImageInfo;
   HaveImage: Boolean;
   TexImage: ISkImage;
+  LBitmap: TBitmap;
 begin
-  HaveImage := False;
+   if CopySrc then
+    begin
+      LBitmap := TBitmap.Create;
+      LBitmap.Assign(AImageBitmap);
+      bmImage := LBitmap;
+    end
+  else
+    LBitmap := AImageBitmap;
 
+  HaveImage := False;
   var ImageIdentifier: String := 'sImage';
 
-  if Assigned(AImageBitmap) and Effect.ChildExists(ImageIdentifier) then
+  if Assigned(LBitmap) and Effect.ChildExists(ImageIdentifier) then
   begin
-    TexImage := AImageBitmap.ToSkImage;
+    TexImage := LBitmap.ToSkImage;
 
     if Assigned(TexImage) then
     begin

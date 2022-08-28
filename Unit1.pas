@@ -181,7 +181,7 @@ begin
     end;
 {$ENDIF}
 
-  {$IFDEF USEP4D}
+  {$IFNDEF MACOS64}
   if Assigned(PySys) and SystemActive then
     begin
       frmDebug.Show;

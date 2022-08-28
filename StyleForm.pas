@@ -310,9 +310,38 @@ begin
 end;
 
 procedure TfrmStyle.btnStylizeClick(Sender: TObject);
+var
+  CurrentImage: String;
+  CurrentBitMap: TBitmap;
 begin
   if Assigned(PySys) and Assigned(ImageLayer) then
     begin
+
+      if ImageLayer is TLayerShader then
+        begin
+          PySys.Log('Removing LayerShader');
+          CurrentImage := TLayerShader(ImageLayer).OriginalImage;
+          if Assigned(TLayerShader(ImageLayer).OriginalBitmap) then
+            begin
+              CurrentBitmap := TBitmap.Create;
+              CurrentBitmap.Assign(TLayerShader(ImageLayer).OriginalBitmap);
+            end;
+          if Assigned(CurrentBitmap) then
+            begin
+              TLayerShader(ImageLayer).Free;
+
+              PySys.Log('Adding ProgressShader');
+              ImageLayer := TProgressShader.Create(Container);
+              with ImageLayer as TProgressShader do
+                begin
+                  PySys.Log('Adding Original ' + CurrentImage);
+                  ImageFile := CurrentImage;
+                  AddBitmap(CurrentBitmap, True);
+                end;
+                FreeAndNil(CurrentBitMap);
+            end;
+        end;
+
       if ImageLayer is TProgressShader then
         with ImageLayer as TProgressShader do
           begin
