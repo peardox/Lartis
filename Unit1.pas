@@ -26,7 +26,7 @@ type
     OptionsMenu: TMenuItem;
     ExitMenu: TMenuItem;
     DebugMenu: TMenuItem;
-    Button1: TButton;
+    SystemTestMenu: TMenuItem;
     {$IFDEF ENABLE_EVOLVE}
     EvolveLayout: TLayout;
     {$ENDIF}
@@ -34,11 +34,10 @@ type
     MovieLayout: TLayout;
     {$ENDIF}
     procedure FormCreate(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
     procedure OptionsMenuClick(Sender: TObject);
     procedure ExitMenuClick(Sender: TObject);
     procedure DebugMenuClick(Sender: TObject);
+    procedure SystemTestMenuClick(Sender: TObject);
   private
     { Private declarations }
     function EmbedForm(AParent:TControl; AForm:TEmbeddedForm): TEmbeddedForm;
@@ -101,22 +100,6 @@ begin
     end;
 end;
 
-procedure TfrmMain.Button3Click(Sender: TObject);
-begin
-ShowMessage('Button3Click');
-{
-  if Assigned(PySys) then
-    begin
-      if OpenDialog1.Execute then
-        begin
-          PySys.modTrain.Train(OpenDialog1.Filename,
-          System.IOUtils.TPath.GetFileNameWithoutExtension(OpenDialog1.Filename),
-          ScalePower(TrackBar1.Value));
-        end;
-    end;
-}
-end;
-
 function TfrmMain.EmbedForm(AParent:TControl; AForm: TEmbeddedForm): TEmbeddedForm;
 begin
   while AForm.ChildrenCount>0 do
@@ -176,7 +159,7 @@ begin
   frmOptions.ShowModal;
 end;
 
-procedure TfrmMain.Button1Click(Sender: TObject);
+procedure TfrmMain.SystemTestMenuClick(Sender: TObject);
 var
   I: Integer;
   fn: String;
@@ -198,6 +181,7 @@ begin
     end;
 {$ENDIF}
 
+  {$IFDEF USEP4D}
   if Assigned(PySys) and SystemActive then
     begin
       frmDebug.Show;
@@ -227,9 +211,8 @@ begin
       PySys.Log('PSUtil returned total_memory = ' + virtual_memory.total);
       PySys.Log('PSUtil returned available_memory = ' + virtual_memory.available);
 
-//      PySys.Log(GetFileHash('Z:\models\mosaic\mosaic-100.pth'));
-
       end;
+    {$ENDIF}
 end;
 
 end.

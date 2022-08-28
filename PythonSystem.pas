@@ -30,9 +30,11 @@ type
     PyEnv: TPyEmbeddedResEnvironment39;
     PyIO: TPythonInputOutput;
 
+    {$IFDEF USEP4D}
     NumPy: TNumPy;
     SciPy: TSciPy;
     TorchVision: TTorchVision;
+    {$ENDIF}
 
     FPySysFinishedEvent: TPySysFinishedEvent;
     FLogTarget: TMemo;
@@ -58,9 +60,11 @@ type
     procedure ShimSysPath(const ShimPath: String);
     procedure ThreadedSetup;
   public
+    {$IFDEF USEP4D}
     Torch: TPyTorch;
     PSUtil: TPSUtil;
     AWS: TBoto3;
+    {$ENDIF}
 
     modStyle: TModStyle;
     modTrain: TModTrain;
@@ -137,12 +141,14 @@ begin
   modTrain.Free;
   modPyIO.Free;
 
+  {$IFDEF USEP4D}
   Torch.Free;
   PSUtil.Free;
   NumPy.Free;
   SciPy.Free;
   TorchVision.Free;
   AWS.Free;
+  {$ENDIF}
 
   PyEng.Free;
   PyEnv.Free;
@@ -376,6 +382,7 @@ begin
 //  PyEng.DllName := 'libpython' + pyver + '.dylib';
   {$endif}
 
+  {$IFDEF USEP4D}
   // Create NumPy
   NumPy := TNumPy.Create(Self);
   SetupPackage(NumPy);
@@ -399,6 +406,7 @@ begin
   // Create TorchVision
   TorchVision := TTorchVision.Create(Self);
   SetupPackage(TorchVision, 'https://download.pytorch.org/whl/cu116');
+  {$ENDIF}
 
   //  'Add Modules
   modStyle := TModStyle.Create(Self);
@@ -460,6 +468,7 @@ begin
   );
   FTask.CheckCanceled();
 
+  {$IFDEF USEP4D}
   SafeMaskFPUExceptions(True);
   NumPy.Install();
   SafeMaskFPUExceptions(False);
@@ -489,17 +498,20 @@ begin
   TorchVision.Install();
   SafeMaskFPUExceptions(False);
   FTask.CheckCanceled();
+  {$ENDIF}
 
   TThread.Queue(nil,
     procedure()
     begin
       SafeMaskFPUExceptions(True);
+      {$IFDEF USEP4D}
 //      Numpy.Import();
 //      SciPy.Import();
 //      AWS.Import();
       PSUtil.Import();
       Torch.Import();
 //      TorchVision.Import();
+      {$ENDIF}
       SafeMaskFPUExceptions(False);
 
       ShimSysPath(pyshim);
