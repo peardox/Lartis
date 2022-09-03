@@ -34,6 +34,7 @@ type
     lblStyleWeightValue: TLabel;
     trkStyleWeight: TTrackBar;
     chkEnableGPU: TCheckBox;
+    btnClearLayers: TButton;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
@@ -48,6 +49,7 @@ type
     procedure ControlLayoutResize(Sender: TObject);
     procedure TopPanelResize(Sender: TObject);
     procedure chkEnableGPUChange(Sender: TObject);
+    procedure btnClearLayersClick(Sender: TObject);
   private
     { Private declarations }
     Grid: TGridShader;
@@ -55,7 +57,7 @@ type
     Container: TAspectLayout;
     Layers: TLayerArray;
     LayerCount: Integer;
-    procedure AddLayer;
+    function  AddLayer: TBaseShader;
     procedure ProjectInitialise;
     procedure ShowStyleProgress(Sender: TObject; const AValue: Single);
     procedure ShowStyledImage(Sender: TObject; const AFileName: String);
@@ -110,7 +112,8 @@ begin
 
     btnAddLayer.Size.Height +
     btnStylize.Size.Height +
-    (ControlMargin * 7);
+    btnClearLayers.Size.Height +
+    (ControlMargin * 8);
 
   layControls.Height := ch;
 
@@ -138,6 +141,10 @@ begin
   btnStylize.Position.X := ControlMargin;
   btnStylize.Position.Y := btnAddLayer.Position.Y + 24;
   btnStylize.Size.Width := layControls.Width - (ControlMargin * 2);
+
+  btnClearLayers.Position.X := ControlMargin;
+  btnClearLayers.Position.Y := btnStylize.Position.Y + 24;
+  btnClearLayers.Size.Width := layControls.Width - (ControlMargin * 2);
 
   vsbLayers.Position.X := ControlMargin;
   vsbLayers.Position.Y := ControlMargin;
@@ -215,55 +222,87 @@ begin
 end;
 
 procedure TfrmStyle.btnAddLayerClick(Sender: TObject);
+var
+  NewLayer: TBaseShader;
 begin
   if LayerCount = 0 then
     begin
-    {
-      if Assigned(Grid) then
-        FreeAndNil(Grid);
-      if Assigned(Container) then
-        FreeAndNil(Container);
-    }
       Container := TAspectLayout.Create(StyleLayout);
       Grid := TGridShader.Create(Container);
     end;
 
-  Inc(LayerCount);
-  SetLength(Layers, LayerCount);
-  ImageLayer := Layers[LayerCount - 1];
-
-  AddLayer;
+  NewLayer := AddLayer;
+  if Assigned(NewLayer) then
+    begin
+      LayerCount := Length(Layers) + 1;
+      SetLength(Layers, LayerCount);
+      Layers[LayerCount - 1] := NewLayer;
+      ImageLayer := NewLayer;
+    end;
 end;
 
-procedure TfrmStyle.AddLayer;
+procedure TfrmStyle.btnClearLayersClick(Sender: TObject);
+var
+  I: Integer;
+begin
+  LayerCount := Length(Layers);
+  for I := LayerCount - 1 downto 0 do
+    begin
+      if Assigned(Layers[I]) then
+        begin
+          if Layers[I] is TLayerShader then
+            FreeAndNil(TLayerShader(Layers[I]))
+          else if Layers[I] is TProgressShader then
+            FreeAndNil(TProgressShader(Layers[I]))
+          else
+            begin
+              ShowMessage('Releasing Unknown Layer!');
+              Layers[I] := Nil;
+            end;
+        end
+      else
+        ShowMessage('Unassigned Layer in Layer List!');
+      Dec(LayerCount);
+    end;
+
+  SetLength(Layers, LayerCount);
+  if LayerCount > 0 then
+    ImageLayer := Layers[LayerCount - 1]
+  else
+    begin
+      ImageLayer := Nil;
+      if Assigned(Grid) then
+        FreeAndNil(Grid);
+      if Assigned(Container) then
+        FreeAndNil(Container);
+    end;
+
+end;
+
+function TfrmStyle.AddLayer: TBaseShader;
 var
   LBitmap: TBitmap;
+  NewLayer: TBaseShader;
 begin
+  NewLayer := Nil;
+
   if Assigned(PySys) then
     begin
       if OpenDialog1.Execute then
         begin
-          if Assigned(ImageLayer) then
-            begin
-              if ImageLayer is TLayerShader then
-                FreeAndNil(TLayerShader(ImageLayer));
-              if ImageLayer is TProgressShader then
-                FreeAndNil(TProgressShader(ImageLayer));
-            end;
+          NewLayer := TProgressShader.Create(Container);
 
-          ImageLayer := TProgressShader.Create(Container);
-
-          with ImageLayer as TProgressShader do
+          with NewLayer as TProgressShader do
             begin
               AddImage(OpenDialog1.FileName);
               trkStyleWeight.Value := 1.00;
               trkStyleWeight.Enabled := False;
-              if Assigned(TProgressShader(ImageLayer).Bitmap) then
-                TProgressShader(ImageLayer).AlphaMap;
+              if Assigned(TProgressShader(NewLayer).Bitmap) then
+                TProgressShader(NewLayer).AlphaMap;
             end;
-
         end;
     end;
+    Result := NewLayer;
 end;
 
 procedure TfrmStyle.ShowStyledImage(Sender: TObject; const AFileName: String);
@@ -347,6 +386,7 @@ begin
           begin
             if ImageFile <> String.Empty then
               PySys.modStyle.Stylize(ImageFile, ShowStyleProgress, ShowStyledImage);
+//              PySys.modStyle.Stylize(Bitmap, ShowStyleProgress, ShowStyledImage);
           end;
     end;
 end;

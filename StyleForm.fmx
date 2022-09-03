@@ -190,6 +190,13 @@ object frmStyle: TfrmStyle
         TabOrder = 0
         OnChange = trkStyleWeightChange
       end
+      object btnClearLayers: TButton
+        Position.X = 24.000000000000000000
+        Position.Y = 368.000000000000000000
+        TabOrder = 10
+        Text = 'Clear Layers'
+        OnClick = btnClearLayersClick
+      end
     end
   end
   object StyleLayout: TLayout

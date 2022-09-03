@@ -38,6 +38,7 @@ type
     procedure ExitMenuClick(Sender: TObject);
     procedure DebugMenuClick(Sender: TObject);
     procedure SystemTestMenuClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     function EmbedForm(AParent:TControl; AForm:TEmbeddedForm): TEmbeddedForm;
@@ -115,10 +116,32 @@ begin
   Result := AForm;
 end;
 
+procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  if Assigned(ModelList) then
+    FreeAndNil(ModelList);
+  if Assigned(JsonList) then
+    FreeAndNil(JsonList);
+  if Assigned(frmStyle) then
+    FreeAndNil(frmStyle);
+  if Assigned(frmTrain) then
+    FreeAndNil(frmTrain);
+  {$IFDEF ENABLE_EVOLVE}
+  if Assigned(frmEvolve) then
+    FreeAndNil(frmEvolve);
+  {$ENDIF}
+  {$IFDEF ENABLE_MOVIE}
+  if Assigned(frmMovie) then
+    FreeAndNil(frmMovie);
+  {$ENDIF}
+//  if Assigned(StyleBook1) then
+//    FreeAndNil(StyleBook1);
+end;
+
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
 
-//  if DirectoryExists(ShaderPath) then
+//  if DirectoryExists(StylesPath) then
 //    TStyleManager.SetStyleFromFile(TPath.Combine(StylesPath, 'Blend.style'));
 
   frmStyle := EmbedForm(StyleLayout, TfrmStyle.Create(Self)) as TfrmStyle;

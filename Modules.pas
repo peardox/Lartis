@@ -4,7 +4,7 @@ interface
 uses
   System.SysUtils, System.IOUtils, System.Threading, System.Types,
   System.UITypes, System.Classes, System.Variants, FMX.Dialogs,
-  JSON.Serializers,
+  JSON.Serializers, FMX.Graphics,
   PythonEngine, PyCommon, PyModule, VarPyth;
 
 type
@@ -137,7 +137,8 @@ type
     function GetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function SetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
-    procedure Stylize(const AFile: String; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil);
+    procedure Stylize(const AFile: String; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil); overload;
+    procedure Stylize(const ABitmap: TBitmap; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil); overload;
     procedure StylizeAll(const AFile: String);
   published
     property ModProgressEvent: TModProgressEvent read FModProgressEvent write FModProgressEvent;
@@ -893,6 +894,46 @@ begin
 end;
 
 ///// Style Module Procs /////
+procedure TModStyle.Stylize(const ABitmap: TBitmap; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil);
+begin
+  ProgressCount := 0;
+
+  FModProgressEvent := OnProgress;
+  FModFinishedEvent := OnFinished;
+  FModErrorEvent := OnError;
+
+  DoModProgressEvent(0);
+
+  FOptions.content_image := '';
+  FOptions.content_image_raw := ABitmap.ClassName;
+  FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + 'direct-test.jpg';
+  FOptions.model := 'mosaic/mosaic-100';
+  FOptions.ignore_gpu :=  not EnableGPU;
+  PySys.LogClear;
+  if Assigned(FTask) then
+    Pysys.Log('Calling Python Stylize - Task ID = ' + IntToHex(FTask.GetId))
+  else
+    Pysys.Log('Calling Python Stylize - Task ID = UnAssigned');
+
+  SafeMaskFPUExceptions(True);
+  FTask := TTask.Run(
+    procedure()
+      begin
+        TThread.Synchronize(nil,
+          procedure()
+          begin
+            MainModule.delphi_style();
+          end
+          )
+      end
+    );
+  SafeMaskFPUExceptions(False);
+
+  if Assigned(FTask) then
+    Pysys.Log('Back from Python Stylize - Task ID = ' + IntToHex(FTask.GetId))
+  else
+    Pysys.Log('Back from Python Stylize - Task ID = UnAssigned');
+end;
 
 procedure TModStyle.Stylize(const AFile: String; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil);
 begin
@@ -906,6 +947,7 @@ begin
 
   FOptions.content_image := AFile;
   FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-tile_test2.jpg';
+  FOptions.content_image_raw := '';
   FOptions.model := 'mosaic/mosaic-100';
   FOptions.ignore_gpu :=  not EnableGPU;
   PySys.LogClear;

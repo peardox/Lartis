@@ -10,7 +10,7 @@ uses
   PyEnvironment.Embeddable, PythonEngine, PyCommon,
   PyEnvironment.Embeddable.Res, PyEnvironment.Embeddable.Res.Python39,
   PyModule, PyPackage,
-  TorchVision, PyTorch, NumPy, SciPy, PSUtil, Boto3,
+  TorchVision, PyTorch, NumPy, SciPy, PSUtil, Boto3, Pillow,
   Modules;
 
 type
@@ -32,6 +32,7 @@ type
 
     NumPy: TNumPy;
     SciPy: TSciPy;
+    Pillow: TPillow;
     TorchVision: TTorchVision;
 
     FPySysFinishedEvent: TPySysFinishedEvent;
@@ -380,6 +381,10 @@ begin
   NumPy := TNumPy.Create(Self);
   SetupPackage(NumPy);
 
+  // Create Pillow
+  Pillow := TPillow.Create(Self);
+  SetupPackage(Pillow);
+
   // Create SciPy
   SciPy := TSciPy.Create(Self);
   SetupPackage(SciPy);
@@ -468,6 +473,11 @@ begin
   FTask.CheckCanceled();
 
   SafeMaskFPUExceptions(True);
+  Pillow.Install();
+  SafeMaskFPUExceptions(False);
+  FTask.CheckCanceled();
+
+  SafeMaskFPUExceptions(True);
   SciPy.Install();
   SafeMaskFPUExceptions(False);
   FTask.CheckCanceled();
@@ -501,11 +511,12 @@ begin
 //      Numpy.Import();
 //      SciPy.Import();
 //      AWS.Import();
+//      TorchVision.Import();
       {$IFNDEF MACOS64}
       PSUtil.Import();
       {$ENDIF}
       Torch.Import();
-//      TorchVision.Import();
+      Pillow.Import();
       SafeMaskFPUExceptions(False);
 
       ShimSysPath(pyshim);

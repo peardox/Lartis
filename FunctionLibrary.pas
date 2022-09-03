@@ -3,7 +3,7 @@ unit FunctionLibrary;
 interface
 
 uses
-  FMX.Graphics;
+  FMX.Graphics, VarPyth, PythonEngine;
 
 type
   TAlphaMap = record
@@ -17,6 +17,7 @@ type
     MostAlphaCount: Integer;
   end;
 
+function ImageToPyBytes(ABitmap: TBitmap): Variant;
 function LoadShader(const AShaderFile: String): String;
 function FitInsideContainer(const AContainerWidth: Single; const AContentWidth: Single; const AContainerHeight: Single; const AContentHeight: Single): Single;
 function BoolToInt(const AValue: Boolean): Integer;
@@ -32,6 +33,24 @@ uses
   System.SysUtils, System.Types, System.UITypes,
   System.Classes, System.Variants, FMX.Forms, FMX.Dialogs,
   System.IOUtils, System.Hash;
+
+function ImageToPyBytes(ABitmap: TBitmap): Variant;
+var
+  _stream : TMemoryStream;
+  _bytes : PPyObject;
+begin
+  _stream := TMemoryStream.Create();
+  try
+    ABitmap.SaveToStream(_stream);
+    // Form1.mmLog.Lines.Add('Bytes = ' + _stream.Size.ToString);
+    _bytes := GetPythonEngine.PyBytes_FromStringAndSize(_stream.Memory, _stream.Size);
+    Result := VarPythonCreate(_bytes);
+    GetPythonEngine.Py_DECREF(_bytes);
+  finally
+    _stream.Free;
+  end;
+end;
+
 
 function CreateAlphaMap(const ABitmap: TBitmap): TAlphaMap;
 var

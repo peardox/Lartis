@@ -33,6 +33,7 @@ type
     ShaderText: String;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   end;
 
   TGridShader = class(TBaseShader)
@@ -190,6 +191,14 @@ begin
   if Assigned(AOwner) then
     TFmxObject(AOwner).AddObject(Self);
   Align := TAlignLayout.Client;
+end;
+
+destructor TBaseShader.Destroy;
+begin
+    Painter := Nil;
+    Effect := Nil;
+    ShaderText := String.Empty;
+  inherited;
 end;
 
 constructor TGridShader.Create(AOwner: TComponent);
