@@ -14,7 +14,7 @@ object frmStyle: TfrmStyle
     Size.Width = 1081.000000000000000000
     Size.Height = 24.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 0
+    TabOrder = 1
     OnResize = TopPanelResize
     object Button1: TButton
       Align = Left
@@ -34,23 +34,23 @@ object frmStyle: TfrmStyle
       OnChange = chkEnableGPUChange
     end
   end
-  object ControlLayout: TLayout
+  object layStyleControl: TLayout
     Align = Right
     Position.X = 921.000000000000000000
     Position.Y = 24.000000000000000000
     Size.Width = 160.000000000000000000
     Size.Height = 573.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 2
-    OnResize = ControlLayoutResize
+    TabOrder = 3
+    OnResize = layStyleControlResize
     object vsbLayers: TFramedVertScrollBox
       Align = Client
       Size.Width = 160.000000000000000000
       Size.Height = 173.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      Viewport.Width = 156.000000000000000000
-      Viewport.Height = 169.000000000000000000
+      Viewport.Width = 160.000000000000000000
+      Viewport.Height = 173.000000000000000000
       object GridLayout1: TGridLayout
         Align = Client
         ItemHeight = 64.000000000000000000
@@ -201,10 +201,10 @@ object frmStyle: TfrmStyle
   end
   object StyleLayout: TLayout
     Align = Client
-    Size.Width = 921.000000000000000000
+    Size.Width = 761.000000000000000000
     Size.Height = 573.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 4
+    TabOrder = 5
     OnResize = StyleLayoutResize
   end
   object OpenDialog1: TOpenDialog
@@ -219,5 +219,13 @@ object frmStyle: TfrmStyle
     Size.Width = 1081.000000000000000000
     Size.Height = 20.000000000000000000
     Size.PlatformDefault = False
+  end
+  object layStylePicker: TLayout
+    Align = Left
+    Position.Y = 24.000000000000000000
+    Size.Width = 160.000000000000000000
+    Size.Height = 573.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
   end
 end

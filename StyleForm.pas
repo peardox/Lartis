@@ -14,7 +14,7 @@ type
   TfrmStyle = class(TEmbeddedForm)
     TopPanel: TPanel;
     Button1: TButton;
-    ControlLayout: TLayout;
+    layStyleControl: TLayout;
     StyleLayout: TLayout;
     OpenDialog1: TOpenDialog;
     prgStyleBatch: TProgressBar;
@@ -35,6 +35,7 @@ type
     trkStyleWeight: TTrackBar;
     chkEnableGPU: TCheckBox;
     btnClearLayers: TButton;
+    layStylePicker: TLayout;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
@@ -46,7 +47,7 @@ type
     procedure chkInvertAlphaChange(Sender: TObject);
     procedure trkAlphaThresholdChange(Sender: TObject);
     procedure expTransparencyExpandedChanged(Sender: TObject);
-    procedure ControlLayoutResize(Sender: TObject);
+    procedure layStyleControlResize(Sender: TObject);
     procedure TopPanelResize(Sender: TObject);
     procedure chkEnableGPUChange(Sender: TObject);
     procedure btnClearLayersClick(Sender: TObject);
@@ -97,10 +98,10 @@ end;
 
 procedure TfrmStyle.expTransparencyExpandedChanged(Sender: TObject);
 begin
-  ControlLayoutResize(Self);
+  layStyleControlResize(Self);
 end;
 
-procedure TfrmStyle.ControlLayoutResize(Sender: TObject);
+procedure TfrmStyle.layStyleControlResize(Sender: TObject);
 var
   ch: Single;
 begin

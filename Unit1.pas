@@ -134,8 +134,7 @@ begin
   if Assigned(frmMovie) then
     FreeAndNil(frmMovie);
   {$ENDIF}
-//  if Assigned(StyleBook1) then
-//    FreeAndNil(StyleBook1);
+  DestroySettings;
 end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);

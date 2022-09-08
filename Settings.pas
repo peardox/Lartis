@@ -27,6 +27,7 @@ const
   pycode: String = 'SystemCode.py';
 
 procedure CreateSettings;
+procedure DestroySettings;
 
 implementation
 
@@ -51,20 +52,26 @@ begin
 
   StylesPath := TPath.Combine(AppHome, 'styles');;
 
-{
   DataSetsPath := TPath.Combine(AppHome, 'datasets');
   if not DirectoryExists(DataSetsPath) then
     begin
       ForceDirectories(DataSetsPath);
     end;
-}
 
-  OutImagePath := TPath.Combine(AppHome, 'output-images');;
+  OutImagePath := TPath.Combine(AppHome, 'cache');;
   if not DirectoryExists(OutImagePath) then
     begin
       ForceDirectories(OutImagePath);
     end;
 
+end;
+
+procedure DestroySettings;
+begin
+  if Assigned(ModelList) then
+    FreeAndNil(ModelList);
+  if Assigned(JsonList) then
+    FreeAndNil(JsonList);
 end;
 
 end.
