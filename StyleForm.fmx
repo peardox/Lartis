@@ -49,8 +49,8 @@ object frmStyle: TfrmStyle
       Size.Height = 173.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      Viewport.Width = 160.000000000000000000
-      Viewport.Height = 173.000000000000000000
+      Viewport.Width = 156.000000000000000000
+      Viewport.Height = 169.000000000000000000
       object GridLayout1: TGridLayout
         Align = Client
         ItemHeight = 64.000000000000000000

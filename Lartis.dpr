@@ -21,13 +21,14 @@ uses
   Shaders in 'Shaders.pas',
   Settings in 'Settings.pas',
   DebugForm in 'DebugForm.pas' {frmDebug},
-  StyleModel in 'StyleModel.pas';
+  StyleModel in 'StyleModel.pas',
+  StyleProject in 'StyleProject.pas';
 
 {$R *.res}
 
 begin
   GlobalUseSkia := True;
-  ReportMemoryLeaksOnShutdown := True;
+//  ReportMemoryLeaksOnShutdown := True;
   //For macOS/iOS
   GlobalUseMetal := True;
 

@@ -6,11 +6,9 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
   EmbeddedForm, FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts,
-  Shaders, FMX.ListBox;
+  Shaders, StyleProject, FMX.ListBox;
 
 type
-  TLayerArray = Array of TBaseShader;
-
   TfrmStyle = class(TEmbeddedForm)
     TopPanel: TPanel;
     Button1: TButton;

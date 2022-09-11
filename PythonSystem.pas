@@ -7,8 +7,12 @@ uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes,
   System.Classes, System.Variants, System.Threading, PyEnvironment,
   FMX.Types, FMX.Memo, FMX.Forms, Math,
-  PyEnvironment.Embeddable, PythonEngine, PyCommon,
-  PyEnvironment.Embeddable.Res, PyEnvironment.Embeddable.Res.Python39,
+  {$IF DEFINED(MACOS64)}
+  PyEnvironment.Local,
+  {$ELSE}
+  PythonEngine, PyCommon,
+  {$ENDIF}
+  PyEnvironment.Embeddable, PyEnvironment.Embeddable.Res, PyEnvironment.Embeddable.Res.Python39,
   PyModule, PyPackage,
   TorchVision, PyTorch, NumPy, SciPy, PSUtil, Boto3, Pillow,
   Modules;
@@ -27,7 +31,11 @@ type
     FTask: ITask;
 
     PyEng: TPythonEngine;
+    {$IF DEFINED(MACOS64)}
+    PyEnv: TPyLocalEnvironment;
+    {$ELSE}
     PyEnv: TPyEmbeddedResEnvironment39;
+    {$ENDIF}
     PyIO: TPythonInputOutput;
 
     NumPy: TNumPy;
@@ -303,7 +311,10 @@ begin
     end
   else if PyCleanOnExit then
     begin
+      {$IFDEF MACOS64}
+      {$ELSE}
       TDirectory.Delete(PyEnv.EnvironmentPath, True);
+      {$ENDIF}
     end;
 end;
 
@@ -361,6 +372,11 @@ begin
   // Python Engine
 
   PyEnv := TPyEmbeddedResEnvironment39.Create(Self);
+  {$IF DEFINED(MACOS64)}
+  PyEnv.FilePath := '../Resources/macpython.json';
+  {$ELSE}
+  PyEnv.EnvironmentPath := IncludeTrailingPathDelimiter(AppHome) + 'python';
+  {$ENDIF}
   PyEnv.OnReady := DoReady;
   PyEnv.PythonEngine := PyEng;
   PyEnv.PythonVersion := pyver;
@@ -369,13 +385,6 @@ begin
 
   PyEnv.AfterDeactivate := PyEnvAfterDeactivate;
   // Tidy up on exit (clean Python for testing)
-
-  PyEnv.EnvironmentPath := IncludeTrailingPathDelimiter(AppHome) + 'python';
-  {$ifdef MACOS64}
-//  PyEnv.EnvironmentPath := '';
-//  PyEng.DllPath := PyEnv.EnvironmentPath + '/' + pyver + '/lib/';
-//  PyEng.DllName := 'libpython' + pyver + '.dylib';
-  {$endif}
 
   // Create NumPy
   NumPy := TNumPy.Create(Self);
@@ -434,19 +443,6 @@ begin
   TThread.Synchronize(nil,
     procedure()
     begin
-    {$ifdef MACOS64}
-      var EnvVar: String;
-      EnvVar := GetEnvironmentVariable('DYLD_LIBRARY_PATH');
-      if EnvVar = String.Empty then
-        EnvVar := PyEnv.EnvironmentPath + '/' + pyver + '/lib'
-      else
-        EnvVar := PyEnv.EnvironmentPath + '/' + pyver + '/lib:' + EnvVar;
-//      SetEnvironmentVariable('DYLD_LIBRARY_PATH', EnvVar);
-      Log('Environment needs ' + EnvVar);
-      {$endif}
-      Log('Env Path = ' + PyEnv.EnvironmentPath);
-      Log('Eng DLLPath = ' + PyEng.DllPath);
-      Log('Eng DLLName = ' + PyEng.DllName);
       Log('pyver = ' + pyver);
 
       try
