@@ -11,7 +11,11 @@ uses
   System.Classes, System.Variants, System.Threading, FMX.Types,
   FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, PyCommon,
-  PyModule, PyPackage, PSUtil, FMX.Menus, FMX.Layouts, FMX.Styles,
+  PyModule, PyPackage,
+  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
+  PSUtil,
+  {$ENDIF}
+  FMX.Menus, FMX.Layouts, FMX.Styles,
   EmbeddedForm, PythonEngine;
 
 type
@@ -208,11 +212,12 @@ begin
       frmDebug.Show;
       var gpu_count: Variant := PySys.Torch.torch.cuda.device_count();
       var mps_available: Variant := PySys.Torch.torch.has_mps;
+  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
       var cpu_cores: Variant := PySys.PSUtil.psutil.cpu_count(False);
       var cpu_threads: Variant := PySys.PSUtil.psutil.cpu_count(True);
       var cpu_freq: Variant := PySys.PSUtil.psutil.cpu_freq();
       var virtual_memory: Variant := PySys.PSUtil.psutil.virtual_memory();
-
+  {$ENDIF}
       PySys.Log('Torch returned gpu_count = ' + gpu_count);
       PySys.Log('Torch returned MPS = ' + mps_available);
       if gpu_count > 0 then
@@ -228,12 +233,13 @@ begin
               PySys.Log('Torch returned CUs = ' + gpu_props.multi_processor_count);
             end;
         end;
+  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
       PySys.Log('PSUtil returned cpu_cores = ' + cpu_cores);
       PySys.Log('PSUtil returned cpu_threads = ' + cpu_threads);
       PySys.Log('PSUtil returned cpu_freq = ' + cpu_freq.current);
       PySys.Log('PSUtil returned total_memory = ' + virtual_memory.total);
       PySys.Log('PSUtil returned available_memory = ' + virtual_memory.available);
-
+  {$ENDIF}
       end;
 end;
 

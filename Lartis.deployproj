@@ -292,15 +292,32 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-macos-3.9.12-universal2.zip" Condition="'$(Config)'=='Debug'">
-            <RemoteDir>Lartis.app\Contents\MacOS\</RemoteDir>
-            <RemoteName>python3-macos-3.9.12-universal2.zip</RemoteName>
-            <DeployClass>Python</DeployClass>
+        <DeployFile Include="macpython.json" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis.app\Contents\Resources\</RemoteDir>
+            <RemoteName>macpython.json</RemoteName>
+            <DeployClass>File</DeployClass>
             <Operation>0</Operation>
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
-            <Required>True</Required>
+        </DeployFile>
+        <DeployFile Include="macpython.json" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis.app\Contents\Resources\</RemoteDir>
+            <RemoteName>macpython.json</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="OSXARM64\Debug\Lartis.dSYM" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis.app\..\$(PROJECTNAME).app.dSYM\Contents\Resources\DWARF\</RemoteDir>
+            <RemoteName>Lartis</RemoteName>
+            <DeployClass>ProjectOSXDebug</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
         </DeployFile>
     </ItemGroup>
     <ItemGroup Condition="'$(Platform)'=='Android64'">

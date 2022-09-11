@@ -14,7 +14,11 @@ uses
   {$ENDIF}
   PyEnvironment.Embeddable, PyEnvironment.Embeddable.Res, PyEnvironment.Embeddable.Res.Python39,
   PyModule, PyPackage, PythonEngine,
-  TorchVision, PyTorch, NumPy, SciPy, PSUtil, Boto3, Pillow,
+  TorchVision, PyTorch, NumPy, SciPy,
+  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
+  PSUtil,
+  {$ENDIF}
+  Boto3, Pillow,
   Modules;
 
 type
@@ -68,7 +72,9 @@ type
     procedure ThreadedSetup;
   public
     Torch: TPyTorch;
+  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
     PSUtil: TPSUtil;
+  {$ENDIF}
     AWS: TBoto3;
 
     modStyle: TModStyle;
@@ -147,7 +153,9 @@ begin
   modPyIO.Free;
 
   Torch.Free;
+  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
   PSUtil.Free;
+  {$ENDIF}
   NumPy.Free;
   SciPy.Free;
   TorchVision.Free;
@@ -404,10 +412,10 @@ begin
   SetupPackage(AWS);
 
   // Create PSUtil
-//  {$IFNDEF MACOS64}
+  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
   PSUtil := TPSUtil.Create(Self);
   SetupPackage(PSUtil);
-//  {$ENDIF}
+  {$ENDIF}
 
   // Create Torch
   Torch := TPyTorch.Create(Self);
@@ -484,12 +492,12 @@ begin
   SafeMaskFPUExceptions(False);
   FTask.CheckCanceled();
 
-//  {$IFNDEF MACOS64}
+  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
   SafeMaskFPUExceptions(True);
   PSUtil.Install();
   SafeMaskFPUExceptions(False);
   FTask.CheckCanceled();
-//  {$ENDIF}
+  {$ENDIF}
 
   SafeMaskFPUExceptions(True);
   Torch.Install();
@@ -509,9 +517,9 @@ begin
 //      SciPy.Import();
 //      AWS.Import();
 //      TorchVision.Import();
-//      {$IFNDEF MACOS64}
+      {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
       PSUtil.Import();
-//      {$ENDIF}
+      {$ENDIF}
       Torch.Import();
       Pillow.Import();
       SafeMaskFPUExceptions(False);

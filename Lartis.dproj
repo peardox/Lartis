@@ -5,7 +5,7 @@
         <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
-        <Platform Condition="'$(Platform)'==''">OSX64</Platform>
+        <Platform Condition="'$(Platform)'==''">OSXARM64</Platform>
         <TargetedPlatforms>167955</TargetedPlatforms>
         <AppType>Application</AppType>
         <MainSource>Lartis.dpr</MainSource>
@@ -685,6 +685,7 @@
                     <Platform Name="OSXARM64">
                         <RemoteDir>Contents\MacOS\</RemoteDir>
                         <Operation>0</Operation>
+                        <Enabled>false</Enabled>
                         <RemoteName>python3-macos-3.9.12-universal2.zip</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
@@ -1117,8 +1118,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="macpython.json" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\</RemoteDir>
+                        <RemoteName>macpython.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="macpython.json" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\</RemoteDir>
+                        <RemoteName>macpython.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="macpython.json" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\</RemoteDir>
                         <RemoteName>macpython.json</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -1160,6 +1175,12 @@
                 </DeployFile>
                 <DeployFile LocalName="OSX64\Release\Lartis" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="OSX64">
+                        <RemoteName>Lartis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSXARM64\Debug\Lartis.dSYM" Configuration="Debug" Class="ProjectOSXDebug">
+                    <Platform Name="OSXARM64">
                         <RemoteName>Lartis</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
