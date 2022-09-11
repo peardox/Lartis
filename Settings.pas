@@ -33,15 +33,16 @@ implementation
 
 procedure CreateSettings;
 begin
-  {$IFDEF MSWINDOWS}
-  AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetHomePath) + appname;
+  {$IF DEFINED(MACOS64)}
+  AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath) + appname;
   {$ELSE}
-  AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetHomePath) + '.' + appname;
+  AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetHomePath) + appname;
   {$ENDIF}
   // System agnostic path for data files + Python
   if not DirectoryExists(AppHome) then
     begin
-      ShowMessage('No AppHome at : ' + AppHome);
+      ForceDirectories(AppHome);
+//      ShowMessage('No AppHome at : ' + AppHome);
     end;
 
   ShaderPath := TPath.Combine(AppHome, 'shaders');;

@@ -12,7 +12,7 @@ uses
   FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, PyCommon,
   PyModule, PyPackage, PSUtil, FMX.Menus, FMX.Layouts, FMX.Styles,
-  EmbeddedForm;
+  EmbeddedForm, PythonEngine;
 
 type
   TfrmMain = class(TForm)
@@ -203,17 +203,18 @@ begin
     end;
 {$ENDIF}
 
-  {$IFNDEF MACOS64}
   if Assigned(PySys) and SystemActive then
     begin
       frmDebug.Show;
       var gpu_count: Variant := PySys.Torch.torch.cuda.device_count();
+      var mps_available: Variant := PySys.Torch.torch.has_mps;
       var cpu_cores: Variant := PySys.PSUtil.psutil.cpu_count(False);
       var cpu_threads: Variant := PySys.PSUtil.psutil.cpu_count(True);
       var cpu_freq: Variant := PySys.PSUtil.psutil.cpu_freq();
       var virtual_memory: Variant := PySys.PSUtil.psutil.virtual_memory();
 
       PySys.Log('Torch returned gpu_count = ' + gpu_count);
+      PySys.Log('Torch returned MPS = ' + mps_available);
       if gpu_count > 0 then
         begin
           for I := 0 to gpu_count - 1 do
@@ -234,7 +235,6 @@ begin
       PySys.Log('PSUtil returned available_memory = ' + virtual_memory.available);
 
       end;
-    {$ENDIF}
 end;
 
 end.

@@ -13,7 +13,7 @@ uses
   PythonEngine, PyCommon,
   {$ENDIF}
   PyEnvironment.Embeddable, PyEnvironment.Embeddable.Res, PyEnvironment.Embeddable.Res.Python39,
-  PyModule, PyPackage,
+  PyModule, PyPackage, PythonEngine,
   TorchVision, PyTorch, NumPy, SciPy, PSUtil, Boto3, Pillow,
   Modules;
 
@@ -371,10 +371,11 @@ begin
   PyEng.RedirectIO := True;
   // Python Engine
 
-  PyEnv := TPyEmbeddedResEnvironment39.Create(Self);
   {$IF DEFINED(MACOS64)}
+  PyEnv := TPyLocalEnvironment.Create(Self);
   PyEnv.FilePath := '../Resources/macpython.json';
   {$ELSE}
+  PyEnv := TPyEmbeddedResEnvironment39.Create(Self);
   PyEnv.EnvironmentPath := IncludeTrailingPathDelimiter(AppHome) + 'python';
   {$ENDIF}
   PyEnv.OnReady := DoReady;
@@ -403,10 +404,10 @@ begin
   SetupPackage(AWS);
 
   // Create PSUtil
-  {$IFNDEF MACOS64}
+//  {$IFNDEF MACOS64}
   PSUtil := TPSUtil.Create(Self);
   SetupPackage(PSUtil);
-  {$ENDIF}
+//  {$ENDIF}
 
   // Create Torch
   Torch := TPyTorch.Create(Self);
@@ -483,12 +484,12 @@ begin
   SafeMaskFPUExceptions(False);
   FTask.CheckCanceled();
 
-  {$IFNDEF MACOS64}
+//  {$IFNDEF MACOS64}
   SafeMaskFPUExceptions(True);
   PSUtil.Install();
   SafeMaskFPUExceptions(False);
   FTask.CheckCanceled();
-  {$ENDIF}
+//  {$ENDIF}
 
   SafeMaskFPUExceptions(True);
   Torch.Install();
@@ -508,9 +509,9 @@ begin
 //      SciPy.Import();
 //      AWS.Import();
 //      TorchVision.Import();
-      {$IFNDEF MACOS64}
+//      {$IFNDEF MACOS64}
       PSUtil.Import();
-      {$ENDIF}
+//      {$ENDIF}
       Torch.Import();
       Pillow.Import();
       SafeMaskFPUExceptions(False);
