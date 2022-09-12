@@ -8,13 +8,15 @@ uses
 
 var
   AppHome: String;
-  ModelList: TStringList;
-  JsonList: TStringList;
-  SystemActive: Boolean;
+  CachePath: String;
   ShaderPath: String;
   StylesPath: String;
   DataSetsPath: String;
-  OutImagePath: String;
+
+  ModelList: TStringList;
+  JsonList: TStringList;
+  SystemActive: Boolean;
+
   FrameCount: Integer;
   EnableGPU: Boolean;
 
@@ -42,7 +44,6 @@ begin
   if not DirectoryExists(AppHome) then
     begin
       ForceDirectories(AppHome);
-//      ShowMessage('No AppHome at : ' + AppHome);
     end;
 
   ShaderPath := TPath.Combine(AppHome, 'shaders');;
@@ -59,10 +60,10 @@ begin
       ForceDirectories(DataSetsPath);
     end;
 
-  OutImagePath := TPath.Combine(AppHome, 'cache');;
-  if not DirectoryExists(OutImagePath) then
+  CachePath := TPath.Combine(AppHome, 'cache');;
+  if not DirectoryExists(CachePath) then
     begin
-      ForceDirectories(OutImagePath);
+      ForceDirectories(CachePath);
     end;
 
 end;

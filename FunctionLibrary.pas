@@ -133,7 +133,7 @@ begin
 
       for I := 0 to 255 do
         txt.Add(IntToStr(I) + ', ' + IntToStr(AlphaMap[I]));
-      txt.SaveToFile('c:\temp\alphamap.txt');
+      txt.SaveToFile(IncludeTrailingPathDelimiter(CachePath) + 'alphamap.txt');
 
     end;
 end;

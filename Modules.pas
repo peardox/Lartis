@@ -658,9 +658,9 @@ end;
 procedure TModStyle.CreateDefaultOptions;
 begin
   ProgressCount := 0;
-  FOptions.content_image := 'input-images/haywain.jpg';
+  FOptions.content_image := '';
   FOptions.content_image_raw := String.Empty;
-  FOptions.output_image := 'output-images/lartis-mosaic-vgg19.jpg';
+  FOptions.output_image := IncludeTrailingPathDelimiter(CachePath) + 'tempfile.jpg';
   FOptions.model := 'mosaic/mosaic-200';
   FOptions.model_dir := 'models';
   FOptions.model_ext := '.pth';
@@ -906,7 +906,7 @@ begin
 
   FOptions.content_image := '';
   FOptions.content_image_raw := ABitmap.ClassName;
-  FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + 'direct-test.jpg';
+  FOptions.output_image := IncludeTrailingPathDelimiter(CachePath) + 'direct-test.jpg';
   FOptions.model := 'mosaic/mosaic-100';
   FOptions.ignore_gpu :=  not EnableGPU;
   PySys.LogClear;
@@ -946,7 +946,7 @@ begin
   DoModProgressEvent(0);
 
   FOptions.content_image := AFile;
-  FOptions.output_image := IncludeTrailingPathDelimiter(AppHome) + 'output-images' + System.IOUtils.TPath.DirectorySeparatorChar + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-tile_test2.jpg';
+  FOptions.output_image := IncludeTrailingPathDelimiter(CachePath) + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-styled.jpg';
   FOptions.content_image_raw := '';
   FOptions.model := 'mosaic/mosaic-100';
   FOptions.ignore_gpu :=  not EnableGPU;
