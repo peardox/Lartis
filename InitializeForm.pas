@@ -216,7 +216,7 @@ begin
   if RestResponse1.StatusCode = 200 then
     begin
       SetupInfo := RestResponse1.Content;
- //     MultiThreadedMediaDownload(AppHome);
+      MultiThreadedMediaDownload(AppHome);
     end
   else
     begin

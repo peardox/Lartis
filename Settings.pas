@@ -39,7 +39,7 @@ implementation
 
 procedure CreateSettings;
 begin
-  InstallRequired := True;
+  InstallRequired := False;
   {$IF DEFINED(MACOS64)}
   AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath) + appname;
   {$ELSE}
