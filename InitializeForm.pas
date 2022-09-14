@@ -67,9 +67,11 @@ type
     Memo1: TMemo;
     StyleBook1: TStyleBook;
     Button2: TButton;
+    Timer1: TTimer;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
     SetupInfo: String;
@@ -172,6 +174,8 @@ end;
 
 procedure TfrmInit.Button1Click(Sender: TObject);
 begin
+  Memo1.Lines.Add('Aborting');
+  Button1.Enabled := False;
   ModalResult := mrAbort;
 end;
 
@@ -218,12 +222,15 @@ end;
 
 procedure TfrmInit.Button2Click(Sender: TObject);
 begin
+  Button2.Enabled := False;
+  Memo1.Lines.Add('Starting installation');
   MultiThreadedMediaDownload(AppHome);
 end;
 
 procedure TfrmInit.FormCreate(Sender: TObject);
 begin
   Caption := 'System Setup';
+  Memo1.Lines.Add('Ready');
 
   Button1.Text := 'Abort';
   Button2.Text := 'Continue';
@@ -232,9 +239,12 @@ begin
   RESTRequest1.Resource := 'system.json';
   RESTRequest1.AcceptEncoding := 'gzip, deflate';
   RESTRequest1.Execute;
+  Memo1.Lines.Add('JSON = ' + RestResponse1.StatusCode.ToString);
   if RestResponse1.StatusCode = 200 then
     begin
+      Memo1.Lines.Add(SetupInfo);
       SetupInfo := RestResponse1.Content;
+      Timer1.Enabled := True;
     end
   else
     begin
@@ -277,10 +287,14 @@ begin
         end;
 
       DirList.Free;
+      Memo1.Lines.Add('Got filelist');
+
       {$IFNDEF MACOS64}
+      Memo1.Lines.Add('Downloading');
       SingleThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1.Lines, ProgressBar1);
 //      MultiThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1.Lines, ProgressBar1);
       {$ELSE}
+      Memo1.Lines.Add('Downloading');
       SingleThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1.Lines, ProgressBar1);
       {$ENDIF}
 
@@ -388,6 +402,7 @@ var
   TotalImageCount: Integer;
   I, TotalDone: Integer;
 begin
+  Memo1.Lines.Add('Downloader');
   if Assigned(Progress) then
     begin
       Progress.Min := 0;
@@ -405,10 +420,11 @@ begin
       var outfile := TPath.Combine(ADestPath, UnixToDos(infilerec.Name));
       try
         Downer.Download(ABaseURL, ADestPath, infilerec, I, Progress);
+        Application.ProcessMessages;
       except
         on E: Exception do
           begin
-            Logger.Add('Unhandled Exception # 544');
+            Logger.Add('Unhandled Exception # 416');
             Logger.Add('Class : ' + E.ClassName);
             Logger.Add('Error : ' + E.Message);
             Logger.Add('Vars : I = ' + i.ToString + ', OutFile = ' + outfile + ', ImageCount = ' + ImageCount.ToString);
@@ -425,6 +441,11 @@ begin
   if Assigned(Progress) then
       Progress.Value := 0;
   AllDone;
+end;
+
+procedure TfrmInit.Timer1Timer(Sender: TObject);
+begin
+  Button2Click(Self);
 end;
 
 end.
