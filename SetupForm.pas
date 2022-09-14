@@ -52,7 +52,7 @@ begin
   if not SetupRunning and not SystemActive then
     begin
       SetupRunning := True;
-      PySys := TPySys.Create(Sender as TComponent);
+//      PySys := TPySys.Create(Sender as TComponent);
       PySys.LogTarget := Memo1;
       PySys.SetupSystem(SetupComplete);
     end;

@@ -165,6 +165,7 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
+    PySys := TPySys.Create(Sender as TComponent);
 
 //  if DirectoryExists(StylesPath) then
 //    TStyleManager.SetStyleFromFile(TPath.Combine(StylesPath, 'Blend.style'));

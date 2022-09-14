@@ -52,6 +52,8 @@ type
 
     procedure DoPySysFinishedEvent(const AStatus: Boolean);
 
+    procedure PyEngBeforeUnload(Sender: TObject);
+
     procedure PackageBeforeInstall(Sender: TObject);
     procedure PackageAfterInstall(Sender: TObject);
     procedure PackageInstallError(Sender: TObject; AErrorMessage: string);
@@ -107,6 +109,9 @@ uses
   Settings,
   Unit1,
   SetupForm,
+  {$IFDEF MESSAGE_SUPPORT}
+  FMX.Dialogs,
+  {$ENDIF}
   PyPackage.Manager.Pip,
   PyPackage.Manager.Defs.Pip;
 
@@ -375,6 +380,7 @@ begin
   PyEng.AutoLoad := False;
   PyEng.IO := PyIO;
   PyEng.RedirectIO := True;
+  PyEng.OnBeforeUnload := PyEngBeforeUnload;
   // Python Engine
 
   {$IF DEFINED(MACOS64)}
@@ -658,6 +664,13 @@ begin
       end;
   end;
 
+end;
+
+procedure TPySys.PyEngBeforeUnload(Sender: TObject);
+begin
+  {$IFDEF MESSAGE_SUPPORT}
+  ShowMessage('Python Unloading');
+  {$ENDIF}
 end;
 
 end.
