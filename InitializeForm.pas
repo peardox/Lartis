@@ -76,6 +76,9 @@ type
     procedure MultiThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
       const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
       Logger: TStrings = Nil; Progress: TProgressBar = Nil);
+    procedure SingleThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
+      const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
+      Logger: TStrings = Nil; Progress: TProgressBar = Nil);
   public
     { Public declarations }
   end;
@@ -235,11 +238,6 @@ var
 begin
   Memo1.Lines.Clear;
   FullSize := 0;
-{
-  TDirectory.Delete(outpath, True);
-  if not DirectoryExists(outpath) then
-    ForceDirectories(outpath);
-}
   try
     try
       FileList := HandleFileList(SetupInfo);
@@ -264,8 +262,11 @@ begin
         end;
 
       DirList.Free;
-
+      {$IFNDEF MACOS64}
       MultiThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1.Lines, ProgressBar1);
+      {$ELSE}
+      SingleThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1.Lines, ProgressBar1);
+      {$ENDIF}
 
     except
       on E: Exception do
@@ -363,6 +364,53 @@ begin
     begin
       Progress.Value := 0;
     end;
+end;
+
+procedure TfrmInit.SingleThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
+  const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
+  Logger: TStrings = Nil; Progress: TProgressBar = Nil);
+var
+  sw: TStopWatch;
+  Downer: TUnSplashClient;
+  TotalImageCount: Integer;
+  I, TotalDone: Integer;
+begin
+  if Assigned(Progress) then
+    begin
+      Progress.Min := 0;
+      Progress.Max := FullSize;
+    end;
+  TotalDone := 0;
+  TotalImageCount := Length(AFileList);
+  sw := TStopWatch.StartNew;
+
+  for I := 0 to ImageCount - 1 do
+    begin
+      Downer := TUnSplashClient.Create;
+      var infilerec := AFileList[I];
+      var DownSize := AFileList[I].Size;
+      var outfile := TPath.Combine(ADestPath, UnixToDos(infilerec.Name));
+      try
+        Downer.Download(ABaseURL, ADestPath, infilerec, I, Progress);
+      except
+        on E: Exception do
+          begin
+            Logger.Add('Unhandled Exception # 544');
+            Logger.Add('Class : ' + E.ClassName);
+            Logger.Add('Error : ' + E.Message);
+            Logger.Add('Vars : I = ' + i.ToString + ', OutFile = ' + outfile + ', ImageCount = ' + ImageCount.ToString);
+          end;
+
+      end;
+      if Assigned(Logger) then
+          Logger.Add('Downloaded (' + I.ToString + ') ' + outfile + ' at ' + SW.ElapsedMilliseconds.ToString);
+      FreeAndNil(Downer);
+    end;
+
+  if Assigned(Logger) then
+      Logger.Add('Finished ' + sw.ElapsedMilliseconds.ToString);
+  if Assigned(Progress) then
+      Progress.Value := 0;
 end;
 
 end.
