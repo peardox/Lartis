@@ -3,6 +3,7 @@ unit Unit1;
 interface
 
 {$DEFINE ENABLE_PYTHON}
+ {$DEFINE ENABLE_TRAIN}
 // {$DEFINE ENABLE_EVOLVE}
 // {$DEFINE ENABLE_MOVIE}
 
@@ -25,7 +26,9 @@ type
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
     StyleLayout: TLayout;
+    {$IFDEF ENABLE_TRAIN}
     TrainLayout: TLayout;
+    {$ENDIF}
     ChoiceLayout: TLayout;
     OptionsMenu: TMenuItem;
     ExitMenu: TMenuItem;
@@ -71,7 +74,9 @@ uses
   DebugForm,
   ChoiceForm,
   StyleForm,
+  {$IFDEF ENABLE_TRAIN}
   TrainForm,
+  {$ENDIF}
   {$IFDEF ENABLE_EVOLVE}
   EvolveForm,
   {$ENDIF}
@@ -130,8 +135,10 @@ begin
     FreeAndNil(JsonList);
   if Assigned(frmStyle) then
     FreeAndNil(frmStyle);
+  {$IFDEF ENABLE_TRAIN}
   if Assigned(frmTrain) then
     FreeAndNil(frmTrain);
+  {$ENDIF}
   {$IFDEF ENABLE_EVOLVE}
   if Assigned(frmEvolve) then
     FreeAndNil(frmEvolve);
@@ -171,7 +178,9 @@ begin
 //    TStyleManager.SetStyleFromFile(TPath.Combine(StylesPath, 'Blend.style'));
 
   frmStyle := EmbedForm(StyleLayout, TfrmStyle.Create(Self)) as TfrmStyle;
+  {$IFDEF ENABLE_TRAIN}
   frmTrain := EmbedForm(TrainLayout, TfrmTrain.Create(Self)) as TfrmTrain;
+  {$ENDIF}
   {$IFDEF ENABLE_EVOLVE}
   frmEvolve := EmbedForm(EvolveLayout, TfrmEvolve.Create(Self)) as TfrmEvolve;
   {$ENDIF}
@@ -182,8 +191,14 @@ begin
   // Must be created last
   frmChoice := EmbedForm(ChoiceLayout, TfrmChoice.Create(Self)) as TfrmChoice;
 
+  {$IFDEF ENABLE_TRAIN}
   frmChoice.ShowForm;
   ActiveForm := frmChoice;
+  {$ELSE}
+  frmStyle.btnBack.Visible := False;
+  frmStyle.ShowForm;
+  ActiveForm := frmStyle;
+  {$ENDIF}
 
   {$IFDEF ENABLE_PYTHON}
   frmSetup := TfrmSetup.Create(Self);

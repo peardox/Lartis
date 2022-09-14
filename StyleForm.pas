@@ -11,7 +11,6 @@ uses
 type
   TfrmStyle = class(TEmbeddedForm)
     TopPanel: TPanel;
-    Button1: TButton;
     layStyleControl: TLayout;
     StyleLayout: TLayout;
     OpenDialog1: TOpenDialog;
@@ -34,7 +33,8 @@ type
     btnClearLayers: TButton;
     layStylePicker: TLayout;
     trkStyleWeight: TTrackBar;
-    procedure Button1Click(Sender: TObject);
+    btnBack: TButton;
+    procedure btnBackClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
     procedure btnStylizeClick(Sender: TObject);
@@ -82,6 +82,7 @@ uses
 
 procedure TfrmStyle.FormCreate(Sender: TObject);
 begin
+
   cbxColourMode.Items.Add('Use Styled Colors');
   cbxColourMode.Items.Add('Use Original (YUV)');
   cbxColourMode.Items.Add('Use Original (HLS)');
@@ -255,7 +256,7 @@ begin
             FreeAndNil(TProgressShader(Layers[I]))
           else
             begin
-              ShowMessage('Releasing Unknown Layer!');
+              ShowMessage('Releasing Unknown Layer! Class = ' + Layers[I].ClassName);
               Layers[I] := Nil;
             end;
         end
@@ -416,7 +417,7 @@ begin
       TLayerShader(ActiveLayer).ColorMode :=  cbxColourMode.ItemIndex;
 end;
 
-procedure TfrmStyle.Button1Click(Sender: TObject);
+procedure TfrmStyle.btnBackClick(Sender: TObject);
 begin
   if Assigned(CloseMyself) then
       CloseMyself(Self);

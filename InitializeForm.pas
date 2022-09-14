@@ -15,6 +15,7 @@ type
   TJSONFile = Record
     Name: String;
     Size: Integer;
+    Hash: String;
     Time: Integer;
   End;
   TJSONFileArray = Array of TJSONFile;

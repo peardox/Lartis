@@ -1,6 +1,6 @@
 unit Settings;
 
-{$DEFINE CLEANSTART}
+// {$DEFINE CLEANSTART}
 
 interface
 
@@ -16,6 +16,7 @@ var
   ShaderPath: String;
   StylesPath: String;
   DataSetsPath: String;
+  PreTrainedPath: String;
 
   ModelList: TStringList;
   JsonList: TStringList;
@@ -67,6 +68,16 @@ begin
     end;
 
   StylesPath := TPath.Combine(AppHome, 'styles');;
+  if not DirectoryExists(ShaderPath) then
+    begin
+      ForceDirectories(StylesPath);
+    end;
+
+  PreTrainedPath := TPath.Combine(AppHome, 'pretrained');;
+  if not DirectoryExists(PreTrainedPath) then
+    begin
+      ForceDirectories(PreTrainedPath);
+    end;
 
   DataSetsPath := TPath.Combine(AppHome, 'datasets');
   if not DirectoryExists(DataSetsPath) then

@@ -2,6 +2,7 @@ unit ChoiceForm;
 
 interface
 
+ {$DEFINE ENABLE_TRAIN}
 // {$DEFINE ENABLE_EVOLVE}
 // {$DEFINE ENABLE_MOVIE}
 
@@ -37,15 +38,16 @@ var
   frmChoice: TfrmChoice;
 
 const
-  Sections: Array [0..{$IFNDEF ENABLE_EVOLVE}1{$ELSE}{$IFNDEF ENABLE_MOVIE}2{$ELSE}3{$ENDIF}{$ENDIF}] of String = ('style.png',
-    'train.png'
-    {$IFDEF ENABLE_EVOLVE}
-    ,'evolve.png'
-    {$ENDIF}
-    {$IFDEF ENABLE_MOVIE}
-    ,'movie.png'
-    {$ENDIF}
-    );
+  {$IF DEFINED (ENABLE_TRAIN) AND DEFINED(ENABLE_EVOLVE) AND DEFINED(ENABLE_MOVIE)}
+  Sections: Array [0..3] of String = ('style.png', 'train.png' ,'evolve.png', 'movie.png');
+  {$ELSEIF DEFINED (ENABLE_TRAIN) AND DEFINED(ENABLE_EVOLVE)}
+  Sections: Array [0..2] of String = ('style.png', 'train.png' ,'evolve.png');
+  {$ELSEIF DEFINED (ENABLE_TRAIN)}
+  Sections: Array [0..1] of String = ('style.png', 'train.png');
+  {$ELSE}
+  Sections: Array [0..0] of String = ('style.png');
+  {$ENDIF}
+
 
 
 implementation
@@ -79,8 +81,13 @@ begin
   GridRows := 1;
   {$ENDIF}
   {$ELSE}
+  {$IFDEF ENABLE_TRAIN}
   GridCols := 2;
   GridRows := 1;
+  {$ELSE}
+  GridCols := 1;
+  GridRows := 1;
+  {$ENDIF}
   {$ENDIF}
 
   SetLength(SectionImages, Length(Sections));
@@ -123,14 +130,16 @@ begin
             0: begin
               SectionImages[I].TargetForm := frmStyle;
             end;
+            {$IFDEF ENABLE_TRAIN}
             1: begin
               SectionImages[I].TargetForm := frmTrain;
             end;
-            {$IFDEF ENABLE_EVOLVE}
             {$ENDIF}
+            {$IFDEF ENABLE_EVOLVE}
             2: begin
               SectionImages[I].TargetForm := frmEvolve;
             end;
+            {$ENDIF}
             {$IFDEF ENABLE_MOVIE}
             3: begin
               SectionImages[I].TargetForm := frmMovie;

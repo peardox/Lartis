@@ -16,7 +16,13 @@ object frmStyle: TfrmStyle
     Size.PlatformDefault = False
     TabOrder = 1
     OnResize = TopPanelResize
-    object Button1: TButton
+    object chkEnableGPU: TCheckBox
+      Position.X = 952.000000000000000000
+      TabOrder = 1
+      Text = 'Enable GPU'
+      OnChange = chkEnableGPUChange
+    end
+    object btnBack: TButton
       Align = Left
       RotationAngle = 180.000000000000000000
       Size.Width = 24.000000000000000000
@@ -24,14 +30,8 @@ object frmStyle: TfrmStyle
       Size.PlatformDefault = False
       StyleLookup = 'playtoolbuttonbordered'
       TabOrder = 0
-      Text = 'Button1'
-      OnClick = Button1Click
-    end
-    object chkEnableGPU: TCheckBox
-      Position.X = 952.000000000000000000
-      TabOrder = 1
-      Text = 'Enable GPU'
-      OnChange = chkEnableGPUChange
+      Text = 'btnBack'
+      OnClick = btnBackClick
     end
   end
   object layStyleControl: TLayout
@@ -49,8 +49,8 @@ object frmStyle: TfrmStyle
       Size.Height = 173.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      Viewport.Width = 160.000000000000000000
-      Viewport.Height = 173.000000000000000000
+      Viewport.Width = 156.000000000000000000
+      Viewport.Height = 169.000000000000000000
       object GridLayout1: TGridLayout
         Align = Client
         ItemHeight = 64.000000000000000000
