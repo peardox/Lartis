@@ -235,10 +235,11 @@ var
 begin
   Memo1.Lines.Clear;
   FullSize := 0;
+{
   TDirectory.Delete(outpath, True);
   if not DirectoryExists(outpath) then
     ForceDirectories(outpath);
-
+}
   try
     try
       FileList := HandleFileList(SetupInfo);
