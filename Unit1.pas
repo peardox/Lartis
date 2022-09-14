@@ -12,7 +12,7 @@ uses
   FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types, FMX.DialogService,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, PyCommon,
   PyModule, PyPackage,
-  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
+  {$IF NOT DEFINED(MACOS64)}
   PSUtil,
   {$ENDIF}
   FMX.Menus, FMX.Layouts, FMX.Styles,
@@ -196,6 +196,8 @@ end;
 procedure TfrmMain.SetupFinished(Sender: TObject; const AStstus: Boolean);
 begin
 //  ShowMessage('Setup form closed');
+  PySys.LogTarget := Nil;
+  frmSetup.OnSetupFinished := Nil;
   FreeAndNil(frmSetup);
 end;
 
@@ -239,9 +241,13 @@ begin
   if Assigned(PySys) and SystemActive then
     begin
       frmDebug.Show;
+      if not PySys.Torch.IsImported then
+        Exit;
       var gpu_count: Variant := PySys.Torch.torch.cuda.device_count();
       var mps_available: Variant := PySys.Torch.torch.has_mps;
-  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
+  {$IF NOT DEFINED(MACOS64)}
+      if not PySys.PSUtil.IsImported then
+        Exit;
       var cpu_cores: Variant := PySys.PSUtil.psutil.cpu_count(False);
       var cpu_threads: Variant := PySys.PSUtil.psutil.cpu_count(True);
       var cpu_freq: Variant := PySys.PSUtil.psutil.cpu_freq();
@@ -262,7 +268,7 @@ begin
               PySys.Log('Torch returned CUs = ' + gpu_props.multi_processor_count);
             end;
         end;
-  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
+  {$IF NOT DEFINED(MACOS64)}
       PySys.Log('PSUtil returned cpu_cores = ' + cpu_cores);
       PySys.Log('PSUtil returned cpu_threads = ' + cpu_threads);
       PySys.Log('PSUtil returned cpu_freq = ' + cpu_freq.current);

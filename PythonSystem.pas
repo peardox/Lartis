@@ -10,15 +10,15 @@ uses
   {$IF DEFINED(MACOS64)}
   PyEnvironment.Local,
   {$ELSE}
-  PyCommon,
+  PyEnvironment.Embeddable, PyEnvironment.Embeddable.Res,
+  PyEnvironment.Embeddable.Res.Python39,
   {$ENDIF}
-  PyEnvironment.Embeddable, PyEnvironment.Embeddable.Res, PyEnvironment.Embeddable.Res.Python39,
-  PyModule, PyPackage, PythonEngine,
+  PyCommon, PyModule, PyPackage, PythonEngine,
   TorchVision, PyTorch, NumPy, SciPy,
-  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
+  {$IF NOT DEFINED(MACOS64)}
   PSUtil,
   {$ENDIF}
-  Boto3, Pillow,
+  Pillow,
   Modules;
 
 type
@@ -72,10 +72,9 @@ type
     procedure ThreadedSetup;
   public
     Torch: TPyTorch;
-  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
+  {$IF NOT DEFINED(MACOS64)}
     PSUtil: TPSUtil;
   {$ENDIF}
-    AWS: TBoto3;
 
     modStyle: TModStyle;
     modTrain: TModTrain;
@@ -153,13 +152,12 @@ begin
   modPyIO.Free;
 
   Torch.Free;
-  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
+  {$IF NOT DEFINED(MACOS64)}
   PSUtil.Free;
   {$ENDIF}
   NumPy.Free;
   SciPy.Free;
   TorchVision.Free;
-  AWS.Free;
 
   PyEng.Free;
   PyEnv.Free;
@@ -305,7 +303,7 @@ end;
 
 procedure TPySys.PackageAfterImport(Sender: TObject);
 begin
-//  Log('Imported ' + TPyPackage(Sender).PyModuleName);
+  Log('Imported ' + TPyPackage(Sender).PyModuleName);
 //  SafeMaskFPUExceptions(False);
 end;
 
@@ -333,8 +331,8 @@ end;
 
 procedure TPySys.ReActivate;
 begin
-  PyIsReactivating := True;
-  PyEnv.Deactivate;
+//  PyIsReactivating := True;
+//  PyEnv.Deactivate;
 end;
 
 procedure TPySys.SetupPackage(APackage: TPyManagedPackage; const AExtraURL: String = '');
@@ -392,7 +390,7 @@ begin
 
   // Python Environment
 
-  PyEnv.AfterDeactivate := PyEnvAfterDeactivate;
+//  PyEnv.AfterDeactivate := PyEnvAfterDeactivate;
   // Tidy up on exit (clean Python for testing)
 
   // Create NumPy
@@ -407,12 +405,8 @@ begin
   SciPy := TSciPy.Create(Self);
   SetupPackage(SciPy);
 
-  // Create AWS
-  AWS := TBoto3.Create(Self);
-  SetupPackage(AWS);
-
   // Create PSUtil
-  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
+  {$IF NOT DEFINED(MACOS64)}
   PSUtil := TPSUtil.Create(Self);
   SetupPackage(PSUtil);
   {$ENDIF}
@@ -457,7 +451,76 @@ begin
       try
       // Activate Python
       if PyEnv.Activate(pyver) then
-        Log('Python activate returned true')
+        begin
+          Log('Python activate returned true');
+
+          SafeMaskFPUExceptions(True);
+          NumPy.Install();
+          SafeMaskFPUExceptions(False);
+          FTask.CheckCanceled();
+
+          SafeMaskFPUExceptions(True);
+          Pillow.Install();
+          SafeMaskFPUExceptions(False);
+          FTask.CheckCanceled();
+
+          SafeMaskFPUExceptions(True);
+          SciPy.Install();
+          SafeMaskFPUExceptions(False);
+          FTask.CheckCanceled();
+
+          {$IF NOT DEFINED(MACOS64)}
+          SafeMaskFPUExceptions(True);
+          PSUtil.Install();
+          SafeMaskFPUExceptions(False);
+          FTask.CheckCanceled();
+          {$ENDIF}
+
+          SafeMaskFPUExceptions(True);
+          Torch.Install();
+          SafeMaskFPUExceptions(False);
+          FTask.CheckCanceled();
+
+          SafeMaskFPUExceptions(True);
+          TorchVision.Install();
+          SafeMaskFPUExceptions(False);
+          FTask.CheckCanceled();
+
+          TThread.Queue(nil,
+            procedure()
+            begin
+        //      Numpy.Import();
+        //      SciPy.Import();
+        //      TorchVision.Import();
+              {$IF NOT DEFINED(MACOS64)}
+              SafeMaskFPUExceptions(True);
+              PSUtil.Import();
+              SafeMaskFPUExceptions(False);
+              {$ENDIF}
+              SafeMaskFPUExceptions(True);
+              Torch.Import();
+              SafeMaskFPUExceptions(False);
+              SafeMaskFPUExceptions(True);
+              Pillow.Import();
+              SafeMaskFPUExceptions(False);
+
+              ShimSysPath(pyshim);
+              RunSystem;
+            end
+            );
+
+          TThread.Synchronize(nil,
+            procedure()
+            begin
+              Log('All Done');
+              FLogTarget.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'startup.log');
+              SystemActive := True;
+              FLogTarget := Nil;
+              DoPySysFinishedEvent(True);
+            end
+          );
+
+        end
       else
         Log('Python activate returned false');
       except
@@ -468,75 +531,6 @@ begin
             Log('Error : ' + E.Message);
           end;
       end;
-    end
-  );
-  FTask.CheckCanceled();
-
-  SafeMaskFPUExceptions(True);
-  NumPy.Install();
-  SafeMaskFPUExceptions(False);
-  FTask.CheckCanceled();
-
-  SafeMaskFPUExceptions(True);
-  Pillow.Install();
-  SafeMaskFPUExceptions(False);
-  FTask.CheckCanceled();
-
-  SafeMaskFPUExceptions(True);
-  SciPy.Install();
-  SafeMaskFPUExceptions(False);
-  FTask.CheckCanceled();
-
-  SafeMaskFPUExceptions(True);
-  AWS.Install();
-  SafeMaskFPUExceptions(False);
-  FTask.CheckCanceled();
-
-  {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
-  SafeMaskFPUExceptions(True);
-  PSUtil.Install();
-  SafeMaskFPUExceptions(False);
-  FTask.CheckCanceled();
-  {$ENDIF}
-
-  SafeMaskFPUExceptions(True);
-  Torch.Install();
-  SafeMaskFPUExceptions(False);
-  FTask.CheckCanceled();
-
-  SafeMaskFPUExceptions(True);
-  TorchVision.Install();
-  SafeMaskFPUExceptions(False);
-  FTask.CheckCanceled();
-
-  TThread.Queue(nil,
-    procedure()
-    begin
-      SafeMaskFPUExceptions(True);
-//      Numpy.Import();
-//      SciPy.Import();
-//      AWS.Import();
-//      TorchVision.Import();
-      {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
-      PSUtil.Import();
-      {$ENDIF}
-      Torch.Import();
-      Pillow.Import();
-      SafeMaskFPUExceptions(False);
-
-      ShimSysPath(pyshim);
-      RunSystem;
-    end
-    );
-
-  TThread.Synchronize(nil,
-    procedure()
-    begin
-      Log('All Done');
-      FLogTarget.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'startup.log');
-      SystemActive := True;
-      FLogTarget := Nil;
-      DoPySysFinishedEvent(True);
     end
   );
 end;
