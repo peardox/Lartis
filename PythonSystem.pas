@@ -10,7 +10,7 @@ uses
   {$IF DEFINED(MACOS64)}
   PyEnvironment.Local,
   {$ELSE}
-  PythonEngine, PyCommon,
+  PyCommon,
   {$ENDIF}
   PyEnvironment.Embeddable, PyEnvironment.Embeddable.Res, PyEnvironment.Embeddable.Res.Python39,
   PyModule, PyPackage, PythonEngine,

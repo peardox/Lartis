@@ -4,9 +4,11 @@ interface
 
 uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes, System.Classes,
-  System.Variants, FMX.Dialogs;
+  System.Variants, FMX.Forms, FMX.Dialogs;
 
 var
+  InstallRequired: Boolean;
+
   AppHome: String;
   CachePath: String;
   ShaderPath: String;
@@ -28,6 +30,8 @@ const
   pyshim: String = 'pysrc';
   pycode: String = 'SystemCode.py';
 
+  APIBase: String = 'https://peardox.com/Lartis/';
+
 procedure CreateSettings;
 procedure DestroySettings;
 
@@ -35,6 +39,7 @@ implementation
 
 procedure CreateSettings;
 begin
+  InstallRequired := True;
   {$IF DEFINED(MACOS64)}
   AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath) + appname;
   {$ELSE}
@@ -44,12 +49,13 @@ begin
   if not DirectoryExists(AppHome) then
     begin
       ForceDirectories(AppHome);
+      InstallRequired := True;
     end;
 
   ShaderPath := TPath.Combine(AppHome, 'shaders');;
   if not DirectoryExists(ShaderPath) then
     begin
-      ShowMessage('No Shaders at : ' + ShaderPath);
+      ForceDirectories(ShaderPath);
     end;
 
   StylesPath := TPath.Combine(AppHome, 'styles');;

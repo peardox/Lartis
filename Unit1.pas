@@ -9,7 +9,7 @@ interface
 uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes,
   System.Classes, System.Variants, System.Threading, FMX.Types,
-  FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
+  FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types, FMX.DialogService,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, PyCommon,
   PyModule, PyPackage,
   {$IF NOT DEFINED(MACOS64) and NOT DEFINED(CPUARM64)}
@@ -43,6 +43,8 @@ type
     procedure DebugMenuClick(Sender: TObject);
     procedure SystemTestMenuClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure SetupFinished(Sender: TObject; const AStstus: Boolean);
   private
     { Private declarations }
     function EmbedForm(AParent:TControl; AForm:TEmbeddedForm): TEmbeddedForm;
@@ -141,6 +143,26 @@ begin
   DestroySettings;
 end;
 
+procedure TfrmMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+var
+  mr: TModalResult;
+begin
+  mr := mrNone;
+{
+  TDialogService.MessageDialog('Are you sure you want to close Lartis?', TMsgDlgType.mtConfirmation,
+  FMX.Dialogs.mbYesNo, TMsgDlgBtn.mbNo, 0,
+      procedure(const AResult: TModalResult)
+      begin
+        if AResult = mrYes then
+          mr := AResult;
+      end);
+  while mr = mrNone do // wait for modal result
+    Application.ProcessMessages;
+  if mr = mrYes then
+    CanClose := True;
+}
+end;
+
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
 
@@ -165,12 +187,19 @@ begin
   {$IFDEF ENABLE_PYTHON}
   frmSetup := TfrmSetup.Create(Self);
   frmSetup.Parent := Self;
+  frmSetup.OnSetupFinished := SetupFinished;
   frmSetup.Show;
   Caption := appname;
   {$ENDIF}
 end;
 
-procedure TfrmMain.DebugMenuClick(Sender: TObject);
+procedure TfrmMain.SetupFinished(Sender: TObject; const AStstus: Boolean);
+begin
+//  ShowMessage('Setup form closed');
+  FreeAndNil(frmSetup);
+end;
+
+  procedure TfrmMain.DebugMenuClick(Sender: TObject);
 begin
   frmDebug.Show;
 end;

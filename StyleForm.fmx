@@ -49,8 +49,8 @@ object frmStyle: TfrmStyle
       Size.Height = 173.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      Viewport.Width = 156.000000000000000000
-      Viewport.Height = 169.000000000000000000
+      Viewport.Width = 160.000000000000000000
+      Viewport.Height = 173.000000000000000000
       object GridLayout1: TGridLayout
         Align = Client
         ItemHeight = 64.000000000000000000
@@ -178,6 +178,13 @@ object frmStyle: TfrmStyle
         Text = '1.00'
         TabOrder = 3
       end
+      object btnClearLayers: TButton
+        Position.X = 24.000000000000000000
+        Position.Y = 368.000000000000000000
+        TabOrder = 10
+        Text = 'Clear Layers'
+        OnClick = btnClearLayersClick
+      end
       object trkStyleWeight: TTrackBar
         CanParentFocus = True
         Max = 1.000000000000000000
@@ -189,13 +196,6 @@ object frmStyle: TfrmStyle
         Size.PlatformDefault = False
         TabOrder = 0
         OnChange = trkStyleWeightChange
-      end
-      object btnClearLayers: TButton
-        Position.X = 24.000000000000000000
-        Position.Y = 368.000000000000000000
-        TabOrder = 10
-        Text = 'Clear Layers'
-        OnClick = btnClearLayersClick
       end
     end
   end

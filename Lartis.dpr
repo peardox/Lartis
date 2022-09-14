@@ -22,7 +22,8 @@ uses
   Settings in 'Settings.pas',
   DebugForm in 'DebugForm.pas' {frmDebug},
   StyleModel in 'StyleModel.pas',
-  StyleProject in 'StyleProject.pas';
+  StyleProject in 'StyleProject.pas',
+  InitializeForm in 'InitializeForm.pas' {frmInit};
 
 {$R *.res}
 
@@ -38,13 +39,21 @@ begin
 
   Application.Initialize;
   CreateSettings;
+  if InstallRequired then
+    begin
+    //  Application.CreateForm(TfrmInit, frmInit);
+      frmInit := TfrmInit.Create(nil);
+      frmInit.ShowModal;
+//      frmInit.Update;
+  //    Caption := appname;
+    end;
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmOptions, frmOptions);
   Application.CreateForm(TfrmDebug, frmDebug);
-  //  Application.CreateForm(TfrmEvolve, frmEvolve);
-//  Application.CreateForm(TfrmMovie, frmMovie);
-//  Application.CreateForm(TfrmChoice, frmChoice);
-//  Application.CreateForm(TfrmStyle, frmStyle);
-//  Application.CreateForm(TfrmTrain, frmTrain);
+  if InstallRequired then
+    begin
+      frmInit.Hide;
+      frmInit.Free;
+    end;
   Application.Run;
 end.

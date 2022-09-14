@@ -21,7 +21,7 @@ object frmSetup: TfrmSetup
     Size.Height = 226.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
-    Viewport.Width = 476.000000000000000000
-    Viewport.Height = 222.000000000000000000
+    Viewport.Width = 480.000000000000000000
+    Viewport.Height = 226.000000000000000000
   end
 end

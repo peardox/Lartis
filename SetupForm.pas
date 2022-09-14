@@ -8,6 +8,7 @@ uses
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo;
 
 type
+  TSetupFinishedEvent = procedure(Sender: TObject; const AStatus: Boolean) of object;
   TfrmSetup = class(TForm)
     Memo1: TMemo;
     procedure FormCreate(Sender: TObject);
@@ -15,12 +16,15 @@ type
   private
     { Private declarations }
     SetupRunning: Boolean;
+    FSetupFinishedEvent: TSetupFinishedEvent;
     {$IFDEF SPLASH}
     procedure LoadMainForm;
     {$ENDIF}
     procedure SetupComplete(Sender: TObject; const AStatus: Boolean);
   public
     { Public declarations }
+  published
+    property OnSetupFinished: TSetupFinishedEvent read FSetupFinishedEvent write FSetupFinishedEvent;
   end;
 
 var
@@ -31,14 +35,16 @@ implementation
 uses
   Settings,
   Math,
+  System.JSON,
   PythonSystem;
 
 {$R *.fmx}
 
 procedure TfrmSetup.FormCreate(Sender: TObject);
 begin
-    SetupRunning := False;
-    SystemActive := False;
+  Caption := 'System Inisialization';
+  SetupRunning := False;
+  SystemActive := False;
 end;
 
 procedure TfrmSetup.FormShow(Sender: TObject);
@@ -54,7 +60,10 @@ end;
 
 procedure TfrmSetup.SetupComplete(Sender: TObject; const AStatus: Boolean);
 begin
+  Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'setup.txt');
   Close;
+  if Assigned(FSetupFinishedEvent) then
+    FSetupFinishedEvent(Self, AStatus);
 end;
 
 {$IFDEF SPLASH}

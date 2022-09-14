@@ -30,10 +30,10 @@ type
     chkInvertAlpha: TCheckBox;
     lblStyleWeightKey: TLabel;
     lblStyleWeightValue: TLabel;
-    trkStyleWeight: TTrackBar;
     chkEnableGPU: TCheckBox;
     btnClearLayers: TButton;
     layStylePicker: TLayout;
+    trkStyleWeight: TTrackBar;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
@@ -52,7 +52,7 @@ type
   private
     { Private declarations }
     Grid: TGridShader;
-    ImageLayer: TBaseShader;
+    ActiveLayer: TBaseShader;
     Container: TAspectLayout;
     Layers: TLayerArray;
     LayerCount: Integer;
@@ -164,10 +164,10 @@ end;
 procedure TfrmStyle.ShowStyleProgress(Sender: TObject; const AValue: Single);
 begin
   PySys.Log('Progress = ' + FloatToStr(AValue));
-  if Assigned(ImageLayer) then
-      if ImageLayer is TProgressShader then
+  if Assigned(ActiveLayer) then
+      if ActiveLayer is TProgressShader then
         begin
-          TProgressShader(ImageLayer).Progress := AValue;
+          TProgressShader(ActiveLayer).Progress := AValue;
           prgStyleBatch.Value := AValue;
         end;
 end;
@@ -188,15 +188,15 @@ end;
 
 procedure TfrmStyle.trkAlphaThresholdChange(Sender: TObject);
 begin
-  if Assigned(ImageLayer) then
+  if Assigned(ActiveLayer) then
     begin
-      if ImageLayer is TLayerShader then // Track StyleWeight for LayerShader
-        with ImageLayer as TLayerShader do
+      if ActiveLayer is TLayerShader then // Track StyleWeight for LayerShader
+        with ActiveLayer as TLayerShader do
           begin
             AlphaThreshold := (trkAlphaThreshold.Value / trkAlphaThreshold.Max);
             lblAlphaThresholdValue.Text := FormatFloat('##0.00', AlphaThreshold * 100);
           end;
-      if ImageLayer is TProgressShader then // Fake StyleWeight for ProgressShader
+      if ActiveLayer is TProgressShader then // Fake StyleWeight for ProgressShader
         begin
           lblAlphaThresholdValue.Text := FormatFloat('##0.00', (trkAlphaThreshold.Value / trkAlphaThreshold.Max) * 100);
         end;
@@ -205,15 +205,15 @@ end;
 
 procedure TfrmStyle.trkStyleWeightChange(Sender: TObject);
 begin
-  if Assigned(ImageLayer) then
+  if Assigned(ActiveLayer) then
     begin
-      if ImageLayer is TLayerShader then // Track StyleWeight for LayerShader
-        with ImageLayer as TLayerShader do
+      if ActiveLayer is TLayerShader then // Track StyleWeight for LayerShader
+        with ActiveLayer as TLayerShader do
           begin
             StyleWeight := (trkStyleWeight.Value / trkStyleWeight.Max);
             lblStyleWeightValue.Text := FormatFloat('##0.00', StyleWeight * 100);
           end;
-      if ImageLayer is TProgressShader then // Fake StyleWeight for ProgressShader
+      if ActiveLayer is TProgressShader then // Fake StyleWeight for ProgressShader
         begin
           lblStyleWeightValue.Text := FormatFloat('##0.00', (trkStyleWeight.Value / trkStyleWeight.Max) * 100);
         end;
@@ -236,7 +236,7 @@ begin
       LayerCount := Length(Layers) + 1;
       SetLength(Layers, LayerCount);
       Layers[LayerCount - 1] := NewLayer;
-      ImageLayer := NewLayer;
+      ActiveLayer := NewLayer;
     end;
 end;
 
@@ -266,10 +266,10 @@ begin
 
   SetLength(Layers, LayerCount);
   if LayerCount > 0 then
-    ImageLayer := Layers[LayerCount - 1]
+    ActiveLayer := Layers[LayerCount - 1]
   else
     begin
-      ImageLayer := Nil;
+      ActiveLayer := Nil;
       if Assigned(Grid) then
         FreeAndNil(Grid);
       if Assigned(Container) then
@@ -294,7 +294,7 @@ begin
           with NewLayer as TProgressShader do
             begin
               AddImage(OpenDialog1.FileName);
-              trkStyleWeight.Value := 1.00;
+              trkStyleWeight.Value := trkStyleWeight.Max;
               trkStyleWeight.Enabled := False;
               if Assigned(TProgressShader(NewLayer).Bitmap) then
                 TProgressShader(NewLayer).AlphaMap;
@@ -310,24 +310,24 @@ var
   CurrentBitMap: TBitmap;
 begin
   CurrentBitMap := Nil;
-  if Assigned(ImageLayer) then
+  if Assigned(ActiveLayer) then
     begin
-      if ImageLayer is TProgressShader then
+      if ActiveLayer is TProgressShader then
         begin
           PySys.Log('Removing ProgressShader');
-          CurrentImage := TProgressShader(ImageLayer).ImageFile;
-          if Assigned(TProgressShader(ImageLayer).Bitmap) then
+          CurrentImage := TProgressShader(ActiveLayer).ImageFile;
+          if Assigned(TProgressShader(ActiveLayer).Bitmap) then
             begin
               CurrentBitmap := TBitmap.Create;
-              CurrentBitmap.Assign(TProgressShader(ImageLayer).Bitmap);
+              CurrentBitmap.Assign(TProgressShader(ActiveLayer).Bitmap);
             end;
           if Assigned(CurrentBitmap) then
             begin
-              TProgressShader(ImageLayer).Free;
+              TProgressShader(ActiveLayer).Free;
 
               PySys.Log('Adding LayerShader');
-              ImageLayer := TLayerShader.Create(Container);
-              with ImageLayer as TLayerShader do
+              ActiveLayer := TLayerShader.Create(Container);
+              with ActiveLayer as TLayerShader do
                 begin
                   PySys.Log('Adding Original ' + CurrentImage);
                   OriginalImage := CurrentImage;
@@ -335,7 +335,7 @@ begin
                   PySys.Log('Adding Styled ' + AFileName);
                   AddImage(Styled, AFileName);
                   PreserveTransparency := False;
-                  trkStyleWeight.Value := 1.00;
+                  trkStyleWeight.Value := trkStyleWeight.Max;
                   trkStyleWeight.Enabled := True;
                   trkAlphaThreshold.Value := 0.95;
                   prgStyleBatch.Value := 0;
@@ -352,25 +352,25 @@ var
   CurrentImage: String;
   CurrentBitMap: TBitmap;
 begin
-  if Assigned(PySys) and Assigned(ImageLayer) then
+  if Assigned(PySys) and Assigned(ActiveLayer) then
     begin
 
-      if ImageLayer is TLayerShader then
+      if ActiveLayer is TLayerShader then
         begin
           PySys.Log('Removing LayerShader');
-          CurrentImage := TLayerShader(ImageLayer).OriginalImage;
-          if Assigned(TLayerShader(ImageLayer).OriginalBitmap) then
+          CurrentImage := TLayerShader(ActiveLayer).OriginalImage;
+          if Assigned(TLayerShader(ActiveLayer).OriginalBitmap) then
             begin
               CurrentBitmap := TBitmap.Create;
-              CurrentBitmap.Assign(TLayerShader(ImageLayer).OriginalBitmap);
+              CurrentBitmap.Assign(TLayerShader(ActiveLayer).OriginalBitmap);
             end;
           if Assigned(CurrentBitmap) then
             begin
-              TLayerShader(ImageLayer).Free;
+              TLayerShader(ActiveLayer).Free;
 
               PySys.Log('Adding ProgressShader');
-              ImageLayer := TProgressShader.Create(Container);
-              with ImageLayer as TProgressShader do
+              ActiveLayer := TProgressShader.Create(Container);
+              with ActiveLayer as TProgressShader do
                 begin
                   PySys.Log('Adding Original ' + CurrentImage);
                   ImageFile := CurrentImage;
@@ -380,8 +380,8 @@ begin
             end;
         end;
 
-      if ImageLayer is TProgressShader then
-        with ImageLayer as TProgressShader do
+      if ActiveLayer is TProgressShader then
+        with ActiveLayer as TProgressShader do
           begin
             if ImageFile <> String.Empty then
               PySys.modStyle.Stylize(ImageFile, ShowStyleProgress, ShowStyledImage);
@@ -397,23 +397,23 @@ end;
 
 procedure TfrmStyle.chkEnableTransparencyChange(Sender: TObject);
 begin
-  if Assigned(ImageLayer) then
-    if ImageLayer is TLayerShader then
-      TLayerShader(ImageLayer).PreserveTransparency :=  chkEnableTransparency.IsChecked;
+  if Assigned(ActiveLayer) then
+    if ActiveLayer is TLayerShader then
+      TLayerShader(ActiveLayer).PreserveTransparency :=  chkEnableTransparency.IsChecked;
 end;
 
 procedure TfrmStyle.chkInvertAlphaChange(Sender: TObject);
 begin
-  if Assigned(ImageLayer) then
-    if ImageLayer is TLayerShader then
-      TLayerShader(ImageLayer).InvertAlpha :=  chkInvertAlpha.IsChecked;
+  if Assigned(ActiveLayer) then
+    if ActiveLayer is TLayerShader then
+      TLayerShader(ActiveLayer).InvertAlpha :=  chkInvertAlpha.IsChecked;
 end;
 
 procedure TfrmStyle.cbxColourModeChange(Sender: TObject);
 begin
-  if Assigned(ImageLayer) then
-    if ImageLayer is TLayerShader then
-      TLayerShader(ImageLayer).ColorMode :=  cbxColourMode.ItemIndex;
+  if Assigned(ActiveLayer) then
+    if ActiveLayer is TLayerShader then
+      TLayerShader(ActiveLayer).ColorMode :=  cbxColourMode.ItemIndex;
 end;
 
 procedure TfrmStyle.Button1Click(Sender: TObject);
