@@ -1,5 +1,7 @@
 unit Settings;
 
+{$DEFINE CLEANSTART}
+
 interface
 
 uses
@@ -46,6 +48,12 @@ begin
   AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetHomePath) + appname;
   {$ENDIF}
   // System agnostic path for data files + Python
+
+  {$IFDEF CLEANSTART}
+  if DirectoryExists(AppHome) then
+    TDirectory.Delete(AppHome, True);
+  {$ENDIF}
+
   if not DirectoryExists(AppHome) then
     begin
       ForceDirectories(AppHome);

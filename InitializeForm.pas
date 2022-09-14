@@ -49,6 +49,9 @@ type
     FBytesSoFar: Int64;
     procedure ReceiveData(const Sender: TObject; AContentLength,
       AReadCount: Int64; var AAbort: Boolean);
+    procedure NeedClientCertificate(const Sender: TObject;
+      const ARequest: TURLRequest; const ACertificateList: TCertificateList;
+      var AnIndex: Integer);
   public
     constructor Create;
     destructor Destroy; override;
@@ -90,6 +93,7 @@ type
 
 var
   frmInit: TfrmInit;
+  AbortFlag: Boolean;
 
 function UnixToDos(const Filename: String): String; Inline;
 
@@ -119,6 +123,7 @@ procedure TUnSplashClient.ReceiveData(const Sender: TObject;
 begin
   if Assigned(FProgress) then
     begin
+      AAbort := AbortFlag;
       if TThread.CurrentThread.ThreadID <> MainThreadID then
         TThread.Synchronize(nil,
           procedure()
@@ -141,6 +146,13 @@ begin
   Result := Filename{$IFDEF MSWINDOWS}.Replace('/','\\'){$ENDIF};
 end;
 
+procedure TUnSplashClient.NeedClientCertificate(const Sender: TObject;
+  const ARequest: TURLRequest; const ACertificateList: TCertificateList;
+  var AnIndex: Integer);
+begin
+  ShowMessage('Cert requested');
+end;
+
 procedure TUnSplashClient.Download(const ABaseURL: String; const Outpath: String; const AFile: TJSONFile; const ADownloadIndex: Integer; Progress: TProgressBar);
 var
   URL: string;
@@ -153,6 +165,8 @@ begin
   try
     URL := ABaseUrl + AFile.Name;
     FDownloadIndex := ADownloadIndex;
+
+    FClient.OnNeedClientCertificate := NeedClientCertificate;
 
     if Assigned(Progress) then
       begin
@@ -175,7 +189,9 @@ end;
 procedure TfrmInit.Button1Click(Sender: TObject);
 begin
   Memo1.Lines.Add('Aborting');
+  Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
   Button1.Enabled := False;
+  AbortFlag := True;
   ModalResult := mrAbort;
 end;
 
@@ -217,6 +233,8 @@ end;
 
 procedure TfrmInit.AllDone;
 begin
+  Memo1.Lines.Add('All done');
+  Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
   ModalResult := mrClose;
 end;
 
@@ -229,6 +247,8 @@ end;
 
 procedure TfrmInit.FormCreate(Sender: TObject);
 begin
+  AbortFlag := False;
+  Timer1.Enabled := False;
   Caption := 'System Setup';
   Memo1.Lines.Add('Ready');
 
@@ -244,6 +264,7 @@ begin
     begin
       Memo1.Lines.Add(SetupInfo);
       SetupInfo := RestResponse1.Content;
+      Timer1.Interval := 10000;
       Timer1.Enabled := True;
     end
   else
@@ -402,7 +423,7 @@ var
   TotalImageCount: Integer;
   I, TotalDone: Integer;
 begin
-  Memo1.Lines.Add('Downloader');
+  Logger.Add('Downloader');
   if Assigned(Progress) then
     begin
       Progress.Min := 0;
@@ -414,11 +435,17 @@ begin
 
   for I := 0 to ImageCount - 1 do
     begin
+      if AbortFlag then
+        Exit;
+
       Downer := TUnSplashClient.Create;
       var infilerec := AFileList[I];
       var DownSize := AFileList[I].Size;
       var outfile := TPath.Combine(ADestPath, UnixToDos(infilerec.Name));
       try
+        Logger.Add('Downloading ' + infilerec.Name);
+        Memo1.GoToTextEnd;
+        Memo1.Repaint;
         Downer.Download(ABaseURL, ADestPath, infilerec, I, Progress);
         Application.ProcessMessages;
       except
@@ -428,11 +455,17 @@ begin
             Logger.Add('Class : ' + E.ClassName);
             Logger.Add('Error : ' + E.Message);
             Logger.Add('Vars : I = ' + i.ToString + ', OutFile = ' + outfile + ', ImageCount = ' + ImageCount.ToString);
+            Memo1.GoToTextEnd;
+            Memo1.Repaint;
           end;
 
       end;
       if Assigned(Logger) then
-          Logger.Add('Downloaded (' + I.ToString + ') ' + outfile + ' at ' + SW.ElapsedMilliseconds.ToString);
+        begin
+          Logger.Add('Downloaded ' + infilerec.Name + ' at ' + SW.ElapsedMilliseconds.ToString);
+          Memo1.GoToTextEnd;
+          Memo1.Repaint;
+        end;
       FreeAndNil(Downer);
     end;
 
@@ -445,6 +478,7 @@ end;
 
 procedure TfrmInit.Timer1Timer(Sender: TObject);
 begin
+  Timer1.Enabled := False;
   Button2Click(Self);
 end;
 
