@@ -4,6 +4,7 @@ uses
   FMX.Forms,
   FMX.Types,
   FMX.Styles,
+  System.UITypes,
   Skia,
   Skia.FMX,
   Unit1 in 'Unit1.pas' {frmMain},
@@ -43,9 +44,14 @@ begin
     begin
     //  Application.CreateForm(TfrmInit, frmInit);
       frmInit := TfrmInit.Create(nil);
-      frmInit.ShowModal;
+      var mrinit: TModalResult := frmInit.ShowModal;
+      if mrinit = mrAbort then
+        begin
+          frmInit.Hide;
+          frmInit.Free;
+          Exit;
+        end;
 //      frmInit.Update;
-  //    Caption := appname;
     end;
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmOptions, frmOptions);

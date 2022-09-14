@@ -66,11 +66,14 @@ type
     Button1: TButton;
     Memo1: TMemo;
     StyleBook1: TStyleBook;
+    Button2: TButton;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     { Private declarations }
     SetupInfo: String;
+    procedure AllDone;
     function HandleFileList(const AFileList: String): TJSONFileArray;
     procedure MultiThreadedMediaDownload(const outpath: String);
     procedure MultiThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
@@ -169,7 +172,7 @@ end;
 
 procedure TfrmInit.Button1Click(Sender: TObject);
 begin
-  ModalResult := mrClose;
+  ModalResult := mrAbort;
 end;
 
 function TfrmInit.HandleFileList(const AFileList: String): TJSONFileArray;
@@ -208,9 +211,22 @@ begin
   end;
 end;
 
+procedure TfrmInit.AllDone;
+begin
+  ModalResult := mrClose;
+end;
+
+procedure TfrmInit.Button2Click(Sender: TObject);
+begin
+  MultiThreadedMediaDownload(AppHome);
+end;
+
 procedure TfrmInit.FormCreate(Sender: TObject);
 begin
   Caption := 'System Setup';
+
+  Button1.Text := 'Abort';
+  Button2.Text := 'Continue';
 
   RESTClient1.BaseURL := APIBase;
   RESTRequest1.Resource := 'system.json';
@@ -219,7 +235,6 @@ begin
   if RestResponse1.StatusCode = 200 then
     begin
       SetupInfo := RestResponse1.Content;
-      MultiThreadedMediaDownload(AppHome);
     end
   else
     begin
@@ -263,7 +278,8 @@ begin
 
       DirList.Free;
       {$IFNDEF MACOS64}
-      MultiThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1.Lines, ProgressBar1);
+      SingleThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1.Lines, ProgressBar1);
+//      MultiThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1.Lines, ProgressBar1);
       {$ELSE}
       SingleThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1.Lines, ProgressBar1);
       {$ENDIF}
@@ -356,14 +372,11 @@ begin
 				begin
 					Logger.Add('Finished ' + sw.ElapsedMilliseconds.ToString);
           tp.Free;
+          AllDone;
 				end
 			);
 		end
 	).Start;
-  if Assigned(Progress) then
-    begin
-      Progress.Value := 0;
-    end;
 end;
 
 procedure TfrmInit.SingleThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
@@ -411,6 +424,7 @@ begin
       Logger.Add('Finished ' + sw.ElapsedMilliseconds.ToString);
   if Assigned(Progress) then
       Progress.Value := 0;
+  AllDone;
 end;
 
 end.
