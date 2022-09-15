@@ -41,11 +41,11 @@ type
     Content: TJSONContentArray;
   End;
 
-  TUnSplashClient = class(TObject)
+  TUnSplashClient = class(TComponent)
   private
     FDownloadIndex: Integer;
     FDownloadStream: TStream;
-    FClient: THTTPClient;
+    FClient: TNetHTTPClient;
     FProgress: TProgressBar;
     FBytesSoFar: Int64;
     procedure ReceiveData(const Sender: TObject; AContentLength,
@@ -109,7 +109,7 @@ uses
 
 constructor TUnSplashClient.Create;
 begin
-    FClient := THTTPClient.Create;
+    FClient := TNetHTTPClient.Create(Self);
 end;
 
 destructor TUnSplashClient.Destroy;

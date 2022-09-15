@@ -40,10 +40,12 @@ begin
 
   Application.Initialize;
   CreateSettings;
-  if InstallRequired then
-    begin
-    //  Application.CreateForm(TfrmInit, frmInit);
-      frmInit := TfrmInit.Create(nil);
+//  if InstallRequired then
+//    begin
+      Application.CreateForm(TfrmInit, frmInit);
+      {
+      // Application.MainForm := frmInit;
+      // frmInit := TfrmInit.Create(nil);
       var mrinit: TModalResult := frmInit.ShowModal;
       if mrinit = mrAbort then
         begin
@@ -51,7 +53,6 @@ begin
           frmInit.Free;
           Exit;
         end;
-//      frmInit.Update;
     end;
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmOptions, frmOptions);
@@ -61,5 +62,6 @@ begin
       frmInit.Hide;
       frmInit.Free;
     end;
+    }
   Application.Run;
 end.

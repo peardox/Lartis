@@ -1,6 +1,6 @@
 unit Settings;
 
-// {$DEFINE CLEANSTART}
+ {$DEFINE CLEANSTART}
 
 interface
 
