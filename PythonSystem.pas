@@ -6,7 +6,7 @@ interface
 uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes,
   System.Classes, System.Variants, System.Threading, PyEnvironment,
-  FMX.Types, FMX.Memo, FMX.Forms, Math,
+  FMX.Types, FMX.Dialogs, FMX.Memo, FMX.Forms, Math,
   {$IF DEFINED(MACOS64)}
   PyEnvironment.Local,
   {$ELSE}
@@ -389,6 +389,14 @@ begin
   {$ELSE}
   PyEnv := TPyEmbeddedResEnvironment39.Create(Self);
   PyEnv.EnvironmentPath := IncludeTrailingPathDelimiter(AppHome) + 'python';
+  if not DirectoryExists(PyEnv.EnvironmentPath) then
+    begin
+      if not ForceDirectories(PyEnv.EnvironmentPath) then
+        begin
+          ShowMessage('Couldn''t create ' + PyEnv.EnvironmentPath);
+        end;
+    end;
+
   {$ENDIF}
   PyEnv.OnReady := DoReady;
   PyEnv.PythonEngine := PyEng;
@@ -518,7 +526,7 @@ begin
           TThread.Synchronize(nil,
             procedure()
             begin
-              Log('All Done');
+              Log('Python Available');
               FLogTarget.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'startup.log');
               SystemActive := True;
               FLogTarget := Nil;
@@ -528,7 +536,10 @@ begin
 
         end
       else
-        Log('Python activate returned false');
+        begin
+          Log('Python activate returned false');
+          DoPySysFinishedEvent(False);
+        end;
       except
         on E: Exception do
           begin

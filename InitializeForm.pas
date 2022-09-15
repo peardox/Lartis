@@ -26,9 +26,11 @@ type
     Button1: TButton;
     Memo1: TMemo;
     Button2: TButton;
+    Image1: TImage;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure Layout2Resize(Sender: TObject);
   private
     { Private declarations }
     FInstallFinishedEvent: TInstallFinishedEvent;
@@ -43,6 +45,7 @@ type
     procedure SingleThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
       const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
       Logger: TMemo = Nil; Progress: TProgressBar = Nil);
+    procedure SetupComplete(Sender: TObject; const AStatus: Boolean);
   public
     { Public declarations }
   published
@@ -57,6 +60,7 @@ implementation
 
 uses
   Settings,
+  PythonSystem,
   JSON.Serializers,
   Unit1 {frmMain},
   OptionsForm {frmOptions},
@@ -117,18 +121,38 @@ begin
   end;
 end;
 
-procedure TfrmInit.AllDone;
+// Center the logo
+procedure TfrmInit.Layout2Resize(Sender: TObject);
 begin
-  Memo1.Lines.Add('All done');
+  Image1.Width := Layout2.Width;
+  Image1.Height := Floor(Image1.Width * (640 / 1920));
+  Image1.Position.X := 0;
+  Image1.Position.Y := 0;
+
+  if Image1.Height > (Layout2.Height * 0.69) then
+    begin
+      Image1.Height := Floor(Layout2.Height * 0.6848);
+      Image1.Width := Image1.Height * (1920 / 640);
+      Image1.Position.X := (Layout2.Width - Image1.Width) / 2;
+      Image1.Position.Y := (Layout2.Height - Image1.Height) / 2;
+    end;
+end;
+
+procedure TfrmInit.SetupComplete(Sender: TObject; const AStatus: Boolean);
+begin
+  PySys.LogTarget := Nil;
+  Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'python-install.log');
+  Memo1.Lines.Add('Installation Complete');
   Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
-//  frmOptions := TfrmOptions.Create(Application);
-//  frmDebug := TfrmDebug.Create(Application);
-//  frmMain := TfrmMain.Create(Application);
-//  Application.MainForm := frmMain;
-//  frmMain.Show;
   if Assigned(CloseMyself) then
       CloseMyself(Self);
   DoInstallFinished(Self, True);
+end;
+
+procedure TfrmInit.AllDone;
+begin
+  PySys.LogTarget := Memo1;
+  PySys.SetupSystem(SetupComplete);
 end;
 
 procedure TfrmInit.Button2Click(Sender: TObject);
@@ -141,7 +165,6 @@ end;
 
 procedure TfrmInit.FormCreate(Sender: TObject);
 begin
-//  Menu := Nil;
   AbortFlag := False;
   Caption := 'System Setup';
   Memo1.Lines.Add('Ready');

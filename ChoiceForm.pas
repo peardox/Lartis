@@ -2,7 +2,7 @@ unit ChoiceForm;
 
 interface
 
- {$DEFINE ENABLE_TRAIN}
+// {$DEFINE ENABLE_TRAIN}
 // {$DEFINE ENABLE_EVOLVE}
 // {$DEFINE ENABLE_MOVIE}
 

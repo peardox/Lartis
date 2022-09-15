@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
   EmbeddedForm, FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts,
-  Shaders, StyleProject, FMX.ListBox;
+  Shaders, StyleProject, FMX.ListBox, Skia, Skia.FMX, Skia.FMX.Graphics;
 
 type
   TfrmStyle = class(TEmbeddedForm)
@@ -34,6 +34,8 @@ type
     layStylePicker: TLayout;
     trkStyleWeight: TTrackBar;
     btnBack: TButton;
+    SaveDialog1: TSaveDialog;
+    btnSave: TButton;
     procedure btnBackClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
@@ -49,8 +51,11 @@ type
     procedure TopPanelResize(Sender: TObject);
     procedure chkEnableGPUChange(Sender: TObject);
     procedure btnClearLayersClick(Sender: TObject);
+    procedure FormPaint(Sender: TObject; Canvas: TCanvas; const ARect: TRectF);
+    procedure btnSaveClick(Sender: TObject);
   private
     { Private declarations }
+    FSaveInNextPaint: Boolean;
     Grid: TGridShader;
     ActiveLayer: TBaseShader;
     Container: TAspectLayout;
@@ -60,6 +65,7 @@ type
     procedure ProjectInitialise;
     procedure ShowStyleProgress(Sender: TObject; const AValue: Single);
     procedure ShowStyledImage(Sender: TObject; const AFileName: String);
+    procedure DoSaveLayers;
   public
     { Public declarations }
   end;
@@ -82,7 +88,6 @@ uses
 
 procedure TfrmStyle.FormCreate(Sender: TObject);
 begin
-
   cbxColourMode.Items.Add('Use Styled Colors');
   cbxColourMode.Items.Add('Use Original (YUV)');
   cbxColourMode.Items.Add('Use Original (HLS)');
@@ -113,6 +118,7 @@ begin
     btnAddLayer.Size.Height +
     btnStylize.Size.Height +
     btnClearLayers.Size.Height +
+    btnSave.Size.Height +
     (ControlMargin * 8);
 
   layControls.Height := ch;
@@ -145,6 +151,10 @@ begin
   btnClearLayers.Position.X := ControlMargin;
   btnClearLayers.Position.Y := btnStylize.Position.Y + 24;
   btnClearLayers.Size.Width := layControls.Width - (ControlMargin * 2);
+
+  btnSave.Position.X := ControlMargin;
+  btnSave.Position.Y := btnClearLayers.Position.Y + 24;
+  btnSave.Size.Width := layControls.Width - (ControlMargin * 2);
 
   vsbLayers.Position.X := ControlMargin;
   vsbLayers.Position.Y := ControlMargin;
@@ -423,5 +433,54 @@ begin
       CloseMyself(Self);
 end;
 
+procedure TfrmStyle.btnSaveClick(Sender: TObject);
+begin
+  if SaveDialog1.Execute then
+  begin
+    FSaveInNextPaint := True;
+    Container.OnPaint := FormPaint;
+    Container.Repaint;
+  end;
+end;
+
+procedure TfrmStyle.FormPaint(Sender: TObject; Canvas: TCanvas;
+  const ARect: TRectF);
+begin
+  if FSaveInNextPaint then
+    DoSaveLayers;
+end;
+
+procedure TfrmStyle.DoSaveLayers;
+var
+  AWidth, AHeight: Integer;
+  LSurface: ISkSurface;
+  IDX: Integer;
+begin
+  FSaveInNextPaint := False;
+
+  AWidth := Container.ChildMaxImWidth;
+  AHeight := Container.ChildMaxImHeight;
+
+  if (Self.Canvas is TGrCanvasCustom) and Assigned(TGrCanvasCustom(Self.Canvas).Context) then
+    LSurface := TSkSurface.MakeRenderTarget(TGrCanvasCustom(Self.Canvas).Context, False, TSkImageInfo.Create(AWidth, AHeight))
+  else
+    LSurface := TSkSurface.MakeRaster(AWidth, AHeight);
+  LSurface.Canvas.Clear(TAlphaColors.Null);
+
+  if Assigned(Container) and (Container.ChildrenCount > 1) then
+    begin
+      for IDX := 0 to Container.ChildrenCount - 1 do
+        begin
+          if Assigned(Container.Children[IDX]) and (Container.Children[IDX] is TLayerShader) then
+            begin
+              var ThisLayer: TLayerShader := Container.Children[IDX] as TLayerShader;
+              ThisLayer.OnDraw(ThisLayer, LSurface.Canvas, RectF(0, 0, AWidth, AHeight), 1);
+            end;
+        end;
+    end;
+
+  LSurface.MakeImageSnapshot.EncodeToFile(SaveDialog1.FileName);
+
+end;
 
 end.

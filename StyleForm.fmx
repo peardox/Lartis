@@ -71,7 +71,7 @@ object frmStyle: TfrmStyle
       object btnAddLayer: TButton
         Hint = 'Open Image'
         Position.X = 16.000000000000000000
-        Position.Y = 290.000000000000000000
+        Position.Y = 234.000000000000000000
         Size.Width = 137.000000000000000000
         Size.Height = 22.000000000000000000
         Size.PlatformDefault = False
@@ -81,7 +81,7 @@ object frmStyle: TfrmStyle
       end
       object btnStylize: TButton
         Position.X = 23.000000000000000000
-        Position.Y = 330.000000000000000000
+        Position.Y = 274.000000000000000000
         Size.Width = 137.000000000000000000
         Size.Height = 22.000000000000000000
         Size.PlatformDefault = False
@@ -180,7 +180,7 @@ object frmStyle: TfrmStyle
       end
       object btnClearLayers: TButton
         Position.X = 24.000000000000000000
-        Position.Y = 368.000000000000000000
+        Position.Y = 312.000000000000000000
         TabOrder = 10
         Text = 'Clear Layers'
         OnClick = btnClearLayersClick
@@ -196,6 +196,13 @@ object frmStyle: TfrmStyle
         Size.PlatformDefault = False
         TabOrder = 0
         OnChange = trkStyleWeightChange
+      end
+      object btnSave: TButton
+        Position.X = 24.000000000000000000
+        Position.Y = 352.000000000000000000
+        TabOrder = 11
+        Text = 'Save Image'
+        OnClick = btnSaveClick
       end
     end
   end
@@ -227,5 +234,9 @@ object frmStyle: TfrmStyle
     Size.Height = 573.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
+  end
+  object SaveDialog1: TSaveDialog
+    Left = 384
+    Top = 96
   end
 end

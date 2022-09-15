@@ -3,7 +3,7 @@ unit Unit1;
 interface
 
 {$DEFINE ENABLE_PYTHON}
- {$DEFINE ENABLE_TRAIN}
+// {$DEFINE ENABLE_TRAIN}
 // {$DEFINE ENABLE_EVOLVE}
 // {$DEFINE ENABLE_MOVIE}
 
@@ -47,7 +47,6 @@ type
     procedure DebugMenuClick(Sender: TObject);
     procedure SystemTestMenuClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure SetupFinished(Sender: TObject; const AStatus: Boolean);
     procedure InstallFinished(Sender: TObject; const AStatus: Boolean);
     procedure CreateEmbeddedForms;
@@ -154,26 +153,6 @@ begin
   DestroySettings;
 end;
 
-procedure TfrmMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-var
-  mr: TModalResult;
-begin
-  mr := mrNone;
-{
-  TDialogService.MessageDialog('Are you sure you want to close Lartis?', TMsgDlgType.mtConfirmation,
-  FMX.Dialogs.mbYesNo, TMsgDlgBtn.mbNo, 0,
-      procedure(const AResult: TModalResult)
-      begin
-        if AResult = mrYes then
-          mr := AResult;
-      end);
-  while mr = mrNone do // wait for modal result
-    Application.ProcessMessages;
-  if mr = mrYes then
-    CanClose := True;
-}
-end;
-
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   PySys := TPySys.Create(Sender as TComponent);
@@ -192,11 +171,6 @@ end;
 
 procedure TfrmMain.CreateEmbeddedForms;
 begin
-
-//  StyleBook := StyleBook1;
-//  if DirectoryExists(StylesPath) then
-//    Stylebook1.LoadFromFile(TPath.Combine(StylesPath, 'Dark.style'));
-
   frmStyle := EmbedForm(StyleLayout, TfrmStyle.Create(Self)) as TfrmStyle;
   {$IFDEF ENABLE_TRAIN}
   frmTrain := EmbedForm(TrainLayout, TfrmTrain.Create(Self)) as TfrmTrain;
@@ -221,11 +195,14 @@ begin
   {$ENDIF}
 
   {$IFDEF ENABLE_PYTHON}
-  frmSetup := TfrmSetup.Create(Self);
-  frmSetup.Parent := Self;
-  frmSetup.OnSetupFinished := SetupFinished;
-  frmSetup.Show;
-  Caption := appname;
+  if not SystemActive then
+    begin
+      frmSetup := TfrmSetup.Create(Self);
+      frmSetup.Parent := Self;
+      frmSetup.OnSetupFinished := SetupFinished;
+      frmSetup.Show;
+      Caption := appname;
+    end;
   {$ENDIF}
 end;
 
@@ -237,10 +214,11 @@ end;
 
 procedure TfrmMain.SetupFinished(Sender: TObject; const AStatus: Boolean);
 begin
-//  ShowMessage('Setup form closed');
   PySys.LogTarget := Nil;
   frmSetup.OnSetupFinished := Nil;
   FreeAndNil(frmSetup);
+  if not AStatus then
+    ShowMessage('System not ready');
 end;
 
   procedure TfrmMain.DebugMenuClick(Sender: TObject);
