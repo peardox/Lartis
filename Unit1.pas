@@ -34,6 +34,7 @@ type
     ExitMenu: TMenuItem;
     DebugMenu: TMenuItem;
     SystemTestMenu: TMenuItem;
+    InitLayout: TLayout;
     {$IFDEF ENABLE_EVOLVE}
     EvolveLayout: TLayout;
     {$ENDIF}
@@ -47,7 +48,9 @@ type
     procedure SystemTestMenuClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure SetupFinished(Sender: TObject; const AStstus: Boolean);
+    procedure SetupFinished(Sender: TObject; const AStatus: Boolean);
+    procedure InstallFinished(Sender: TObject; const AStatus: Boolean);
+    procedure CreateEmbeddedForms;
   private
     { Private declarations }
     function EmbedForm(AParent:TControl; AForm:TEmbeddedForm): TEmbeddedForm;
@@ -69,6 +72,7 @@ uses
   StyleModel,
   Math,
   FunctionLibrary,
+  InitializeForm,
   PythonSystem,
   OptionsForm,
   DebugForm,
@@ -172,10 +176,26 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
-    PySys := TPySys.Create(Sender as TComponent);
+  PySys := TPySys.Create(Sender as TComponent);
+  if InstallRequired then
+    begin
+      frmInit := EmbedForm(InitLayout, TfrmInit.Create(Self)) as TfrmInit;
+      frmInit.ShowForm;
+      frmInit.OnInstallFinished := InstallFinished;
+      ActiveForm := frmInit;
+    end
+  else
+    begin
+      CreateEmbeddedForms;
+    end;
+end;
 
+procedure TfrmMain.CreateEmbeddedForms;
+begin
+
+//  StyleBook := StyleBook1;
 //  if DirectoryExists(StylesPath) then
-//    TStyleManager.SetStyleFromFile(TPath.Combine(StylesPath, 'Blend.style'));
+//    Stylebook1.LoadFromFile(TPath.Combine(StylesPath, 'Dark.style'));
 
   frmStyle := EmbedForm(StyleLayout, TfrmStyle.Create(Self)) as TfrmStyle;
   {$IFDEF ENABLE_TRAIN}
@@ -209,7 +229,13 @@ begin
   {$ENDIF}
 end;
 
-procedure TfrmMain.SetupFinished(Sender: TObject; const AStstus: Boolean);
+procedure TfrmMain.InstallFinished(Sender: TObject; const AStatus: Boolean);
+begin
+  if AStatus then
+    CreateEmbeddedForms;
+end;
+
+procedure TfrmMain.SetupFinished(Sender: TObject; const AStatus: Boolean);
 begin
 //  ShowMessage('Setup form closed');
   PySys.LogTarget := Nil;

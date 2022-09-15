@@ -1,6 +1,6 @@
 unit Settings;
 
- {$DEFINE CLEANSTART}
+// {$DEFINE CLEANSTART}
 
 interface
 
@@ -43,6 +43,8 @@ implementation
 procedure CreateSettings;
 begin
   InstallRequired := False;
+//  InstallRequired := True;
+
   {$IF DEFINED(MACOS64)}
   AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath) + appname;
   {$ELSE}

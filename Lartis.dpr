@@ -24,7 +24,9 @@ uses
   DebugForm in 'DebugForm.pas' {frmDebug},
   StyleModel in 'StyleModel.pas',
   StyleProject in 'StyleProject.pas',
-  InitializeForm in 'InitializeForm.pas' {frmInit};
+  InitializeForm in 'InitializeForm.pas' {frmInit},
+  Downloader in 'Downloader.pas',
+  LartisTypes in 'LartisTypes.pas';
 
 {$R *.res}
 
@@ -40,28 +42,8 @@ begin
 
   Application.Initialize;
   CreateSettings;
-//  if InstallRequired then
-//    begin
-      Application.CreateForm(TfrmInit, frmInit);
-      {
-      // Application.MainForm := frmInit;
-      // frmInit := TfrmInit.Create(nil);
-      var mrinit: TModalResult := frmInit.ShowModal;
-      if mrinit = mrAbort then
-        begin
-          frmInit.Hide;
-          frmInit.Free;
-          Exit;
-        end;
-    end;
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmOptions, frmOptions);
   Application.CreateForm(TfrmDebug, frmDebug);
-  if InstallRequired then
-    begin
-      frmInit.Hide;
-      frmInit.Free;
-    end;
-    }
   Application.Run;
 end.

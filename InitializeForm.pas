@@ -9,57 +9,13 @@ uses
   Data.Bind.Components, Data.Bind.ObjectScope, FMX.Layouts, FMX.Memo.Types,
   System.IOUtils, System.Net.URLClient, System.Net.HttpClient,
   System.Threading, System.Net.HttpClientComponent,
+  LartisTypes,  EmbeddedForm,
   System.Diagnostics, FMX.ScrollBox, FMX.Memo;
 
 type
-  TJSONFile = Record
-    Name: String;
-    Size: Integer;
-    Hash: String;
-    Time: Integer;
-  End;
-  TJSONFileArray = Array of TJSONFile;
+  TInstallFinishedEvent = procedure(Sender: TObject; const AStatus: Boolean) of object;
 
-  TJSONMeta = Record
-    Content: String;
-    Size: Integer;
-    Version: String;
-  End;
-
-  TJSONContent = Record
-    Name: String;
-    Desc: String;
-    Inst: String;
-    Items: Integer;
-    Size: Integer;
-    Data: TJSONFileArray;
-  End;
-  TJSONContentArray = Array of TJSONContent;
-
-  TJSONFileList = Record
-    Meta: TJSONMeta;
-    Content: TJSONContentArray;
-  End;
-
-  TUnSplashClient = class(TComponent)
-  private
-    FDownloadIndex: Integer;
-    FDownloadStream: TStream;
-    FClient: TNetHTTPClient;
-    FProgress: TProgressBar;
-    FBytesSoFar: Int64;
-    procedure ReceiveData(const Sender: TObject; AContentLength,
-      AReadCount: Int64; var AAbort: Boolean);
-    procedure NeedClientCertificate(const Sender: TObject;
-      const ARequest: TURLRequest; const ACertificateList: TCertificateList;
-      var AnIndex: Integer);
-  public
-    constructor Create;
-    destructor Destroy; override;
-    procedure Download(const ABaseURL: String; const Outpath: String; const AFile: TJSONFile; const ADownloadIndex: Integer; Progress: TProgressBar); overload;
-  end;
-
-  TfrmInit = class(TForm)
+  TfrmInit = class(TEmbeddedForm)
     RESTClient1: TRESTClient;
     RESTRequest1: TRESTRequest;
     RESTResponse1: TRESTResponse;
@@ -69,122 +25,51 @@ type
     Layout2: TLayout;
     Button1: TButton;
     Memo1: TMemo;
-    StyleBook1: TStyleBook;
     Button2: TButton;
-    Timer1: TTimer;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
+    FInstallFinishedEvent: TInstallFinishedEvent;
     SetupInfo: String;
+    procedure DoInstallFinished(Sender: TObject; const AStatus: Boolean);
     procedure AllDone;
     function HandleFileList(const AFileList: String): TJSONFileArray;
     procedure MultiThreadedMediaDownload(const outpath: String);
     procedure MultiThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
       const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
-      Logger: TStrings = Nil; Progress: TProgressBar = Nil);
+      Logger: TMemo = Nil; Progress: TProgressBar = Nil);
     procedure SingleThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
       const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
-      Logger: TStrings = Nil; Progress: TProgressBar = Nil);
+      Logger: TMemo = Nil; Progress: TProgressBar = Nil);
   public
     { Public declarations }
+  published
+    property OnInstallFinished: TInstallFinishedEvent read FInstallFinishedEvent write FInstallFinishedEvent;
   end;
 
 var
   frmInit: TfrmInit;
   AbortFlag: Boolean;
 
-function UnixToDos(const Filename: String): String; Inline;
-
 implementation
 
 uses
   Settings,
   JSON.Serializers,
+  Unit1 {frmMain},
+  OptionsForm {frmOptions},
+  DebugForm {frmDebug},
+  Downloader,
   Math;
 
 {$R *.fmx}
 
-constructor TUnSplashClient.Create;
+procedure TfrmInit.DoInstallFinished(Sender: TObject; const AStatus: Boolean);
 begin
-    FClient := TNetHTTPClient.Create(Self);
-end;
-
-destructor TUnSplashClient.Destroy;
-begin
-    FreeAndNil(FClient);
-    inherited;
-end;
-
-
-procedure TUnSplashClient.ReceiveData(const Sender: TObject;
-  AContentLength, AReadCount: Int64; var AAbort: Boolean);
-begin
-  if Assigned(FProgress) then
-    begin
-      AAbort := AbortFlag;
-      if TThread.CurrentThread.ThreadID <> MainThreadID then
-        TThread.Synchronize(nil,
-          procedure()
-          begin
-            FProgress.Value := FProgress.Value + (AReadCount - FBytesSoFar);
-            Application.ProcessMessages;
-          end
-          )
-      else
-        begin
-          FProgress.Value := FProgress.Value + (AReadCount - FBytesSoFar);
-          Application.ProcessMessages;
-        end;
-    end;
-  FBytesSoFar := AReadCount;
-end;
-
-function UnixToDos(const Filename: String): String;
-begin
-  Result := Filename{$IFDEF MSWINDOWS}.Replace('/','\\'){$ENDIF};
-end;
-
-procedure TUnSplashClient.NeedClientCertificate(const Sender: TObject;
-  const ARequest: TURLRequest; const ACertificateList: TCertificateList;
-  var AnIndex: Integer);
-begin
-  ShowMessage('Cert requested');
-end;
-
-procedure TUnSplashClient.Download(const ABaseURL: String; const Outpath: String; const AFile: TJSONFile; const ADownloadIndex: Integer; Progress: TProgressBar);
-var
-  URL: string;
-  LResponse: IHTTPResponse;
-  LFileName: string;
-  LDirectory: String;
-  LSize: Int64;
-begin
-  LFileName := TPath.Combine(Outpath, UnixToDos(AFile.Name));
-  try
-    URL := ABaseUrl + AFile.Name;
-    FDownloadIndex := ADownloadIndex;
-
-    FClient.OnNeedClientCertificate := NeedClientCertificate;
-
-    if Assigned(Progress) then
-      begin
-        FProgress := Progress;
-        FClient.OnReceiveData := ReceiveData;
-      end;
-
-    // Create the file that is going to be dowloaded
-    FDownloadStream := TFileStream.Create(LFileName, fmCreate);
-    FDownloadStream.Position := 0;
-
-    // Start the download process
-    LResponse := FClient.Get(URL, FDownloadStream);
-
-  finally
-    FreeandNil(FDownloadStream);
-  end;
+  if Assigned(FInstallFinishedEvent) then
+    FInstallFinishedEvent(Self, AStatus);
 end;
 
 procedure TfrmInit.Button1Click(Sender: TObject);
@@ -193,7 +78,7 @@ begin
   Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
   Button1.Enabled := False;
   AbortFlag := True;
-  ModalResult := mrAbort;
+  Application.Terminate;
 end;
 
 function TfrmInit.HandleFileList(const AFileList: String): TJSONFileArray;
@@ -236,7 +121,14 @@ procedure TfrmInit.AllDone;
 begin
   Memo1.Lines.Add('All done');
   Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
-  ModalResult := mrClose;
+//  frmOptions := TfrmOptions.Create(Application);
+//  frmDebug := TfrmDebug.Create(Application);
+//  frmMain := TfrmMain.Create(Application);
+//  Application.MainForm := frmMain;
+//  frmMain.Show;
+  if Assigned(CloseMyself) then
+      CloseMyself(Self);
+  DoInstallFinished(Self, True);
 end;
 
 procedure TfrmInit.Button2Click(Sender: TObject);
@@ -244,12 +136,13 @@ begin
   Button2.Enabled := False;
   Memo1.Lines.Add('Starting installation');
   MultiThreadedMediaDownload(AppHome);
+  AllDone;
 end;
 
 procedure TfrmInit.FormCreate(Sender: TObject);
 begin
+//  Menu := Nil;
   AbortFlag := False;
-  Timer1.Enabled := False;
   Caption := 'System Setup';
   Memo1.Lines.Add('Ready');
 
@@ -265,8 +158,6 @@ begin
     begin
       Memo1.Lines.Add(SetupInfo);
       SetupInfo := RestResponse1.Content;
-      Timer1.Interval := 10000;
-      Timer1.Enabled := True;
     end
   else
     begin
@@ -313,11 +204,11 @@ begin
 
       {$IFNDEF MACOS64}
       Memo1.Lines.Add('Downloading');
-      SingleThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1.Lines, ProgressBar1);
-//      MultiThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1.Lines, ProgressBar1);
+      SingleThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1, ProgressBar1);
+//      MultiThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1, ProgressBar1);
       {$ELSE}
       Memo1.Lines.Add('Downloading');
-      SingleThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1.Lines, ProgressBar1);
+      SingleThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1, ProgressBar1);
       {$ENDIF}
 
     except
@@ -336,7 +227,7 @@ end;
 
 procedure TfrmInit.MultiThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
   const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
-  Logger: TStrings = Nil; Progress: TProgressBar = Nil);
+  Logger: TMemo = Nil; Progress: TProgressBar = Nil);
 var
   sw: TStopWatch;
   Downer: TUnSplashClient;
@@ -353,16 +244,25 @@ begin
   TotalDone := 0;
   TotalImageCount := Length(AFileList);
   tp := TThreadPool.Create;
-  Logger.Add('CPUs : ' + CPUCount.ToString);
-  Logger.Add('ProcesserThreads : ' + TThread.ProcessorCount.ToString);
-  Logger.Add('MinThreads : ' + tp.MinWorkerThreads.ToString);
-  Logger.Add('Threadpool MaxThreads : ' + tp.MaxWorkerThreads.ToString);
-  Logger.Add('Threadpool MinThreads : ' + tp.MinWorkerThreads.ToString);
   ThreadsToUse := 4;
+  if Assigned(Logger) then
+    begin
+      Logger.Lines.Add('CPUs : ' + CPUCount.ToString);
+      Logger.Lines.Add('ProcesserThreads : ' + TThread.ProcessorCount.ToString);
+      Logger.Lines.Add('MinThreads : ' + tp.MinWorkerThreads.ToString);
+      Logger.Lines.Add('Threadpool MaxThreads : ' + tp.MaxWorkerThreads.ToString);
+      Logger.Lines.Add('Threadpool MinThreads : ' + tp.MinWorkerThreads.ToString);
+    end;
   if tp.SetMaxWorkerThreads(ThreadsToUse) then
-    Logger.Add('Threadpool set to ' + ThreadsToUse.ToString)
+    if Assigned(Logger) then
+      begin
+        Logger.Lines.Add('Threadpool set to ' + ThreadsToUse.ToString);
+      end
   else
-    Logger.Add('Threadpool failed : ' + tp.MaxWorkerThreads.ToString);
+    if Assigned(Logger) then
+      begin
+        Logger.Lines.Add('Threadpool failed : ' + tp.MaxWorkerThreads.ToString);
+      end;
   sw := TStopWatch.StartNew;
 
 	TThread.CreateAnonymousThread(
@@ -383,30 +283,27 @@ begin
                 TThread.Synchronize(nil,
                   procedure
                     begin
-                    Logger.Add('Unhandled Exception # 544');
-                    Logger.Add('Class : ' + E.ClassName);
-                    Logger.Add('Error : ' + E.Message);
-                    Logger.Add('Vars : I = ' + i.ToString + ', OutFile = ' + outfile + ', ImageCount = ' + ImageCount.ToString);
+                      if Assigned(Logger) then
+                        begin
+                          Logger.Lines.Add('Unhandled Exception # 544');
+                          Logger.Lines.Add('Class : ' + E.ClassName);
+                          Logger.Lines.Add('Error : ' + E.Message);
+                          Logger.Lines.Add('Vars : I = ' + i.ToString + ', OutFile = ' + outfile + ', ImageCount = ' + ImageCount.ToString);
+                        end;
                     end);
               end;
 
           end;
-          TThread.Synchronize(nil,
-            procedure
-            begin
-              if Assigned(Logger) then
-                begin
-                  Logger.Add('Downloaded (' + I.ToString + ') ' + outfile + ' at ' + SW.ElapsedMilliseconds.ToString);
-                end;
-            end
-          );
           FreeAndNil(Downer);
 				end
 			, tp);
 			TThread.Synchronize(nil,
 				procedure
 				begin
-					Logger.Add('Finished ' + sw.ElapsedMilliseconds.ToString);
+          if Assigned(Logger) then
+            begin
+					    Logger.Lines.Add('Finished ' + sw.ElapsedMilliseconds.ToString);
+            end;
           tp.Free;
           AllDone;
 				end
@@ -417,14 +314,17 @@ end;
 
 procedure TfrmInit.SingleThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
   const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
-  Logger: TStrings = Nil; Progress: TProgressBar = Nil);
+  Logger: TMemo = Nil; Progress: TProgressBar = Nil);
 var
   sw: TStopWatch;
   Downer: TUnSplashClient;
   TotalImageCount: Integer;
   I, TotalDone: Integer;
 begin
-  Logger.Add('Downloader');
+  if Assigned(Logger) then
+    begin
+      Logger.Lines.Add('Downloader');
+    end;
   if Assigned(Progress) then
     begin
       Progress.Min := 0;
@@ -444,43 +344,37 @@ begin
       var DownSize := AFileList[I].Size;
       var outfile := TPath.Combine(ADestPath, UnixToDos(infilerec.Name));
       try
-        Logger.Add('Downloading ' + infilerec.Name);
-        Memo1.GoToTextEnd;
-        Memo1.Repaint;
+        if Assigned(Logger) then
+          begin
+            Logger.Lines.Add('Downloading ' + infilerec.Name);
+            Logger.GoToTextEnd;
+            Logger.Repaint;
+          end;
         Downer.Download(ABaseURL, ADestPath, infilerec, I, Progress);
         Application.ProcessMessages;
       except
         on E: Exception do
           begin
-            Logger.Add('Unhandled Exception # 416');
-            Logger.Add('Class : ' + E.ClassName);
-            Logger.Add('Error : ' + E.Message);
-            Logger.Add('Vars : I = ' + i.ToString + ', OutFile = ' + outfile + ', ImageCount = ' + ImageCount.ToString);
-            Memo1.GoToTextEnd;
-            Memo1.Repaint;
+            if Assigned(Logger) then
+              begin
+                Logger.Lines.Add('Unhandled Exception # 416');
+                Logger.Lines.Add('Class : ' + E.ClassName);
+                Logger.Lines.Add('Error : ' + E.Message);
+                Logger.Lines.Add('Vars : I = ' + i.ToString + ', OutFile = ' + outfile + ', ImageCount = ' + ImageCount.ToString);
+                Logger.GoToTextEnd;
+                Logger.Repaint;
+              end;
           end;
 
       end;
-      if Assigned(Logger) then
-        begin
-          Logger.Add('Downloaded ' + infilerec.Name + ' at ' + SW.ElapsedMilliseconds.ToString);
-          Memo1.GoToTextEnd;
-          Memo1.Repaint;
-        end;
       FreeAndNil(Downer);
     end;
 
   if Assigned(Logger) then
-      Logger.Add('Finished ' + sw.ElapsedMilliseconds.ToString);
+      Logger.Lines.Add('Finished ' + sw.ElapsedMilliseconds.ToString);
   if Assigned(Progress) then
       Progress.Value := 0;
   AllDone;
-end;
-
-procedure TfrmInit.Timer1Timer(Sender: TObject);
-begin
-  Timer1.Enabled := False;
-  Button2Click(Self);
 end;
 
 end.
