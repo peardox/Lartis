@@ -396,17 +396,17 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="Win64\Release\Lartis.exe" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>Lartis.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile Required="true" LocalName="$(PYTHONENVIRONMENTDIR)\python\python3-windows-3.9.12-amd64.zip" Configuration="Debug" Class="Python">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Operation>0</Operation>
                         <RemoteName>python3-windows-3.9.12-amd64.zip</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Win64\Release\Lartis.exe" Configuration="Release" Class="ProjectOutput">
-                    <Platform Name="Win64">
-                        <RemoteName>Lartis.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -537,16 +537,16 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="OSX64\Debug\Lartis.entitlements" Configuration="Debug" Class="ProjectOSXEntitlements">
+                    <Platform Name="OSX64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile Required="true" LocalName="$(SKIADIR)\Binary\Win32\Release\sk4d.dll" Configuration="Release" Class="Skia">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Operation>0</Operation>
                         <RemoteName>sk4d.dll</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="OSX64\Debug\Lartis.entitlements" Configuration="Debug" Class="ProjectOSXEntitlements">
-                    <Platform Name="OSX64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

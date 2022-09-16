@@ -262,6 +262,11 @@ begin
       ev := TEventDef.Create(Events);
       ev.Name := 'TrainFinished';
       ev.OnExecute := DoFinished;
+
+      if Assigned(PySys) then
+        begin
+          PySys.Log('Initialized ModTrain - ' + ModuleName);
+        end;
     end;
 end;
 
@@ -691,6 +696,10 @@ begin
       ev.Name := 'StyleFinished';
       ev.OnExecute := DoFinished;
 
+      if Assigned(PySys) then
+        begin
+          PySys.Log('Initialized ModStyle - ' + ModuleName);
+        end;
     end;
 end;
 
@@ -1039,6 +1048,11 @@ begin
       AddDelphiMethod( 'GetProperty', GetProperty, 'GetProperty(PropName) -> PropValue' );
       AddDelphiMethod( 'SetProperty', SetProperty, 'SetProperty(PropName, PropValue) -> None' );
       AddDelphiMethod( 'GetPropertyList', GetPropertyList, 'GetPropertyList() -> List of property names' );
+
+    if Assigned(PySys) then
+      begin
+        PySys.Log('Initialized ModPyIO - ' + ModuleName);
+      end;
     end;
 end;
 

@@ -502,29 +502,34 @@ begin
               {$ENDIF}
               SafeImport(Torch);
               SafeImport(Pillow);
-
-              ShimSysPath(pyshim);
-
-              //  'Add Modules
-              modStyle := TModStyle.Create(Self);
-              modStyle.Engine := PyEng;
-              modStyle.ModuleName := 'pstyle';
-
-              modTrain := TModTrain.Create(Self);
-              modTrain.Engine := PyEng;
-              modTrain.ModuleName := 'ptrain';
-
-              modPyIO := TModPyIO.Create(Self);
-              modPyIO.Engine := PyEng;
-              modPyIO.ModuleName := 'pinout';
-
-              RunTest;
             end
             );
 
           TThread.Synchronize(nil,
             procedure()
             begin
+              //  'Add Modules
+              Log('Adding Modules');
+              modStyle := TModStyle.Create(Self);
+              modStyle.Engine := PyEng;
+              modStyle.ModuleName := 'pstyle';
+              modStyle.Initialize;
+
+              modTrain := TModTrain.Create(Self);
+              modTrain.Engine := PyEng;
+              modTrain.ModuleName := 'ptrain';
+              modTrain.Initialize;
+
+              modPyIO := TModPyIO.Create(Self);
+              modPyIO.Engine := PyEng;
+              modPyIO.ModuleName := 'pinout';
+              modPyIO.Initialize;
+
+              Log('Testing Python');
+              ShimSysPath(pyshim);
+              RunTest;
+              RunSystem;
+
               Log('Python Available');
               FLogTarget.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'startup.log');
               SystemActive := True;
