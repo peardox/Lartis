@@ -4,6 +4,7 @@ object frmStyle: TfrmStyle
   Caption = 'Form2'
   ClientHeight = 617
   ClientWidth = 1081
+  Position = Designed
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -49,17 +50,51 @@ object frmStyle: TfrmStyle
       Size.Height = 173.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      Viewport.Width = 156.000000000000000000
+      Viewport.Width = 140.000000000000000000
       Viewport.Height = 169.000000000000000000
-      object GridLayout1: TGridLayout
-        Align = Client
-        ItemHeight = 64.000000000000000000
-        ItemWidth = 64.000000000000000000
-        Orientation = Horizontal
-        Size.Width = 156.000000000000000000
-        Size.Height = 169.000000000000000000
+      object layStyleThumb1: TLayout
+        Align = Top
+        Size.Width = 140.000000000000000000
+        Size.Height = 97.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        object imgStyleThumb1: TImageControl
+          Align = Client
+          Size.Width = 140.000000000000000000
+          Size.Height = 97.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+        end
+      end
+      object layStyleThumb3: TLayout
+        Align = Top
+        Position.Y = 194.000000000000000000
+        Size.Width = 140.000000000000000000
+        Size.Height = 97.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object imgStyleThumb3: TImageControl
+          Align = Client
+          Size.Width = 140.000000000000000000
+          Size.Height = 97.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+        end
+      end
+      object layStyleThumb2: TLayout
+        Align = Top
+        Position.Y = 97.000000000000000000
+        Size.Width = 140.000000000000000000
+        Size.Height = 97.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
+        object imgStyleThumb2: TImageControl
+          Align = Client
+          Size.Width = 140.000000000000000000
+          Size.Height = 97.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+        end
       end
     end
     object layControls: TLayout
@@ -234,6 +269,99 @@ object frmStyle: TfrmStyle
     Size.Height = 573.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
+    object vsbStyles: TFramedVertScrollBox
+      Align = Client
+      Size.Width = 160.000000000000000000
+      Size.Height = 573.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Viewport.Width = 156.000000000000000000
+      Viewport.Height = 569.000000000000000000
+      object layStyleSelect1: TLayout
+        Align = Top
+        Size.Width = 156.000000000000000000
+        Size.Height = 97.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+        object imgStyleSelect1: TImage
+          MultiResBitmap = <
+            item
+            end>
+          Align = Client
+          Size.Width = 156.000000000000000000
+          Size.Height = 97.000000000000000000
+          Size.PlatformDefault = False
+        end
+      end
+      object layStyleSelect5: TLayout
+        Align = Top
+        Position.Y = 388.000000000000000000
+        Size.Width = 156.000000000000000000
+        Size.Height = 97.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 3
+        object imgStyleSelect5: TImage
+          MultiResBitmap = <
+            item
+            end>
+          Align = Client
+          Size.Width = 156.000000000000000000
+          Size.Height = 97.000000000000000000
+          Size.PlatformDefault = False
+        end
+      end
+      object layStyleSelect4: TLayout
+        Align = Top
+        Position.Y = 291.000000000000000000
+        Size.Width = 156.000000000000000000
+        Size.Height = 97.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        object imgStyleSelect4: TImage
+          MultiResBitmap = <
+            item
+            end>
+          Align = Client
+          Size.Width = 156.000000000000000000
+          Size.Height = 97.000000000000000000
+          Size.PlatformDefault = False
+        end
+      end
+      object layStyleSelect3: TLayout
+        Align = Top
+        Position.Y = 194.000000000000000000
+        Size.Width = 156.000000000000000000
+        Size.Height = 97.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object imgStyleSelect3: TImage
+          MultiResBitmap = <
+            item
+            end>
+          Align = Client
+          Size.Width = 156.000000000000000000
+          Size.Height = 97.000000000000000000
+          Size.PlatformDefault = False
+        end
+      end
+      object layStyleSelect2: TLayout
+        Align = Top
+        Position.Y = 97.000000000000000000
+        Size.Width = 156.000000000000000000
+        Size.Height = 97.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object imgStyleSelect2: TImage
+          MultiResBitmap = <
+            item
+            end>
+          Align = Client
+          Size.Width = 156.000000000000000000
+          Size.Height = 97.000000000000000000
+          Size.PlatformDefault = False
+        end
+      end
+    end
   end
   object SaveDialog1: TSaveDialog
     Left = 384

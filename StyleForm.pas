@@ -16,7 +16,6 @@ type
     OpenDialog1: TOpenDialog;
     prgStyleBatch: TProgressBar;
     vsbLayers: TFramedVertScrollBox;
-    GridLayout1: TGridLayout;
     layControls: TLayout;
     btnAddLayer: TButton;
     btnStylize: TButton;
@@ -36,6 +35,23 @@ type
     btnBack: TButton;
     SaveDialog1: TSaveDialog;
     btnSave: TButton;
+    vsbStyles: TFramedVertScrollBox;
+    layStyleSelect1: TLayout;
+    layStyleThumb1: TLayout;
+    layStyleThumb3: TLayout;
+    layStyleThumb2: TLayout;
+    imgStyleSelect1: TImage;
+    layStyleSelect5: TLayout;
+    imgStyleSelect5: TImage;
+    layStyleSelect4: TLayout;
+    imgStyleSelect4: TImage;
+    layStyleSelect3: TLayout;
+    imgStyleSelect3: TImage;
+    layStyleSelect2: TLayout;
+    imgStyleSelect2: TImage;
+    imgStyleThumb1: TImageControl;
+    imgStyleThumb3: TImageControl;
+    imgStyleThumb2: TImageControl;
     procedure btnBackClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
@@ -241,9 +257,20 @@ begin
       Grid := TGridShader.Create(Container);
     end;
 
+  // Add a new image as a TProgressShader
   NewLayer := AddLayer;
   if Assigned(NewLayer) then
     begin
+      if NewLayer is TProgressShader then
+        begin
+          if LayerCount = 0 then
+            imgStyleThumb1.Bitmap.LoadFromFile(TProgressShader(NewLayer).ImageFile)
+          else if LayerCount = 1 then
+            imgStyleThumb2.Bitmap.LoadFromFile(TProgressShader(NewLayer).ImageFile)
+          else if LayerCount = 2 then
+            imgStyleThumb3.Bitmap.LoadFromFile(TProgressShader(NewLayer).ImageFile);
+        end;
+
       LayerCount := Length(Layers) + 1;
       SetLength(Layers, LayerCount);
       Layers[LayerCount - 1] := NewLayer;
