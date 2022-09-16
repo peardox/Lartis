@@ -489,7 +489,7 @@ begin
   except
           on E: Exception do
             begin
-              ShowMessage('Unhandled Exception'
+              ShowMessage('Unhandled Exception in AddShader'
                 + sLineBreak + 'Class : ' + E.ClassName
                 + sLineBreak + 'Error : ' + E.Message
                 + sLineBreak + 'Message : ' + AErrorText);

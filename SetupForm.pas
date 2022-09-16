@@ -59,7 +59,7 @@ end;
 
 procedure TfrmSetup.SetupComplete(Sender: TObject; const AStatus: Boolean);
 begin
-  Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'setup.txt');
+  Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'setup_form.log');
   Close;
   if Assigned(FSetupFinishedEvent) then
     FSetupFinishedEvent(Self, AStatus);

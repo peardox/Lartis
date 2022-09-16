@@ -94,7 +94,7 @@ begin
         except
           on E: Exception do
             begin
-              ShowMessage('Unhandled Exception'
+              ShowMessage('Unhandled Exception in CreateAlpha'
                 + sLineBreak + 'Class : ' + E.ClassName
                 + sLineBreak + 'Error : ' + E.Message);
             end;

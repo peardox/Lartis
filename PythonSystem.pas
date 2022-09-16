@@ -13,6 +13,7 @@ uses
   PyEnvironment.Embeddable, PyEnvironment.Embeddable.Res,
   PyEnvironment.Embeddable.Res.Python39,
   {$ENDIF}
+  PyEnvironment.AddOn, PyEnvironment.AddOn.EnsurePip, PyEnvironment.Distribution,
   PyCommon, PyModule, PyPackage, PythonEngine,
   TorchVision, PyTorch, NumPy, SciPy,
   {$IF NOT DEFINED(MACOS64)}
@@ -41,6 +42,8 @@ type
     PyEnv: TPyEmbeddedResEnvironment39;
     {$ENDIF}
     PyIO: TPythonInputOutput;
+    PyEnsurePip: TPyEnvironmentAddOnEnsurePip;
+
 
     NumPy: TNumPy;
     SciPy: TSciPy;
@@ -65,6 +68,11 @@ type
     procedure AddExtraUrl(APackage: TPyManagedPackage; const AUrl: string);
     procedure PyEnvAfterDeactivate(Sender: TObject; const APythonVersion: string);
     procedure PyIOSendUniData(Sender: TObject; const Data: string);
+
+    procedure EnurePipError(const ASender: TObject; const ADistribution: TPyDistribution; const AException: Exception);
+
+    procedure SafeInstall(Sender: TObject; FTask: ITask = Nil);
+    procedure SafeImport(Sender: TObject);
 
     procedure DoReady(Sender: TObject; const APythonVersion: string);
     procedure ReActivate;
@@ -267,14 +275,12 @@ end;
 procedure TPySys.PackageBeforeInstall(Sender: TObject);
 begin
   Log('Installing ' + TPyPackage(Sender).PyModuleName);
-//  SafeMaskFPUExceptions(True);
 end;
 
 procedure TPySys.PackageAfterInstall(Sender: TObject);
 begin
 //  Log('Installed ' + TPyPackage(Sender).PyModuleName);
   Inc(PyPackagesInstalled);
-//  SafeMaskFPUExceptions(False);
 end;
 
 procedure TPySys.PackageInstallError(Sender: TObject; AErrorMessage: string);
@@ -285,14 +291,12 @@ end;
 procedure TPySys.PackageBeforeUnInstall(Sender: TObject);
 begin
   Log('UnInstalling ' + TPyPackage(Sender).PyModuleName);
-//  SafeMaskFPUExceptions(True);
 end;
 
 procedure TPySys.PackageAfterUnInstall(Sender: TObject);
 begin
 //  Log('UnInstalled ' + TPyPackage(Sender).PyModuleName);
   Dec(PyPackagesInstalled);
-//  SafeMaskFPUExceptions(False);
 end;
 
 procedure TPySys.PackageUnInstallError(Sender: TObject; AErrorMessage: string);
@@ -303,13 +307,27 @@ end;
 procedure TPySys.PackageBeforeImport(Sender: TObject);
 begin
   Log('Importing ' + TPyPackage(Sender).PyModuleName);
-//  SafeMaskFPUExceptions(True);
 end;
 
 procedure TPySys.PackageAfterImport(Sender: TObject);
 begin
   Log('Imported ' + TPyPackage(Sender).PyModuleName);
-//  SafeMaskFPUExceptions(False);
+end;
+
+procedure TPySys.SafeInstall(Sender: TObject; FTask: ITask = Nil);
+begin
+  SafeMaskFPUExceptions(True);
+  TPyManagedPackage(Sender).Install();
+  SafeMaskFPUExceptions(False);
+  if not (FTask = Nil) then
+    FTask.CheckCanceled;
+end;
+
+procedure TPySys.SafeImport(Sender: TObject);
+begin
+  SafeMaskFPUExceptions(True);
+  TPyManagedPackage(Sender).Import();
+  SafeMaskFPUExceptions(False);
 end;
 
 procedure TPySys.PyEnvAfterDeactivate(Sender: TObject;
@@ -366,6 +384,14 @@ begin
   Log('Ready Event');
 end;
 
+procedure TPySys.EnurePipError(const ASender: TObject;
+  const ADistribution: TPyDistribution; const AException: Exception);
+begin
+  Log('Unhandled Exception in EnurePipError');
+  Log('Class : ' + AException.ClassName);
+  Log('Error : ' + AException.Message);
+end;
+
 procedure TPySys.SetupSystem(OnSetupComplete: TPySysFinishedEvent = Nil);
 begin
   PySysFinishedEvent := OnSetupComplete;
@@ -404,6 +430,9 @@ begin
 
   // Python Environment
 
+  PyEnsurePip := TPyEnvironmentAddOnEnsurePip.Create(Self);
+  PyEnsurePip.Environment := PyEnv;
+  PyEnsurePip.OnExecuteError := EnurePipError;
 //  PyEnv.AfterDeactivate := PyEnvAfterDeactivate;
   // Tidy up on exit (clean Python for testing)
 
@@ -433,19 +462,6 @@ begin
   TorchVision := TTorchVision.Create(Self);
   SetupPackage(TorchVision, 'https://download.pytorch.org/whl/cu116');
 
-  //  'Add Modules
-  modStyle := TModStyle.Create(Self);
-  modStyle.Engine := PyEng;
-  modStyle.ModuleName := 'pstyle';
-
-  modTrain := TModTrain.Create(Self);
-  modTrain.Engine := PyEng;
-  modTrain.ModuleName := 'ptrain';
-
-  modPyIO := TModPyIO.Create(Self);
-  modPyIO.Engine := PyEng;
-  modPyIO.ModuleName := 'pinout';
-
   //  Call Setup
   FTask := TTask.Run(ThreadedSetup);
 
@@ -468,58 +484,41 @@ begin
         begin
           Log('Python activate returned true');
 
-          SafeMaskFPUExceptions(True);
-          NumPy.Install();
-          SafeMaskFPUExceptions(False);
-          FTask.CheckCanceled();
-
-          SafeMaskFPUExceptions(True);
-          Pillow.Install();
-          SafeMaskFPUExceptions(False);
-          FTask.CheckCanceled();
-
-          SafeMaskFPUExceptions(True);
-          SciPy.Install();
-          SafeMaskFPUExceptions(False);
-          FTask.CheckCanceled();
-
-          {$IF NOT DEFINED(MACOS64)}
-          SafeMaskFPUExceptions(True);
-          PSUtil.Install();
-          SafeMaskFPUExceptions(False);
-          FTask.CheckCanceled();
+          {$IF NOT DEFINED(CPUARM)}
+          SafeInstall(PSUtil);
           {$ENDIF}
 
-          SafeMaskFPUExceptions(True);
-          Torch.Install();
-          SafeMaskFPUExceptions(False);
-          FTask.CheckCanceled();
-
-          SafeMaskFPUExceptions(True);
-          TorchVision.Install();
-          SafeMaskFPUExceptions(False);
-          FTask.CheckCanceled();
+          SafeInstall(Numpy, FTask);
+          SafeInstall(Pillow, FTask);
+          SafeInstall(SciPy, FTask);
+          SafeInstall(Torch, FTask);
+          SafeInstall(TorchVision, FTask);
 
           TThread.Queue(nil,
             procedure()
             begin
-        //      Numpy.Import();
-        //      SciPy.Import();
-        //      TorchVision.Import();
-              {$IF NOT DEFINED(MACOS64)}
-              SafeMaskFPUExceptions(True);
-              PSUtil.Import();
-              SafeMaskFPUExceptions(False);
+              {$IF NOT DEFINED(CPUARM)}
+              SafeImport(PSUtil);
               {$ENDIF}
-              SafeMaskFPUExceptions(True);
-              Torch.Import();
-              SafeMaskFPUExceptions(False);
-              SafeMaskFPUExceptions(True);
-              Pillow.Import();
-              SafeMaskFPUExceptions(False);
+              SafeImport(Torch);
+              SafeImport(Pillow);
 
               ShimSysPath(pyshim);
-              RunSystem;
+
+              //  'Add Modules
+              modStyle := TModStyle.Create(Self);
+              modStyle.Engine := PyEng;
+              modStyle.ModuleName := 'pstyle';
+
+              modTrain := TModTrain.Create(Self);
+              modTrain.Engine := PyEng;
+              modTrain.ModuleName := 'ptrain';
+
+              modPyIO := TModPyIO.Create(Self);
+              modPyIO.Engine := PyEng;
+              modPyIO.ModuleName := 'pinout';
+
+              RunTest;
             end
             );
 
@@ -543,7 +542,7 @@ begin
       except
         on E: Exception do
           begin
-            Log('Unhandled Exception');
+            Log('Unhandled Exception in ThreadedSetup');
             Log('Class : ' + E.ClassName);
             Log('Error : ' + E.Message);
           end;
@@ -607,7 +606,7 @@ begin
   except
     on E: EPyImportError do
       begin
-        Log('Import Exception');
+        Log('Import Exception in RunTest');
         Log('Class : ' + E.ClassName);
         Log('Error : ' + E.Message);
         Log('Value : ' + E.EValue);
@@ -615,7 +614,7 @@ begin
       end;
     on E: EPyIndentationError do
       begin
-        Log('Indentation Exception');
+        Log('Indentation Exception in RunTest');
         Log('Class : ' + E.ClassName);
         Log('Error : ' + E.Message);
         Log('Line : ' + IntToStr(E.ELineNumber));
@@ -623,13 +622,13 @@ begin
       end;
     on E: EPyException do
       begin
-        Log('Unhandled Python Exception');
+        Log('Unhandled Python Exception in RunTest');
         Log('Class : ' + E.ClassName);
         Log('Error : ' + E.Message);
       end;
     on E: Exception do
       begin
-        Log('Unhandled Exception');
+        Log('Unhandled Exception in RunTest');
         Log('Class : ' + E.ClassName);
         Log('Error : ' + E.Message);
       end;
@@ -647,7 +646,7 @@ begin
   except
     on E: EPyImportError do
       begin
-        Log('Import Exception');
+        Log('Import Exception in RunSystem');
         Log('Class : ' + E.ClassName);
         Log('Error : ' + E.Message);
         Log('Value : ' + E.EValue);
@@ -655,7 +654,7 @@ begin
       end;
     on E: EPyIndentationError do
       begin
-        Log('Indentation Exception');
+        Log('Indentation Exception in RunSystem');
         Log('Class : ' + E.ClassName);
         Log('Error : ' + E.Message);
         Log('Line : ' + IntToStr(E.ELineNumber));
@@ -663,13 +662,13 @@ begin
       end;
     on E: EPyException do
       begin
-        Log('Unhandled Python Exception');
+        Log('Unhandled Python Exception in RunSystem');
         Log('Class : ' + E.ClassName);
         Log('Error : ' + E.Message);
       end;
     on E: Exception do
       begin
-        Log('Unhandled Exception');
+        Log('Unhandled Exception in RunSystem');
         Log('Class : ' + E.ClassName);
         Log('Error : ' + E.Message);
       end;
