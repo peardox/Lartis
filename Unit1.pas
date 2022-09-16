@@ -133,8 +133,8 @@ end;
 
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  if Assigned(ModelList) then
-    FreeAndNil(ModelList);
+  if Assigned(StyleModels) then
+    FreeAndNil(StyleModels);
   if Assigned(frmStyle) then
     FreeAndNil(frmStyle);
   {$IFDEF ENABLE_TRAIN}
@@ -170,6 +170,9 @@ end;
 
 procedure TfrmMain.CreateEmbeddedForms;
 begin
+  StyleModels := TStyleModels.Create(Self);
+  StyleModels.GetAllModels;
+
   frmStyle := EmbedForm(StyleLayout, TfrmStyle.Create(Self)) as TfrmStyle;
   {$IFDEF ENABLE_TRAIN}
   frmTrain := EmbedForm(TrainLayout, TfrmTrain.Create(Self)) as TfrmTrain;
@@ -238,13 +241,10 @@ end;
 procedure TfrmMain.SystemTestMenuClick(Sender: TObject);
 var
   I: Integer;
-  StyleModels: TStyleModels;
   StyleModel: TModelStyleCollection;
 begin
   frmDebug.Show;
 {$IFDEF JSONTEST}
-  StyleModels := TStyleModels.Create(Self);
-  StyleModels.GetAllModels;
   if StyleModels.Count > 0 then
     begin
       for I := 0 to StyleModels.Count - 1 do

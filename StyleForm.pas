@@ -84,6 +84,7 @@ type
     procedure DoSaveLayers;
   public
     { Public declarations }
+    procedure MakeStyleSelectors;
   end;
 
 var
@@ -96,7 +97,9 @@ implementation
 
 uses
   Settings,
+  StyleModel,
   Math,
+  System.IOUtils,
   FunctionLibrary,
   PythonSystem;
 
@@ -114,6 +117,7 @@ begin
   LayerCount := 0;
 
   ProjectInitialise;
+  MakeStyleSelectors;
 end;
 
 procedure TfrmStyle.expTransparencyExpandedChanged(Sender: TObject);
@@ -244,6 +248,39 @@ begin
         begin
           lblStyleWeightValue.Text := FormatFloat('##0.00', (trkStyleWeight.Value / trkStyleWeight.Max) * 100);
         end;
+    end;
+end;
+
+procedure TfrmStyle.MakeStyleSelectors;
+var
+  I: Integer;
+  AStyleModel: TModelStyleCollection;
+  fn: String;
+begin
+  for I := 0 to StyleModels.Count - 1 do
+    begin
+      AStyleModel := StyleModels.Collection[I];
+      fn := TPath.Combine(AStyleModel.fpath, AStyleModel.image.iName + '.' + AStyleModel.image.iType);
+
+      case I of
+        0: imgStyleSelect1.Bitmap.LoadFromFile(fn);
+        1: imgStyleSelect2.Bitmap.LoadFromFile(fn);
+        2: imgStyleSelect3.Bitmap.LoadFromFile(fn);
+        3: imgStyleSelect4.Bitmap.LoadFromFile(fn);
+        4: imgStyleSelect5.Bitmap.LoadFromFile(fn);
+      end;
+
+{
+      PySys.Log('JSON : ' + StyleModel.fpath + ' has ' + Length(StyleModel.models).ToString + ' models');
+      PySys.Log('     : ' + StyleModel.image.iTitle);
+      PySys.Log('     : ' + StyleModel.image.iName);
+      PySys.Log('     : ' + StyleModel.image.iDesc);
+      PySys.Log('     : ' + StyleModel.image.iType);
+      PySys.Log('     : ' + StyleModel.image.iWidth.ToString);
+      PySys.Log('     : ' + StyleModel.image.iHeight.ToString);
+      PySys.Log('     : ' + StyleModel.image.iHash);
+      PySys.Log('     : ' + StyleModel.image.sGroup);
+}
     end;
 end;
 

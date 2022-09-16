@@ -603,40 +603,43 @@ begin
   PythonCode.Add('import torch');
   PythonCode.Add('print("Torch =", torch.__version__)');
   // A little script to check we're working as expected
-
   try
-    SafeMaskFPUExceptions(True);
-    PyEng.ExecStrings(PythonCode);
-    SafeMaskFPUExceptions(False);
-  except
-    on E: EPyImportError do
-      begin
-        Log('Import Exception in RunTest');
-        Log('Class : ' + E.ClassName);
-        Log('Error : ' + E.Message);
-        Log('Value : ' + E.EValue);
-        Log('Name : ' + E.EName);
-      end;
-    on E: EPyIndentationError do
-      begin
-        Log('Indentation Exception in RunTest');
-        Log('Class : ' + E.ClassName);
-        Log('Error : ' + E.Message);
-        Log('Line : ' + IntToStr(E.ELineNumber));
-        Log('Offset : ' + IntToStr(E.EOffset));
-      end;
-    on E: EPyException do
-      begin
-        Log('Unhandled Python Exception in RunTest');
-        Log('Class : ' + E.ClassName);
-        Log('Error : ' + E.Message);
-      end;
-    on E: Exception do
-      begin
-        Log('Unhandled Exception in RunTest');
-        Log('Class : ' + E.ClassName);
-        Log('Error : ' + E.Message);
-      end;
+    try
+      SafeMaskFPUExceptions(True);
+      PyEng.ExecStrings(PythonCode);
+      SafeMaskFPUExceptions(False);
+    except
+      on E: EPyImportError do
+        begin
+          Log('Import Exception in RunTest');
+          Log('Class : ' + E.ClassName);
+          Log('Error : ' + E.Message);
+          Log('Value : ' + E.EValue);
+          Log('Name : ' + E.EName);
+        end;
+      on E: EPyIndentationError do
+        begin
+          Log('Indentation Exception in RunTest');
+          Log('Class : ' + E.ClassName);
+          Log('Error : ' + E.Message);
+          Log('Line : ' + IntToStr(E.ELineNumber));
+          Log('Offset : ' + IntToStr(E.EOffset));
+        end;
+      on E: EPyException do
+        begin
+          Log('Unhandled Python Exception in RunTest');
+          Log('Class : ' + E.ClassName);
+          Log('Error : ' + E.Message);
+        end;
+      on E: Exception do
+        begin
+          Log('Unhandled Exception in RunTest');
+          Log('Class : ' + E.ClassName);
+          Log('Error : ' + E.Message);
+        end;
+    end;
+  finally
+    PythonCode.Free;
   end;
 
   Log('Ready');

@@ -79,7 +79,7 @@ end;
 
 function TStyleModels.GetCollection(Index: Integer): TModelStyleCollection;
 begin
-  if (Index > 0 ) and (Index < Length(FCollection)) then
+  if (Index >= 0 ) and (Index < Length(FCollection)) then
     begin
       Result := FCollection[Index];
     end;
@@ -87,7 +87,7 @@ end;
 
 procedure TStyleModels.SetCollection(Index: Integer; Value: TModelStyleCollection);
 begin
-  if (Index > 0 ) and (Index < Length(FCollection)) then
+  if (Index >= 0 ) and (Index < Length(FCollection)) then
     begin
       FCollection[Index] := Value;
     end;

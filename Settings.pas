@@ -18,7 +18,6 @@ var
   DataSetsPath: String;
   PreTrainedPath: String;
 
-  ModelList: TStringList;
   StyleModels: TStyleModels;
   SystemActive: Boolean;
 
@@ -99,8 +98,6 @@ end;
 
 procedure DestroySettings;
 begin
-  if Assigned(ModelList) then
-    FreeAndNil(ModelList);
 end;
 
 end.

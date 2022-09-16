@@ -23,7 +23,6 @@ function FitInsideContainer(const AContainerWidth: Single; const AContentWidth: 
 function BoolToInt(const AValue: Boolean): Integer;
 function GetFileHash(const AFile: String): String;
 function CreateAlphaMap(const ABitmap: TBitmap): TAlphaMap;
-procedure GetAllModels(const AltModelDir: String = ''; const ModelSubDir: String = '');
 
 implementation
 
@@ -133,7 +132,7 @@ begin
       for I := 0 to 255 do
         txt.Add(IntToStr(I) + ', ' + IntToStr(AlphaMap[I]));
       txt.SaveToFile(IncludeTrailingPathDelimiter(CachePath) + 'alphamap.txt');
-
+      FreeAndNil(txt);
     end;
 end;
 
@@ -176,66 +175,6 @@ begin
       ShowMessage('Can''t find shader ''' + AShaderFile + '''');
       Application.Terminate;
       Exit;
-    end;
-end;
-
-procedure GetAllModels(const AltModelDir: String = ''; const ModelSubDir: String = '');
-var
-  SearchRec: TSearchRec;
-  modeldir: String;
-  filespec: String;
-  FileName: String;
-begin
-  if (AltModelDir = String.Empty) then
-    Modeldir := IncludeTrailingPathDelimiter(AppHome) + 'models'
-  else
-    modeldir := AltModelDir;
-
-  if (ModelSubDir = String.Empty) then
-    filespec := IncludeTrailingPathDelimiter(modeldir)
-  else
-    filespec := IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(modeldir) + ModelSubDir);
-
-  {$ifdef MSWINDOWS}
-  filespec := filespec + '*.*';
-  {$ELSE}
-  filespec := filespec + '*';
-  {$ENDIF}
-
-  if not Assigned(ModelList) then
-    ModelList := TStringList.Create
-  else if (ModelSubDir = String.Empty) then
-    ModelList.Clear;
-
-  if DirectoryExists(modeldir) then
-    begin
-      if (FindFirst(filespec, faAnyFile, SearchRec) = 0) then
-        begin
-          repeat
-            FileName := SearchRec.Name;
-            if ((SearchRec.Attr and faDirectory) = 0) then
-            begin
-              if FileName.ToLower.EndsWith('.pth') then
-                begin
-                  FileName := FileName.Remove(Length(Filename) - 4);
-                  if (ModelSubDir <> String.Empty) then
-                    FileName := ModelSubDir + System.IOUtils.TPath.DirectorySeparatorChar + FileName;
-                  ModelList.Add(FileName);
-                end;
-            end
-          else
-            begin
-              if (FileName <> '.') and (FileName <> '..') then
-                begin
-                  if (ModelSubDir = String.Empty) then
-                    GetAllModels(modeldir, FileName)
-                  else
-                    GetAllModels(modeldir, ModelSubDir + System.IOUtils.TPath.DirectorySeparatorChar + FileName);
-                end;
-            end;
-          until FindNext(SearchRec) <> 0;
-          FindClose(SearchRec);
-        end;
     end;
 end;
 

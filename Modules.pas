@@ -604,33 +604,7 @@ begin
 end;
 
 procedure TModTrain.TrainAll(const AFile: String);
-var
-  _im: Variant;
-  OutFile: String;
-  batchdir: String;
 begin
-  ShowMessage('Not Safe Yet');
-  Exit;
-
-  batchdir := IncludeTrailingPathDelimiter(AppHome) + 'batch'; // /zoom';
-  if not DirectoryExists(batchdir) then
-    ForceDirectories(batchdir);
-
-  if not Assigned(ModelList) then
-    GetAllModels; // (zoom_models);
-
-  FOptions.style_image := AFile;
-//  FOptions.model_dir := 'zoom_models';
-  FOptions.ignore_gpu :=  not EnableGPU;
-
-  for var I := 0 to ModelList.Count - 1 do
-    begin
-      FOptions.model_name := IncludeTrailingPathDelimiter(batchdir) + ModelList[I] + '.jpg';
-      _im := MainModule.delphi_train();
-
-      OutFile := _im;
-      Pysys.Log('_im (' + OutFile + ') is a ' + VarTypeAsText(VarType(_im)));
-    end;
 end;
 
 ///// Style Module Definitions /////
@@ -1000,19 +974,16 @@ begin
   if not DirectoryExists(batchdir) then
     ForceDirectories(batchdir);
 
-  if not Assigned(ModelList) then
-    GetAllModels('models/mosaic');
-
   FOptions.content_image := AFile;
   FOptions.model_dir := IncludeTrailingPathDelimiter(AppHome) +
     'models/mosaic';
   FOptions.ignore_gpu :=  not EnableGPU;
 
-  for var I := 0 to ModelList.Count - 1 do
+  for var I := 0 to StyleModels.Count - 1 do
     begin
       FOptions.output_image := IncludeTrailingPathDelimiter(batchdir) +
-              ModelList[I] + '.jpg';
-      FOptions.model := ModelList[I];
+              StyleModels.Collection[I].image.iName + '.' + StyleModels.Collection[I].image.iType;
+//      FOptions.model := StyleModels[I];
       _im := MainModule.delphi_style();
 
       OutFile := _im;
