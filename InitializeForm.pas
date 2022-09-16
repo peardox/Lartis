@@ -294,7 +294,7 @@ begin
 			TParallel.For(1, 0, ImageCount - 1,
 				procedure(I: Integer)
 				begin
-					var Downer := TUnSplashClient.Create;
+					var Downer := TUnSplashClient.Create(Self);
           var infilerec := AFileList[I];
           var DownSize := AFileList[I].Size;
           var outfile := TPath.Combine(ADestPath, UnixToDos(infilerec.Name));
@@ -362,7 +362,7 @@ begin
       if AbortFlag then
         Exit;
 
-      Downer := TUnSplashClient.Create;
+      Downer := TUnSplashClient.Create(Self);
       var infilerec := AFileList[I];
       var DownSize := AFileList[I].Size;
       var outfile := TPath.Combine(ADestPath, UnixToDos(infilerec.Name));

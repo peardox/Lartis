@@ -26,7 +26,7 @@ type
       const ARequest: TURLRequest; const ACertificateList: TCertificateList;
       var AnIndex: Integer);
   public
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Download(const ABaseURL: String; const Outpath: String; const AFile: TJSONFile; const ADownloadIndex: Integer; Progress: TProgressBar); overload;
   end;
@@ -35,9 +35,10 @@ function UnixToDos(const Filename: String): String; Inline;
 
 implementation
 
-constructor TUnSplashClient.Create;
+constructor TUnSplashClient.Create(AOwner: TComponent);
 begin
-    FClient := TNetHTTPClient.Create(Self);
+  inherited;
+  FClient := TNetHTTPClient.Create(Self);
 end;
 
 destructor TUnSplashClient.Destroy;

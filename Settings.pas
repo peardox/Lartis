@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes, System.Classes,
-  System.Variants, FMX.Forms, FMX.Dialogs;
+  System.Variants, FMX.Forms, FMX.Dialogs, StyleModel;
 
 var
   InstallRequired: Boolean;
@@ -19,11 +19,12 @@ var
   PreTrainedPath: String;
 
   ModelList: TStringList;
-  JsonList: TStringList;
+  StyleModels: TStyleModels;
   SystemActive: Boolean;
 
   FrameCount: Integer;
   EnableGPU: Boolean;
+  SystemStyle: String;
 
 const
   appname: String = 'Lartis';
@@ -69,6 +70,7 @@ begin
       ForceDirectories(ShaderPath);
     end;
 
+  SystemStyle := '';
   StylesPath := TPath.Combine(AppHome, 'styles');;
   if not DirectoryExists(ShaderPath) then
     begin
@@ -99,8 +101,6 @@ procedure DestroySettings;
 begin
   if Assigned(ModelList) then
     FreeAndNil(ModelList);
-  if Assigned(JsonList) then
-    FreeAndNil(JsonList);
 end;
 
 end.

@@ -9,6 +9,7 @@ uses
 type
   TModelImage = record
     iTitle: String;
+    iName: String;
     iDesc: String;
     iType: String;
     iWidth: Integer;
@@ -36,34 +37,113 @@ type
   TModelStyleArray = Array of TModelStyle;
 
   TModelStyleCollection = record
+    fpath: String;
     image: TModelImage;
     models: TModelStyleArray;
   end;
+  TModelStyleCollectionArray = Array of TModelStyleCollection;
 
-function LoadJson(const AJsonFile: string): String;
+  TStyleModels = class(TComponent)
+    private
+      FCollection: TModelStyleCollectionArray;
+      function GetCollection(Index: Integer): TModelStyleCollection;
+      procedure SetCollection(Index: Integer; Value: TModelStyleCollection);
+    public
+      constructor Create(AOwner: TComponent);
+      procedure GetAllModels;
+      function Count: Integer;
+      property Collection[Index: Integer]: TModelStyleCollection read GetCollection write SetCollection;
+  end;
+
+function LoadJson(const AJsonFile: string): TModelStyleCollection;
 function DecodeJsonStyle(const JsonStyleText: String): TModelStyleCollection;
+procedure GetModelJson(var JsonList: TStringList; const AltModelDir: String = ''; const ModelSubDir: String = '');
 
 implementation
 
 uses
+  Settings,
   System.IOUtils,
   FMX.Dialogs,
   PythonSystem;
 
-function LoadJson(const AJsonFile: string): String;
+constructor TStyleModels.Create(AOwner: TComponent);
 begin
-  if FileExists(AJsonFile) then
+  SetLength(FCollection, 0);
+end;
+
+function TStyleModels.Count: Integer;
+begin
+  Result := Length(FCollection)
+end;
+
+function TStyleModels.GetCollection(Index: Integer): TModelStyleCollection;
+begin
+  if (Index > 0 ) and (Index < Length(FCollection)) then
     begin
-      try
-        Result := TFile.ReadAllText(AJsonFile);
-      except
-        ShowMessage('Can''t read shader ''' + AJsonFile + '''');
-      end;
-    end
-  else
-    begin
-      ShowMessage('Can''t find json ''' + AJsonFile + '''');
+      Result := FCollection[Index];
     end;
+end;
+
+procedure TStyleModels.SetCollection(Index: Integer; Value: TModelStyleCollection);
+begin
+  if (Index > 0 ) and (Index < Length(FCollection)) then
+    begin
+      FCollection[Index] := Value;
+    end;
+end;
+
+procedure TStyleModels.GetAllModels;
+var
+  JSonList: TStringList;
+  I: Integer;
+  fn: String;
+  RecCount: Integer;
+begin
+  JSonList := TStringList.Create;
+  try
+    GetModelJson(JsonList);
+    if JsonList.Count > 0 then
+      begin
+        SetLength(FCollection, JsonList.Count);
+        for I := 0 to JsonList.Count - 1 do
+          begin
+            fn := JsonList[I] + System.IOUtils.TPath.DirectorySeparatorChar + 'styles.json';
+            if FileExists(fn) then
+              begin
+                FCollection[I] := LoadJson(fn);
+                Inc(RecCount);
+              end;
+{
+            PySys.Log('JSON : ' + StyleModel.fpath + ' has ' + Length(StyleModel.models).ToString + ' models');
+            PySys.Log('     : ' + StyleModel.image.iTitle);
+            PySys.Log('     : ' + StyleModel.image.iName);
+            PySys.Log('     : ' + StyleModel.image.iDesc);
+            PySys.Log('     : ' + StyleModel.image.iType);
+            PySys.Log('     : ' + StyleModel.image.iWidth.ToString);
+            PySys.Log('     : ' + StyleModel.image.iHeight.ToString);
+            PySys.Log('     : ' + StyleModel.image.iHash);
+            PySys.Log('     : ' + StyleModel.image.sGroup);
+}
+          end;
+        SetLength(FCollection, RecCount);
+      end;
+  finally
+    FreeAndNil(JsonList);
+  end;
+end;
+
+function LoadJson(const AJsonFile: string): TModelStyleCollection;
+var
+  JsonText: String;
+begin
+  try
+    JsonText := TFile.ReadAllText(AJsonFile);
+    Result := DecodeJsonStyle(JsonText);
+    Result.fpath := TPath.GetDirectoryName(AJsonFile);
+  except
+    ShowMessage('Can''t read model info ''' + AJsonFile + '''');
+  end;
 end;
 
 function DecodeJsonStyle(const JsonStyleText: String): TModelStyleCollection;
@@ -76,7 +156,6 @@ begin
   try
     try
       obj := lSerializer.Deserialize<TModelStyleCollection>(JsonStyleText);
-      PySys.Log(JsonStyleText);
    except
      on E : Exception do
      begin
@@ -90,5 +169,60 @@ begin
   end;
   Result := obj;
 end;
+
+procedure GetModelJson(var JsonList: TStringList; const AltModelDir: String = ''; const ModelSubDir: String = '');
+var
+  SearchRec: TSearchRec;
+  ModelDir: String;
+  FileSpec: String;
+  FileName: String;
+begin
+  if (AltModelDir = String.Empty) then
+    Modeldir := IncludeTrailingPathDelimiter(AppHome) + 'models'
+  else
+    ModelDir := AltModelDir;
+
+  if (ModelSubDir = String.Empty) then
+    FileSpec := IncludeTrailingPathDelimiter(modeldir)
+  else
+    FileSpec := IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(modeldir) + ModelSubDir);
+
+  {$ifdef MSWINDOWS}
+  FileSpec := filespec + '*.*';
+  {$ELSE}
+  filespec := filespec + '*';
+  {$ENDIF}
+
+  if DirectoryExists(modeldir) then
+    begin
+      if (FindFirst(filespec, faAnyFile, SearchRec) = 0) then
+        begin
+          repeat
+            FileName := SearchRec.Name;
+            if ((SearchRec.Attr and faDirectory) = 0) then
+            begin
+              if FileName.ToLower = 'styles.json' then
+                begin
+                  if (ModelSubDir <> String.Empty) then
+                    FileName := ModelSubDir; // + System.IOUtils.TPath.DirectorySeparatorChar + FileName;
+                  JsonList.Add(ModelDir  + System.IOUtils.TPath.DirectorySeparatorChar + FileName);
+                end;
+            end
+          else
+            begin
+              if (FileName <> '.') and (FileName <> '..') then
+                begin
+                  if (ModelSubDir = String.Empty) then
+                    GetModelJson(JsonList, modeldir, FileName)
+                  else
+                    GetModelJson(JsonList, modeldir, ModelSubDir + System.IOUtils.TPath.DirectorySeparatorChar + FileName);
+                end;
+            end;
+          until FindNext(SearchRec) <> 0;
+          FindClose(SearchRec);
+        end;
+    end;
+end;
+
 
 end.

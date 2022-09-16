@@ -6,6 +6,7 @@ interface
 // {$DEFINE ENABLE_TRAIN}
 // {$DEFINE ENABLE_EVOLVE}
 // {$DEFINE ENABLE_MOVIE}
+{$DEFINE JSONTEST}
 
 uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes,
@@ -134,8 +135,6 @@ procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if Assigned(ModelList) then
     FreeAndNil(ModelList);
-  if Assigned(JsonList) then
-    FreeAndNil(JsonList);
   if Assigned(frmStyle) then
     FreeAndNil(frmStyle);
   {$IFDEF ENABLE_TRAIN}
@@ -239,28 +238,33 @@ end;
 procedure TfrmMain.SystemTestMenuClick(Sender: TObject);
 var
   I: Integer;
-  fn: String;
-  JsonText: String;
-  data: TModelStyleCollection;
+  StyleModels: TStyleModels;
+  StyleModel: TModelStyleCollection;
 begin
+  frmDebug.Show;
 {$IFDEF JSONTEST}
-  GetModelJson;
-  if JsonList.Count > 0 then
+  StyleModels := TStyleModels.Create(Self);
+  StyleModels.GetAllModels;
+  if StyleModels.Count > 0 then
     begin
-      fn := JsonList[0] + System.IOUtils.TPath.DirectorySeparatorChar + 'styles.json';
-      PySys.Log(fn);
-      JsonText := LoadJson(fn);
-      PySys.Log(JsonText);
-      {$O-}
-      data := DecodeJsonStyle(JsonText);
-      {$O+}
-      exit;
+      for I := 0 to StyleModels.Count - 1 do
+        begin
+          StyleModel := StyleModels.Collection[I];
+          PySys.Log('JSON : ' + StyleModel.fpath + ' has ' + Length(StyleModel.models).ToString + ' models');
+          PySys.Log('     : ' + StyleModel.image.iTitle);
+          PySys.Log('     : ' + StyleModel.image.iName);
+          PySys.Log('     : ' + StyleModel.image.iDesc);
+          PySys.Log('     : ' + StyleModel.image.iType);
+          PySys.Log('     : ' + StyleModel.image.iWidth.ToString);
+          PySys.Log('     : ' + StyleModel.image.iHeight.ToString);
+          PySys.Log('     : ' + StyleModel.image.iHash);
+          PySys.Log('     : ' + StyleModel.image.sGroup);
+        end;
     end;
 {$ENDIF}
 
   if Assigned(PySys) and SystemActive then
     begin
-      frmDebug.Show;
       if not PySys.Torch.IsImported then
         Exit;
       var gpu_count: Variant := PySys.Torch.torch.cuda.device_count();

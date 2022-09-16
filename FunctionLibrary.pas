@@ -24,7 +24,6 @@ function BoolToInt(const AValue: Boolean): Integer;
 function GetFileHash(const AFile: String): String;
 function CreateAlphaMap(const ABitmap: TBitmap): TAlphaMap;
 procedure GetAllModels(const AltModelDir: String = ''; const ModelSubDir: String = '');
-procedure GetModelJson(const AltModelDir: String = ''; const ModelSubDir: String = '');
 
 implementation
 
@@ -232,65 +231,6 @@ begin
                     GetAllModels(modeldir, FileName)
                   else
                     GetAllModels(modeldir, ModelSubDir + System.IOUtils.TPath.DirectorySeparatorChar + FileName);
-                end;
-            end;
-          until FindNext(SearchRec) <> 0;
-          FindClose(SearchRec);
-        end;
-    end;
-end;
-
-procedure GetModelJson(const AltModelDir: String = ''; const ModelSubDir: String = '');
-var
-  SearchRec: TSearchRec;
-  ModelDir: String;
-  FileSpec: String;
-  FileName: String;
-begin
-  if (AltModelDir = String.Empty) then
-    Modeldir := IncludeTrailingPathDelimiter(AppHome) + 'models'
-  else
-    ModelDir := AltModelDir;
-
-  if (ModelSubDir = String.Empty) then
-    FileSpec := IncludeTrailingPathDelimiter(modeldir)
-  else
-    FileSpec := IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(modeldir) + ModelSubDir);
-
-  {$ifdef MSWINDOWS}
-  FileSpec := filespec + '*.*';
-  {$ELSE}
-  filespec := filespec + '*';
-  {$ENDIF}
-
-  if not Assigned(JsonList) then
-    JsonList := TStringList.Create
-  else if (ModelSubDir = String.Empty) then
-    JsonList.Clear;
-
-  if DirectoryExists(modeldir) then
-    begin
-      if (FindFirst(filespec, faAnyFile, SearchRec) = 0) then
-        begin
-          repeat
-            FileName := SearchRec.Name;
-            if ((SearchRec.Attr and faDirectory) = 0) then
-            begin
-              if FileName.ToLower = 'styles.json' then
-                begin
-                  if (ModelSubDir <> String.Empty) then
-                    FileName := ModelSubDir; // + System.IOUtils.TPath.DirectorySeparatorChar + FileName;
-                  JsonList.Add(ModelDir  + System.IOUtils.TPath.DirectorySeparatorChar + FileName);
-                end;
-            end
-          else
-            begin
-              if (FileName <> '.') and (FileName <> '..') then
-                begin
-                  if (ModelSubDir = String.Empty) then
-                    GetModelJson(modeldir, FileName)
-                  else
-                    GetModelJson(modeldir, ModelSubDir + System.IOUtils.TPath.DirectorySeparatorChar + FileName);
                 end;
             end;
           until FindNext(SearchRec) <> 0;
