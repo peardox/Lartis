@@ -28,7 +28,9 @@ type
   TPySys = class(TComponent)
   private
     { Private declarations }
+    Installing: Boolean;
     SystemCode: TStringList;
+    SystemError: Boolean;
     PyCleanOnExit: Boolean;
     PyIsReactivating: Boolean;
     PyPackagesInstalled: Integer;
@@ -78,7 +80,7 @@ type
     procedure ReActivate;
     procedure SetLogTarget(AStringContainer: TMemo);
     procedure SetupPackage(APackage: TPyManagedPackage; const AExtraURL: String = '');
-    procedure ShimSysPath(const ShimPath: String);
+    function RunShim(const ShimPath: String): Boolean;
     procedure ThreadedSetup;
   public
     Torch: TPyTorch;
@@ -93,9 +95,9 @@ type
     property LogTarget: TMemo read FLogTarget write SetLogTarget;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure SetupSystem(OnSetupComplete: TPySysFinishedEvent = Nil);
-    procedure RunTest;
-    procedure RunSystem;
+    procedure SetupSystem(OnSetupComplete: TPySysFinishedEvent = Nil; const HaveGPU: Boolean = False; const InstallationActive: Boolean = False);
+    function RunTest: Boolean;
+    function RunSystem: Boolean;
     procedure ShutdownSystem;
     procedure Log(const AMsg: String; const SameLine: Boolean = False);
     procedure LogClear;
@@ -182,6 +184,7 @@ end;
 constructor TPySys.Create(AOwner: TComponent);
 begin
   inherited;
+  SystemError := False;
   SystemActive := False;
   PyIsReactivating := False;
   PyCleanOnExit := False;
@@ -392,8 +395,9 @@ begin
   Log('Error : ' + AException.Message);
 end;
 
-procedure TPySys.SetupSystem(OnSetupComplete: TPySysFinishedEvent = Nil);
+procedure TPySys.SetupSystem(OnSetupComplete: TPySysFinishedEvent = Nil; const HaveGPU: Boolean = False; const InstallationActive: Boolean = False);
 begin
+  Installing := InstallationActive;
   PySysFinishedEvent := OnSetupComplete;
 
   PyIO := TPythonInputOutput.Create(Self);
@@ -456,11 +460,17 @@ begin
 
   // Create Torch
   Torch := TPyTorch.Create(Self);
-  SetupPackage(Torch, 'https://download.pytorch.org/whl/cu116');
+  if haveGPU then
+    SetupPackage(Torch, 'https://download.pytorch.org/whl/cu116')
+  else
+    SetupPackage(Torch);
 
   // Create TorchVision
   TorchVision := TTorchVision.Create(Self);
-  SetupPackage(TorchVision, 'https://download.pytorch.org/whl/cu116');
+  if haveGPU then
+    SetupPackage(TorchVision, 'https://download.pytorch.org/whl/cu116')
+  else
+    SetupPackage(TorchVision);
 
   //  Call Setup
   FTask := TTask.Run(ThreadedSetup);
@@ -524,25 +534,35 @@ begin
               modPyIO.Engine := PyEng;
               modPyIO.ModuleName := 'pinout';
               modPyIO.Initialize;
-
-              Log('Testing Python');
-              ShimSysPath(pyshim);
-              RunTest;
-              RunSystem;
-
-              Log('Python Available');
-              FLogTarget.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'startup.log');
-              SystemActive := True;
-              FLogTarget := Nil;
-              DoPySysFinishedEvent(True);
             end
           );
 
+          TThread.Synchronize(nil,
+            procedure()
+            begin
+              Log('Testing Python');
+
+              SystemError := RunShim(pyshim);
+              if not SystemError then
+                SystemError := RunTest;
+              if not SystemError then
+                SystemError := RunSystem;
+
+              Log('Python Available');
+              if not Installing then
+                begin
+                  FLogTarget.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'startup.log');
+                  FLogTarget := Nil;
+                end;
+              SystemActive := not SystemError;
+              DoPySysFinishedEvent(SystemActive);
+            end
+          );
         end
       else
         begin
           Log('Python activate returned false');
-          DoPySysFinishedEvent(False);
+          DoPySysFinishedEvent(SystemActive);
         end;
       except
         on E: Exception do
@@ -561,40 +581,78 @@ begin
   PyEnv.Deactivate;
 end;
 
-procedure TPySys.ShimSysPath(const ShimPath: String);
+function TPySys.RunShim(const ShimPath: String): Boolean;
 var
   Shim: TStringList;
 begin
+  Result := False;
   Shim := Nil;
   try
-    Shim := TStringList.Create;
-    Shim.Add('import os');
-    Shim.Add('import sys');
-    if not(LastShimPath = String.Empty) then
-    begin
-      Shim.Add('for p in reversed(sys.path):');
-      Shim.Add('  if p == "' + EscapeBackslashForPython(LastShimPath) + '":');
-      Shim.Add('    sys.path.remove(p)');
+    try
+      Shim := TStringList.Create;
+      Shim.Add('import os');
+      Shim.Add('import sys');
+      if not(LastShimPath = String.Empty) then
+      begin
+        Shim.Add('for p in reversed(sys.path):');
+        Shim.Add('  if p == "' + EscapeBackslashForPython(LastShimPath) + '":');
+        Shim.Add('    sys.path.remove(p)');
+      end;
+      Shim.Add('sys.path.append("' + EscapeBackslashForPython(IncludeTrailingPathDelimiter(AppHome)) + ShimPath + '")');
+      Shim.Add('os.chdir("' + EscapeBackslashForPython(AppHome) + '")');
+      Shim.Add('__embedded_python__ = True');
+
+      SafeMaskFPUExceptions(True);
+      PyEng.ExecStrings(Shim);
+      SafeMaskFPUExceptions(False);
+
+      LastShimPath := IncludeTrailingPathDelimiter(AppHome) + ShimPath;
+    except
+      on E: EPyImportError do
+        begin
+          Result := True;
+          Log('Import Exception in RunShim');
+          Log('Class : ' + E.ClassName);
+          Log('Error : ' + E.Message);
+          Log('Value : ' + E.EValue);
+          Log('Name : ' + E.EName);
+        end;
+      on E: EPyIndentationError do
+        begin
+          Result := True;
+          Log('Indentation Exception in RunShim');
+          Log('Class : ' + E.ClassName);
+          Log('Error : ' + E.Message);
+          Log('Line : ' + IntToStr(E.ELineNumber));
+          Log('Offset : ' + IntToStr(E.EOffset));
+        end;
+      on E: EPyException do
+        begin
+          Result := True;
+          Log('Unhandled Python Exception in RunShim');
+          Log('Class : ' + E.ClassName);
+          Log('Error : ' + E.Message);
+        end;
+      on E: Exception do
+        begin
+          Result := True;
+          Log('Unhandled Exception in RunShim');
+          Log('Class : ' + E.ClassName);
+          Log('Error : ' + E.Message);
+        end;
     end;
-    Shim.Add('sys.path.append("' + EscapeBackslashForPython(IncludeTrailingPathDelimiter(AppHome)) + ShimPath + '")');
-    Shim.Add('os.chdir("' + EscapeBackslashForPython(AppHome) + '")');
-    Shim.Add('__embedded_python__ = True');
-
-    SafeMaskFPUExceptions(True);
-    PyEng.ExecStrings(Shim);
-    SafeMaskFPUExceptions(False);
-
-    LastShimPath := IncludeTrailingPathDelimiter(AppHome) + ShimPath;
   finally
     if not(Shim = Nil) then
       Shim.Free;
   end;
+  Log('RunShim Completed');
 end;
 
-procedure TPySys.RunTest;
+function TPySys.RunTest: Boolean;
 var
   PythonCode: TStringList;
 begin
+  Result := False;
 
   PythonCode := TStringList.Create;
   PythonCode.Add('import sys');
@@ -611,6 +669,7 @@ begin
     except
       on E: EPyImportError do
         begin
+          Result := True;
           Log('Import Exception in RunTest');
           Log('Class : ' + E.ClassName);
           Log('Error : ' + E.Message);
@@ -619,6 +678,7 @@ begin
         end;
       on E: EPyIndentationError do
         begin
+          Result := True;
           Log('Indentation Exception in RunTest');
           Log('Class : ' + E.ClassName);
           Log('Error : ' + E.Message);
@@ -627,12 +687,14 @@ begin
         end;
       on E: EPyException do
         begin
+          Result := True;
           Log('Unhandled Python Exception in RunTest');
           Log('Class : ' + E.ClassName);
           Log('Error : ' + E.Message);
         end;
       on E: Exception do
         begin
+          Result := True;
           Log('Unhandled Exception in RunTest');
           Log('Class : ' + E.ClassName);
           Log('Error : ' + E.Message);
@@ -642,11 +704,12 @@ begin
     PythonCode.Free;
   end;
 
-  Log('Ready');
+  Log('RunTest Completed');
 end;
 
-procedure TPySys.RunSystem;
+function TPySys.RunSystem: Boolean;
 begin
+  Result := False;
   try
     SafeMaskFPUExceptions(True);
     PyEng.ExecStrings(SystemCode);
@@ -654,6 +717,7 @@ begin
   except
     on E: EPyImportError do
       begin
+        Result := True;
         Log('Import Exception in RunSystem');
         Log('Class : ' + E.ClassName);
         Log('Error : ' + E.Message);
@@ -662,6 +726,7 @@ begin
       end;
     on E: EPyIndentationError do
       begin
+        Result := True;
         Log('Indentation Exception in RunSystem');
         Log('Class : ' + E.ClassName);
         Log('Error : ' + E.Message);
@@ -670,18 +735,21 @@ begin
       end;
     on E: EPyException do
       begin
+        Result := True;
         Log('Unhandled Python Exception in RunSystem');
         Log('Class : ' + E.ClassName);
         Log('Error : ' + E.Message);
       end;
     on E: Exception do
       begin
+        Result := True;
         Log('Unhandled Exception in RunSystem');
         Log('Class : ' + E.ClassName);
         Log('Error : ' + E.Message);
       end;
   end;
 
+  Log('RunSystem Completed');
 end;
 
 procedure TPySys.PyEngBeforeUnload(Sender: TObject);

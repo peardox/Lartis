@@ -10,7 +10,7 @@ uses
   System.IOUtils, System.Net.URLClient, System.Net.HttpClient,
   System.Threading, System.Net.HttpClientComponent,
   LartisTypes,  EmbeddedForm,
-  System.Diagnostics, FMX.ScrollBox, FMX.Memo;
+  System.Diagnostics, FMX.ScrollBox, FMX.Memo, Skia, Skia.FMX;
 
 type
   TInstallFinishedEvent = procedure(Sender: TObject; const AStatus: Boolean) of object;
@@ -24,15 +24,21 @@ type
     Layout1: TLayout;
     Layout2: TLayout;
     Button1: TButton;
-    Memo1: TMemo;
     Button2: TButton;
     Image1: TImage;
+    Layout3: TLayout;
+    Memo1: TMemo;
+    layBlurb: TLayout;
+    Blurb: TSkLabel;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Layout2Resize(Sender: TObject);
+    procedure BlurbClick(Sender: TObject);
+    procedure Memo1Click(Sender: TObject);
   private
     { Private declarations }
+    FHaveGPU: Boolean;
     FInstallFinishedEvent: TInstallFinishedEvent;
     SetupInfo: String;
     procedure DoInstallFinished(Sender: TObject; const AStatus: Boolean);
@@ -46,6 +52,7 @@ type
       const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
       Logger: TMemo = Nil; Progress: TProgressBar = Nil);
     procedure SetupComplete(Sender: TObject; const AStatus: Boolean);
+    procedure ToggleBlurb(const Force: TComponent = Nil);
   public
     { Public declarations }
   published
@@ -69,6 +76,88 @@ uses
   Math;
 
 {$R *.fmx}
+
+procedure TfrmInit.FormCreate(Sender: TObject);
+begin
+  FHaveGPU := True;
+  AbortFlag := False;
+  Caption := 'System Setup';
+
+  Memo1.Align := TAlignLayout.Client;
+  layBlurb.Align := TAlignLayout.Client;
+  Blurb.TextSettings.FontColor := TAlphaColorRec.Azure;
+  ToggleBlurb(layBlurb);
+
+  Button1.Text := 'Abort';
+  Button2.Text := 'Continue';
+
+  RESTClient1.BaseURL := APIBase;
+  RESTRequest1.Resource := 'system.json';
+  RESTRequest1.AcceptEncoding := 'gzip, deflate';
+  RESTRequest1.Execute;
+  Memo1.Lines.Add('JSON = ' + RestResponse1.StatusCode.ToString);
+  if RestResponse1.StatusCode = 200 then
+    begin
+      Memo1.Lines.Add(SetupInfo);
+      SetupInfo := RestResponse1.Content;
+    end
+  else
+    begin
+      ShowMessage('Something has gone horribly wrong');
+    end;
+
+end;
+
+// Center the logo
+procedure TfrmInit.Layout2Resize(Sender: TObject);
+begin
+  Image1.Width := Layout2.Width;
+  Image1.Height := Floor(Image1.Width * (640 / 1920));
+  Image1.Position.X := 0;
+  Image1.Position.Y := 0;
+
+  if Image1.Height > (Layout2.Height * 0.69) then
+    begin
+      Image1.Height := Floor(Layout2.Height * 0.6848);
+      Image1.Width := Image1.Height * (1920 / 640);
+      Image1.Position.X := (Layout2.Width - Image1.Width) / 2;
+      Image1.Position.Y := (Layout2.Height - Image1.Height) / 2;
+    end;
+end;
+
+procedure TfrmInit.ToggleBlurb(const Force: TComponent = Nil);
+begin
+  if Force is TMemo then
+    begin
+      layBlurb.Visible := False;
+      Memo1.Visible := True;
+    end
+  else  if Force is TLayout then
+    begin
+      layBlurb.Visible := True;
+      Memo1.Visible := False;
+    end
+  else if Memo1.Visible then
+    begin
+      layBlurb.Visible := True;
+      Memo1.Visible := False;
+    end
+  else
+    begin
+      layBlurb.Visible := False;
+      Memo1.Visible := True;
+    end;
+end;
+
+procedure TfrmInit.BlurbClick(Sender: TObject);
+begin
+  ToggleBlurb;
+end;
+
+procedure TfrmInit.Memo1Click(Sender: TObject);
+begin
+  ToggleBlurb;
+end;
 
 procedure TfrmInit.DoInstallFinished(Sender: TObject; const AStatus: Boolean);
 begin
@@ -121,27 +210,9 @@ begin
   end;
 end;
 
-// Center the logo
-procedure TfrmInit.Layout2Resize(Sender: TObject);
-begin
-  Image1.Width := Layout2.Width;
-  Image1.Height := Floor(Image1.Width * (640 / 1920));
-  Image1.Position.X := 0;
-  Image1.Position.Y := 0;
-
-  if Image1.Height > (Layout2.Height * 0.69) then
-    begin
-      Image1.Height := Floor(Layout2.Height * 0.6848);
-      Image1.Width := Image1.Height * (1920 / 640);
-      Image1.Position.X := (Layout2.Width - Image1.Width) / 2;
-      Image1.Position.Y := (Layout2.Height - Image1.Height) / 2;
-    end;
-end;
-
 procedure TfrmInit.SetupComplete(Sender: TObject; const AStatus: Boolean);
 begin
   PySys.LogTarget := Nil;
-  Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'python-install.log');
   Memo1.Lines.Add('Installation Complete');
   Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
   if Assigned(CloseMyself) then
@@ -152,41 +223,16 @@ end;
 procedure TfrmInit.AllDone;
 begin
   PySys.LogTarget := Memo1;
-  PySys.SetupSystem(SetupComplete);
+  PySys.SetupSystem(SetupComplete, FHaveGPU, True);
 end;
 
 procedure TfrmInit.Button2Click(Sender: TObject);
 begin
+  ToggleBlurb(Memo1);
   Button2.Enabled := False;
   Memo1.Lines.Add('Starting installation');
   MultiThreadedMediaDownload(AppHome);
   AllDone;
-end;
-
-procedure TfrmInit.FormCreate(Sender: TObject);
-begin
-  AbortFlag := False;
-  Caption := 'System Setup';
-  Memo1.Lines.Add('Ready');
-
-  Button1.Text := 'Abort';
-  Button2.Text := 'Continue';
-
-  RESTClient1.BaseURL := APIBase;
-  RESTRequest1.Resource := 'system.json';
-  RESTRequest1.AcceptEncoding := 'gzip, deflate';
-  RESTRequest1.Execute;
-  Memo1.Lines.Add('JSON = ' + RestResponse1.StatusCode.ToString);
-  if RestResponse1.StatusCode = 200 then
-    begin
-      Memo1.Lines.Add(SetupInfo);
-      SetupInfo := RestResponse1.Content;
-    end
-  else
-    begin
-      ShowMessage('Something has gone horribly wrong');
-    end;
-
 end;
 
 procedure TfrmInit.MultiThreadedMediaDownload(const outpath: String);
@@ -237,7 +283,7 @@ begin
     except
       on E: Exception do
         begin
-          Memo1.Lines.Add('Unhandled Exception # 270');
+          Memo1.Lines.Add('Unhandled Exception in MultiThreadedMediaDownload');
           Memo1.Lines.Add('Class : ' + E.ClassName);
           Memo1.Lines.Add('Error : ' + E.Message);
         end;
@@ -308,7 +354,7 @@ begin
                     begin
                       if Assigned(Logger) then
                         begin
-                          Logger.Lines.Add('Unhandled Exception # 544');
+                          Logger.Lines.Add('Unhandled Exception in MultiThreadDownload');
                           Logger.Lines.Add('Class : ' + E.ClassName);
                           Logger.Lines.Add('Error : ' + E.Message);
                           Logger.Lines.Add('Vars : I = ' + i.ToString + ', OutFile = ' + outfile + ', ImageCount = ' + ImageCount.ToString);
@@ -380,7 +426,7 @@ begin
           begin
             if Assigned(Logger) then
               begin
-                Logger.Lines.Add('Unhandled Exception # 416');
+                Logger.Lines.Add('Unhandled Exception in SingleThreadDownload');
                 Logger.Lines.Add('Class : ' + E.ClassName);
                 Logger.Lines.Add('Error : ' + E.Message);
                 Logger.Lines.Add('Vars : I = ' + i.ToString + ', OutFile = ' + outfile + ', ImageCount = ' + ImageCount.ToString);
