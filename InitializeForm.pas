@@ -212,6 +212,7 @@ begin
   end;
 end;
 
+
 procedure TfrmInit.SetupComplete(Sender: TObject; const AStatus: Boolean);
 begin
   PySys.LogTarget := Nil;

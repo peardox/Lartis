@@ -37,9 +37,17 @@ type
   TModelStyleArray = Array of TModelStyle;
 
   TModelStyleCollection = record
-    fpath: String;
-    image: TModelImage;
-    models: TModelStyleArray;
+    FPath: String;
+    Image: TModelImage;
+    Models: TModelStyleArray;
+  private
+    function GetModel(Index: Integer): TModelStyle;
+    procedure SetModel(Index: Integer; Value: TModelStyle);
+  public
+    function ImageFilename: String;
+    function Count: Integer;
+    property StylePath: String read fpath write fpath;
+    property Model[Index: Integer]: TModelStyle read GetModel write SetModel;
   end;
   TModelStyleCollectionArray = Array of TModelStyleCollection;
 
@@ -66,6 +74,32 @@ uses
   System.IOUtils,
   FMX.Dialogs,
   PythonSystem;
+
+function TModelStyleCollection.ImageFilename: String;
+begin
+  Result := image.iName + '.' + image.iType;
+end;
+
+function TModelStyleCollection.Count: Integer;
+begin
+  Result := Length(Models)
+end;
+
+function TModelStyleCollection.GetModel(Index: Integer): TModelStyle;
+begin
+  if (Index >= 0 ) and (Index < Length(Models)) then
+    begin
+      Result := Models[Index];
+    end;
+end;
+
+procedure TModelStyleCollection.SetModel(Index: Integer; Value: TModelStyle);
+begin
+  if (Index >= 0 ) and (Index < Length(Models)) then
+    begin
+      Models[Index] := Value;
+    end;
+end;
 
 constructor TStyleModels.Create(AOwner: TComponent);
 begin

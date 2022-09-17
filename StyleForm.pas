@@ -260,7 +260,8 @@ begin
   for I := 0 to StyleModels.Count - 1 do
     begin
       AStyleModel := StyleModels.Collection[I];
-      fn := TPath.Combine(AStyleModel.fpath, AStyleModel.image.iName + '.' + AStyleModel.image.iType);
+      fn := TPath.Combine(AStyleModel.StylePath,
+        AStyleModel.ImageFilename);
 
       case I of
         0: imgStyleSelect1.Bitmap.LoadFromFile(fn);

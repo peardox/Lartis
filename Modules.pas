@@ -910,7 +910,7 @@ begin
   FOptions.content_image := '';
   FOptions.content_image_raw := ABitmap.ClassName;
   FOptions.output_image := IncludeTrailingPathDelimiter(CachePath) + 'direct-test.jpg';
-  FOptions.model := 'mosaic/mosaic-100';
+  FOptions.model := 'picasso/picasso-100';
   FOptions.ignore_gpu :=  not EnableGPU;
   PySys.LogClear;
   if Assigned(FTask) then
@@ -951,7 +951,7 @@ begin
   FOptions.content_image := AFile;
   FOptions.output_image := IncludeTrailingPathDelimiter(CachePath) + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-styled.jpg';
   FOptions.content_image_raw := '';
-  FOptions.model := 'mosaic/mosaic-100';
+  FOptions.model := 'picasso/picasso-100';
   FOptions.ignore_gpu :=  not EnableGPU;
   PySys.LogClear;
   if Assigned(FTask) then
@@ -987,30 +987,7 @@ var
   OutFile: String;
   batchdir: String;
 begin
-//  ShowMessage('Not Safe Yet');
-//  Exit;
-
-  batchdir := IncludeTrailingPathDelimiter(AppHome) + 'batch/haywain-1024x768'; // /zoom';
-  if not DirectoryExists(batchdir) then
-    ForceDirectories(batchdir);
-
-  FOptions.content_image := AFile;
-  FOptions.model_dir := IncludeTrailingPathDelimiter(AppHome) +
-    'models/mosaic';
-  FOptions.ignore_gpu :=  not EnableGPU;
-
-  for var I := 0 to StyleModels.Count - 1 do
-    begin
-      FOptions.output_image := IncludeTrailingPathDelimiter(batchdir) +
-              StyleModels.Collection[I].image.iName + '.' + StyleModels.Collection[I].image.iType;
-//      FOptions.model := StyleModels[I];
-      _im := MainModule.delphi_style();
-
-      OutFile := _im;
-      Pysys.Log('_im (' + OutFile + ') is a ' + VarTypeAsText(VarType(_im)));
-    end;
 end;
-
 
 ///// PythonIO Module Definitions /////
 
