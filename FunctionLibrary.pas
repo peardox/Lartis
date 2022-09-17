@@ -53,26 +53,22 @@ end;
 function CreateAlphaMap(const ABitmap: TBitmap): TAlphaMap;
 var
   Alpha: Integer;
-  AlphaMap: Array [0..255] of Integer;
   I: Integer;
   CurrentData: TBitmapData;
-  AlphasUsed: Integer;
-  PixelCount: Integer;
   color: TAlphaColor;
-  MinAlpha, MaxAlpha, MostAlpha, MostAlphaCount: Integer;
   txt: TStringList;
 begin
   if Assigned(ABitmap) then
     begin
-      AlphasUsed := 0;
-      PixelCount := 0;
-      MostAlpha := 0;
-      MinAlpha := -1;
-      MaxAlpha := -1;
-      MostAlphaCount := 0;
+      Result.AlphasUsed := 0;
+      Result.PixelCount := 0;
+      Result.MostAlpha := 0;
+      Result.MinAlpha := -1;
+      Result.MaxAlpha := -1;
+      Result.MostAlphaCount := 0;
 
       for I := 0 to 255 do
-        AlphaMap[I] := 0;
+        Result.AlphaMap[I] := 0;
 
       try
         try
@@ -81,12 +77,12 @@ begin
               for var x := 0 to ABitmap.Width - 1 do
                 for var y := 0 to ABitmap.Height - 1 do
                   begin
-                    Inc(PixelCount);
+                    Inc(Result.PixelCount);
                     {$RANGECHECKS ON}
                     Color := CurrentData.GetPixel(x, y);
                     {$RANGECHECKS OFF}
                     Alpha := TAlphaColorRec(Color).A;
-                    Inc(AlphaMap[Alpha]);
+                    Inc(Result.AlphaMap[Alpha]);
                   end;
             end;
         except
@@ -103,34 +99,27 @@ begin
 
       for I := 0 to 255 do
         begin
-          if AlphaMap[I] > 0 then
+          if Result.AlphaMap[I] > 0 then
             begin
-              Inc(AlphasUsed);
+              Inc(Result.AlphasUsed);
               if I > 0 then // Ignore Alpha #0
-                if AlphaMap[I] >= MostAlphaCount then
+                if Result.AlphaMap[I] >= Result.MostAlphaCount then
                   begin
-                    MostAlpha := I;
-                    MostAlphaCount := AlphaMap[I];
+                    Result.MostAlpha := I;
+                    Result.MostAlphaCount := Result.AlphaMap[I];
                   end;
-              if MinAlpha = -1 then
-                MinAlpha := I;
-              MaxAlpha := I;
+              if Result.MinAlpha = -1 then
+                Result.MinAlpha := I;
+              Result.MaxAlpha := I;
             end;
         end;
-{
-      ShowMessage('AlphasUsed = ' + IntToStr(AlphasUsed)
-                 + sLineBreak + 'MinAlpha = ' + IntToStr(MinAlpha)
-                 + sLineBreak + 'MaxAlpha = ' + IntToStr(MaxAlpha)
-                 + sLineBreak + 'MostAlpha = ' + IntToStr(MostAlpha)
-                 + ' (' + FormatFloat('##0.00', (MostAlphaCount / PixelCount) * 100) + '%)'
-                 + sLineBreak + 'MostAlphaCount = ' + IntToStr(MostAlphaCount)
-                 + sLineBreak + 'Pixels = ' + IntToStr(PixelCount)
-      );
-}
+
+      Result.HasAlphaMap := (Result.AlphasUsed <> 1);
+
       txt := TStringList.Create;
 
       for I := 0 to 255 do
-        txt.Add(IntToStr(I) + ', ' + IntToStr(AlphaMap[I]));
+        txt.Add(IntToStr(I) + ', ' + IntToStr(Result.AlphaMap[I]));
       txt.SaveToFile(IncludeTrailingPathDelimiter(CachePath) + 'alphamap.txt');
       FreeAndNil(txt);
     end;

@@ -1,6 +1,6 @@
 unit Settings;
 
-{$DEFINE CLEANSTART}
+// {$DEFINE CLEANSTART}
 
 interface
 
@@ -17,6 +17,7 @@ var
   StylesPath: String;
   DataSetsPath: String;
   PreTrainedPath: String;
+  TempPath: String;
 
   StyleModels: TStyleModels;
   SystemActive: Boolean;
@@ -61,6 +62,12 @@ begin
     begin
       ForceDirectories(AppHome);
       InstallRequired := True;
+    end;
+
+  TempPath := TPath.Combine(AppHome, 'temp');;
+  if not DirectoryExists(ShaderPath) then
+    begin
+      ForceDirectories(TempPath);
     end;
 
   ShaderPath := TPath.Combine(AppHome, 'shaders');;

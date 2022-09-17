@@ -355,7 +355,6 @@ end;
 
 function TfrmStyle.AddLayer: TBaseShader;
 var
-  LBitmap: TBitmap;
   NewLayer: TBaseShader;
 begin
   NewLayer := Nil;

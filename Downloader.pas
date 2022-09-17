@@ -88,8 +88,6 @@ var
   URL: string;
   LResponse: IHTTPResponse;
   LFileName: string;
-  LDirectory: String;
-  LSize: Int64;
 begin
   LFileName := TPath.Combine(Outpath, UnixToDos(AFile.Name));
   try

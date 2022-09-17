@@ -20,6 +20,8 @@ type
     StyleAbortFlag: Boolean;
     StyleFilename: String;
     StyleJsonLog: String;
+    aspect: Single;
+    ignore_gpu: Boolean;
   end;
 
   TTrainOptions = record
@@ -110,6 +112,7 @@ type
     procedure Train(const AFile: String; const AModel: String); overload;
     procedure Train(const AFile: String; const AModel: String; const StyleWeight: Double); overload;
     procedure TrainAll(const AFile: String);
+    procedure ClearEvents;
   published
     property ModProgressEvent: TModProgressEvent read FModProgressEvent write FModProgressEvent;
     property ModFinishedEvent: TModFinishedEvent read FModFinishedEvent write FModFinishedEvent;
@@ -140,6 +143,7 @@ type
     procedure Stylize(const AFile: String; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil); overload;
     procedure Stylize(const ABitmap: TBitmap; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil); overload;
     procedure StylizeAll(const AFile: String);
+    procedure ClearEvents;
   published
     property ModProgressEvent: TModProgressEvent read FModProgressEvent write FModProgressEvent;
     property ModFinishedEvent: TModFinishedEvent read FModFinishedEvent write FModFinishedEvent;
@@ -157,6 +161,8 @@ type
     function GetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function SetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
+    procedure CalibrateStyle(const UseGPU: Boolean; const aspect: Single = 1.0);
+    procedure CalibrateTrain(const UseGPU: Boolean; const aspect: Single = 1.0);
   end;
 
   TModHelper = class helper for TPythonModule
@@ -217,6 +223,13 @@ begin
     FModErrorEvent(Self, AString);
 end;
 
+procedure TModTrain.ClearEvents;
+begin
+  FModProgressEvent := Nil;
+  FModFinishedEvent := Nil;
+  FModErrorEvent := Nil;
+end;
+
 procedure TModTrain.CreateDefaultOptions;
 begin
   FOptions.dataset := IncludeTrailingPathDelimiter(AppHome) + 'datasets/train/unsplash/lite/256';
@@ -265,7 +278,7 @@ begin
 
       if Assigned(PySys) then
         begin
-          PySys.Log('Initialized ModTrain - ' + ModuleName);
+          PySys.Log('Initialized ModTrain - ' + String(ModuleName));
         end;
     end;
 end;
@@ -634,6 +647,13 @@ begin
     FModErrorEvent(Self, AString);
 end;
 
+procedure TModStyle.ClearEvents;
+begin
+  FModProgressEvent := Nil;
+  FModFinishedEvent := Nil;
+  FModErrorEvent := Nil;
+end;
+
 procedure TModStyle.CreateDefaultOptions;
 begin
   ProgressCount := 0;
@@ -672,7 +692,7 @@ begin
 
       if Assigned(PySys) then
         begin
-          PySys.Log('Initialized ModStyle - ' + ModuleName);
+          PySys.Log('Initialized ModStyle - ' + String(ModuleName));
         end;
     end;
 end;
@@ -870,7 +890,7 @@ end;
 
 procedure TModStyle.DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
 begin
-  PySys.Log('FN > ' + PySys.modPyIO.Options.StyleFilename );
+//  PySys.Log('FN > ' + PySys.modPyIO.Options.StyleFilename );
 //  frmStyle.ShowStyledImage(Self, PySys.modPyIO.Options.StyleFilename);
   DoModFinishedEvent(PySys.modPyIO.Options.StyleFilename);
   Result := Engine.ReturnNone;
@@ -1010,6 +1030,8 @@ begin
   FOptions.StyleAbortFlag := False;
   FOptions.StyleFilename := String.Empty;
   FOptions.StyleJsonLog := String.Empty;
+  FOptions.aspect := 1.0;
+  FOptions.ignore_gpu := True;
 end;
 
 procedure TModPyIO.InitializeModule(Sender: TObject);
@@ -1022,9 +1044,39 @@ begin
 
     if Assigned(PySys) then
       begin
-        PySys.Log('Initialized ModPyIO - ' + ModuleName);
+        PySys.Log('Initialized ModPyIO - ' + String(ModuleName));
       end;
     end;
+end;
+
+procedure TModPyIO.CalibrateStyle(const UseGPU: Boolean; const aspect: Single = 1.0);
+var
+  _im: Variant;
+begin
+  PySys.modStyle.ClearEvents;
+
+  FOptions.ignore_gpu := not UseGPU;
+  FOptions.aspect := aspect;
+  _im := MainModule.delphi_calibration_style();
+  PySys.Log('Finished');
+
+end;
+
+procedure TModPyIO.CalibrateTrain(const UseGPU: Boolean; const aspect: Single = 1.0);
+var
+  _im: Variant;
+begin
+  if not DirectoryExists(TPath.Combine(DataSetsPath, 'train/unsplash/lite/256')) then
+    begin
+      ShowMessage('Need datasets to calibrate training');
+      Exit;
+    end;
+  PySys.modTrain.ClearEvents;
+
+  FOptions.ignore_gpu := not UseGPU;
+  FOptions.aspect := aspect;
+  _im := MainModule.delphi_calibration_train();
+  PySys.Log('Finished');
 end;
 
 function TModPyIO.GetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
@@ -1048,6 +1100,10 @@ begin
           Result := VariantAsPyObject(FOptions.StyleFilename)
         else if key = 'StyleJsonLog' then
           Result := VariantAsPyObject(FOptions.StyleJsonLog)
+        else if key = 'aspect' then
+          Result := VariantAsPyObject(FOptions.aspect)
+        else if key = 'ignore_gpu' then
+          Result := VariantAsPyObject(FOptions.ignore_gpu)
         else
           begin
             PyErr_SetString (PyExc_AttributeError^, PAnsiChar(Format('Unknown property "%s"', [key])));
@@ -1101,6 +1157,16 @@ begin
             FOptions.StyleJsonLog := PyObjectAsVariant( value );
             Result := ReturnNone;
           end
+        else if key = 'aspect' then
+          begin
+            FOptions.aspect := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
+        else if key = 'ignore_gpu' then
+          begin
+            FOptions.ignore_gpu := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
         else
           begin
             PyErr_SetString (PyExc_AttributeError^, PAnsiChar(Format('Unknown property "%s"', [key])));
@@ -1115,7 +1181,7 @@ function TModPyIO.GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
 begin
   with GetPythonEngine do
     begin
-      Result := PyList_New(7);
+      Result := PyList_New(9);
       PyList_SetItem(Result, 0, PyUnicodeFromString('TrainJsonLog'));
       PyList_SetItem(Result, 2, PyUnicodeFromString('TrainAbortFlag'));
       PyList_SetItem(Result, 3, PyUnicodeFromString('TrainSampleFlag'));
@@ -1123,6 +1189,8 @@ begin
       PyList_SetItem(Result, 4, PyUnicodeFromString('StyleAbortFlag'));
       PyList_SetItem(Result, 5, PyUnicodeFromString('StyleFilename'));
       PyList_SetItem(Result, 6, PyUnicodeFromString('StyleJsonLog'));
+      PyList_SetItem(Result, 7, PyUnicodeFromString('aspect'));
+      PyList_SetItem(Result, 8, PyUnicodeFromString('ignore_gpu'));
     end;
 end;
 

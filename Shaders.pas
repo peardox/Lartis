@@ -356,12 +356,14 @@ end;
 
 function TLayerShader.GetStyleBitmap: TBitmap;
 begin
+  Result := Nil;
   if Assigned(bmImages[0].Bitmap) then
     Result := bmImages[0].Bitmap;
 end;
 
 function TLayerShader.GetOriginalBitmap: TBitmap;
 begin
+  Result := Nil;
   if Assigned(bmImages[1].Bitmap) then
     Result := bmImages[1].Bitmap;
 end;

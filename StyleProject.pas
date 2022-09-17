@@ -24,6 +24,8 @@ implementation
 
 function TStyleProject.GetLayer(Index: Integer): TBaseShader;
 begin
+  Result := Nil;
+
   if (Index > 0 ) and (Index < Length(FLayers)) then
     begin
       Result := FLayers[Index];

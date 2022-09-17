@@ -49,7 +49,7 @@ type
       function GetCollection(Index: Integer): TModelStyleCollection;
       procedure SetCollection(Index: Integer; Value: TModelStyleCollection);
     public
-      constructor Create(AOwner: TComponent);
+      constructor Create(AOwner: TComponent); override;
       procedure GetAllModels;
       function Count: Integer;
       property Collection[Index: Integer]: TModelStyleCollection read GetCollection write SetCollection;
@@ -69,6 +69,7 @@ uses
 
 constructor TStyleModels.Create(AOwner: TComponent);
 begin
+  inherited;
   SetLength(FCollection, 0);
 end;
 
@@ -100,6 +101,7 @@ var
   fn: String;
   RecCount: Integer;
 begin
+  RecCount := 0;
   JSonList := TStringList.Create;
   try
     GetModelJson(JsonList);
@@ -114,17 +116,6 @@ begin
                 FCollection[I] := LoadJson(fn);
                 Inc(RecCount);
               end;
-{
-            PySys.Log('JSON : ' + StyleModel.fpath + ' has ' + Length(StyleModel.models).ToString + ' models');
-            PySys.Log('     : ' + StyleModel.image.iTitle);
-            PySys.Log('     : ' + StyleModel.image.iName);
-            PySys.Log('     : ' + StyleModel.image.iDesc);
-            PySys.Log('     : ' + StyleModel.image.iType);
-            PySys.Log('     : ' + StyleModel.image.iWidth.ToString);
-            PySys.Log('     : ' + StyleModel.image.iHeight.ToString);
-            PySys.Log('     : ' + StyleModel.image.iHash);
-            PySys.Log('     : ' + StyleModel.image.sGroup);
-}
           end;
         SetLength(FCollection, RecCount);
       end;

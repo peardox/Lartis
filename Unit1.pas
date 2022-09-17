@@ -241,26 +241,12 @@ end;
 procedure TfrmMain.SystemTestMenuClick(Sender: TObject);
 var
   I: Integer;
-  StyleModel: TModelStyleCollection;
 begin
   frmDebug.Show;
 {$IFDEF JSONTEST}
-  if StyleModels.Count > 0 then
-    begin
-      for I := 0 to StyleModels.Count - 1 do
-        begin
-          StyleModel := StyleModels.Collection[I];
-          PySys.Log('JSON : ' + StyleModel.fpath + ' has ' + Length(StyleModel.models).ToString + ' models');
-          PySys.Log('     : ' + StyleModel.image.iTitle);
-          PySys.Log('     : ' + StyleModel.image.iName);
-          PySys.Log('     : ' + StyleModel.image.iDesc);
-          PySys.Log('     : ' + StyleModel.image.iType);
-          PySys.Log('     : ' + StyleModel.image.iWidth.ToString);
-          PySys.Log('     : ' + StyleModel.image.iHeight.ToString);
-          PySys.Log('     : ' + StyleModel.image.iHash);
-          PySys.Log('     : ' + StyleModel.image.sGroup);
-        end;
-    end;
+  PySys.modPyIO.CalibrateStyle(True, 16 / 9);
+  PySys.modPyIO.CalibrateTrain(True, 16 / 9);
+  exit;
 {$ENDIF}
 
   if Assigned(PySys) and SystemActive then

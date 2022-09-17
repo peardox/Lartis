@@ -45,9 +45,11 @@ type
     procedure AllDone;
     function HandleFileList(const AFileList: String): TJSONFileArray;
     procedure MultiThreadedMediaDownload(const outpath: String);
+{
     procedure MultiThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
       const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
       Logger: TMemo = Nil; Progress: TProgressBar = Nil);
+}
     procedure SingleThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
       const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
       Logger: TMemo = Nil; Progress: TProgressBar = Nil);
@@ -240,7 +242,6 @@ var
   FileList: TJSONFileArray;
   I: Integer;
   DirList: TStringList;
-  LDirectory: String;
   FullSize: Integer;
 begin
   Memo1.Lines.Clear;
@@ -294,6 +295,7 @@ begin
   end;
 end;
 
+{
 procedure TfrmInit.MultiThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
   const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
   Logger: TMemo = Nil; Progress: TProgressBar = Nil);
@@ -380,6 +382,7 @@ begin
 		end
 	).Start;
 end;
+}
 
 procedure TfrmInit.SingleThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
   const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
@@ -387,8 +390,7 @@ procedure TfrmInit.SingleThreadDownload(const ImageCount: Integer; AFileList: TJ
 var
   sw: TStopWatch;
   Downer: TUnSplashClient;
-  TotalImageCount: Integer;
-  I, TotalDone: Integer;
+  I: Integer;
 begin
   if Assigned(Logger) then
     begin
@@ -399,8 +401,6 @@ begin
       Progress.Min := 0;
       Progress.Max := FullSize;
     end;
-  TotalDone := 0;
-  TotalImageCount := Length(AFileList);
   sw := TStopWatch.StartNew;
 
   for I := 0 to ImageCount - 1 do
@@ -410,7 +410,6 @@ begin
 
       Downer := TUnSplashClient.Create(Self);
       var infilerec := AFileList[I];
-      var DownSize := AFileList[I].Size;
       var outfile := TPath.Combine(ADestPath, UnixToDos(infilerec.Name));
       try
         if Assigned(Logger) then
