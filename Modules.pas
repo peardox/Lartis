@@ -910,7 +910,7 @@ begin
   FOptions.content_image := '';
   FOptions.content_image_raw := ABitmap.ClassName;
   FOptions.output_image := IncludeTrailingPathDelimiter(CachePath) + 'direct-test.jpg';
-  FOptions.model := 'picasso/picasso-100';
+  FOptions.model := 'mosaic/mosaic-100';
   FOptions.ignore_gpu :=  not EnableGPU;
   PySys.LogClear;
   if Assigned(FTask) then
@@ -951,7 +951,7 @@ begin
   FOptions.content_image := AFile;
   FOptions.output_image := IncludeTrailingPathDelimiter(CachePath) + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-styled.jpg';
   FOptions.content_image_raw := '';
-  FOptions.model := 'picasso/picasso-100';
+  FOptions.model := 'mosaic/mosaic-100';
   FOptions.ignore_gpu :=  not EnableGPU;
   PySys.LogClear;
   if Assigned(FTask) then
