@@ -16,7 +16,7 @@ uses
   PyEnvironment.AddOn, PyEnvironment.AddOn.EnsurePip, PyEnvironment.Distribution,
   PyCommon, PyModule, PyPackage, PythonEngine,
   TorchVision, PyTorch, NumPy, SciPy,
-  {$IF NOT DEFINED(MACOS64)}
+  {$IF NOT DEFINED(CPUARM)}
   PSUtil,
   {$ENDIF}
   Pillow,
@@ -84,9 +84,9 @@ type
     procedure ThreadedSetup;
   public
     Torch: TPyTorch;
-  {$IF NOT DEFINED(MACOS64)}
+    {$IF NOT DEFINED(CPUARM)}
     PSUtil: TPSUtil;
-  {$ENDIF}
+    {$ENDIF}
 
     modStyle: TModStyle;
     modTrain: TModTrain;
@@ -167,7 +167,7 @@ begin
   modPyIO.Free;
 
   Torch.Free;
-  {$IF NOT DEFINED(MACOS64)}
+  {$IF NOT DEFINED(CPUARM)}
   PSUtil.Free;
   {$ENDIF}
   NumPy.Free;
@@ -453,7 +453,7 @@ begin
   SetupPackage(SciPy);
 
   // Create PSUtil
-  {$IF NOT DEFINED(MACOS64)}
+  {$IF NOT DEFINED(CPUARM)}
   PSUtil := TPSUtil.Create(Self);
   SetupPackage(PSUtil);
   {$ENDIF}
