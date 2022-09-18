@@ -1280,6 +1280,8 @@ begin
 
   FOptions.ignore_gpu := not AUseGPU;
   FOptions.AspectRatio := AAspect;
+  FOptions.BatchSize := 1;
+  FOptions.OneShot := False;
 
   SafeMaskFPUExceptions(True);
 
@@ -1306,12 +1308,12 @@ begin
       Exit;
     end;
   PySys.modTrain.ClearEvents;
-
   PySys.modStyle.ClearEvents;
 
   FOptions.ignore_gpu := not AUseGPU;
   FOptions.AspectRatio := AAspect;
   FOptions.BatchSize := 1;
+  FOptions.OneShot := False;
 
   SafeMaskFPUExceptions(True);
 
@@ -1341,6 +1343,10 @@ begin
           Result := VariantAsPyObject(FOptions.AspectRatio)
         else if key = 'ignore_gpu' then
           Result := VariantAsPyObject(FOptions.ignore_gpu)
+        else if key = 'BatchSize' then
+          Result := VariantAsPyObject(FOptions.BatchSize)
+        else if key = 'OneShot' then
+          Result := VariantAsPyObject(FOptions.OneShot)
         else
           begin
             PyErr_SetString (PyExc_AttributeError^, PAnsiChar(Format('Unknown property "%s"', [key])));
