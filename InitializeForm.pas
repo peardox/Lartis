@@ -302,7 +302,7 @@ procedure TfrmInit.MultiThreadDownload(const ImageCount: Integer; AFileList: TJS
   Logger: TMemo = Nil; Progress: TProgressBar = Nil);
 var
   sw: TStopWatch;
-  Downer: TUnSplashClient;
+  Downer: TDownerClient;
   tp: TThreadPool;
   ThreadsToUse: Integer;
   TotalImageCount: Integer;
@@ -343,7 +343,7 @@ begin
 			TParallel.For(1, 0, ImageCount - 1,
 				procedure(I: Integer)
 				begin
-					var Downer := TUnSplashClient.Create(Self);
+					var Downer := TDownerClient.Create(Self);
           var infilerec := AFileList[I];
           var DownSize := AFileList[I].Size;
           var outfile := TPath.Combine(ADestPath, UnixToDos(infilerec.Name));
@@ -390,7 +390,7 @@ procedure TfrmInit.SingleThreadDownload(const ImageCount: Integer; AFileList: TJ
   Logger: TMemo = Nil; Progress: TProgressBar = Nil);
 var
   sw: TStopWatch;
-  Downer: TUnSplashClient;
+  Downer: TDownerClient;
   I: Integer;
 begin
   if Assigned(Logger) then
@@ -409,7 +409,7 @@ begin
       if AbortFlag then
         Exit;
 
-      Downer := TUnSplashClient.Create(Self);
+      Downer := TDownerClient.Create(Self);
       var infilerec := AFileList[I];
       var outfile := TPath.Combine(ADestPath, UnixToDos(infilerec.Name));
       try

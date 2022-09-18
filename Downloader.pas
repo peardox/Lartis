@@ -12,7 +12,7 @@ uses
   System.Diagnostics, FMX.ScrollBox, FMX.Memo;
 
 type
-  TUnSplashClient = class(TComponent)
+  TDownerClient = class(TComponent)
   private
     FDownloadIndex: Integer;
     FDownloadStream: TStream;
@@ -35,20 +35,20 @@ function UnixToDos(const Filename: String): String; Inline;
 
 implementation
 
-constructor TUnSplashClient.Create(AOwner: TComponent);
+constructor TDownerClient.Create(AOwner: TComponent);
 begin
   inherited;
   FClient := TNetHTTPClient.Create(Self);
 end;
 
-destructor TUnSplashClient.Destroy;
+destructor TDownerClient.Destroy;
 begin
     FreeAndNil(FClient);
     inherited;
 end;
 
 
-procedure TUnSplashClient.ReceiveData(const Sender: TObject;
+procedure TDownerClient.ReceiveData(const Sender: TObject;
   AContentLength, AReadCount: Int64; var AAbort: Boolean);
 begin
   if Assigned(FProgress) then
@@ -76,14 +76,14 @@ begin
   Result := Filename{$IFDEF MSWINDOWS}.Replace('/','\\'){$ENDIF};
 end;
 
-procedure TUnSplashClient.NeedClientCertificate(const Sender: TObject;
+procedure TDownerClient.NeedClientCertificate(const Sender: TObject;
   const ARequest: TURLRequest; const ACertificateList: TCertificateList;
   var AnIndex: Integer);
 begin
   ShowMessage('Cert requested');
 end;
 
-procedure TUnSplashClient.Download(const ABaseURL: String; const Outpath: String; const AFile: TJSONFile; const ADownloadIndex: Integer; Progress: TProgressBar);
+procedure TDownerClient.Download(const ABaseURL: String; const Outpath: String; const AFile: TJSONFile; const ADownloadIndex: Integer; Progress: TProgressBar);
 var
   URL: string;
   LResponse: IHTTPResponse;
