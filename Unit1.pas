@@ -36,6 +36,13 @@ type
     DebugMenu: TMenuItem;
     SystemTestMenu: TMenuItem;
     InitLayout: TLayout;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
+    mnuCalibrateStyleGPU: TMenuItem;
+    mnuCalibrateStyleCPU: TMenuItem;
+    mnuCalibrateTrainGPU: TMenuItem;
+    mnuCalibrateTrainCPU: TMenuItem;
     {$IFDEF ENABLE_EVOLVE}
     EvolveLayout: TLayout;
     {$ENDIF}
@@ -51,6 +58,14 @@ type
     procedure SetupFinished(Sender: TObject; const AStatus: Boolean);
     procedure InstallFinished(Sender: TObject; const AStatus: Boolean);
     procedure CreateEmbeddedForms;
+    procedure SystemCalibrateTrainCPU(Sender: TObject);
+    procedure SystemCalibrateStyleCPU(Sender: TObject);
+    procedure SystemCalibrateTrainGPU(Sender: TObject);
+    procedure SystemCalibrateStyleGPU(Sender: TObject);
+    procedure mnuCalibrateStyleCPUClick(Sender: TObject);
+    procedure mnuCalibrateStyleGPUClick(Sender: TObject);
+    procedure mnuCalibrateTrainCPUClick(Sender: TObject);
+    procedure mnuCalibrateTrainGPUClick(Sender: TObject);
   private
     { Private declarations }
     function EmbedForm(AParent:TControl; AForm:TEmbeddedForm): TEmbeddedForm;
@@ -238,16 +253,55 @@ begin
   frmOptions.ShowModal;
 end;
 
+procedure TfrmMain.mnuCalibrateStyleCPUClick(Sender: TObject);
+begin
+  SystemCalibrateStyleCPU(Self);
+end;
+
+procedure TfrmMain.mnuCalibrateStyleGPUClick(Sender: TObject);
+begin
+  SystemCalibrateStyleGPU(Self);
+end;
+
+procedure TfrmMain.mnuCalibrateTrainCPUClick(Sender: TObject);
+begin
+  SystemCalibrateTrainCPU(Self);
+end;
+
+procedure TfrmMain.mnuCalibrateTrainGPUClick(Sender: TObject);
+begin
+  SystemCalibrateTrainGPU(Self);
+end;
+
+procedure TfrmMain.SystemCalibrateStyleGPU(Sender: TObject);
+begin
+  frmDebug.Show;
+  PySys.modPyIO.CalibrateStyle(True, 16 / 9);
+end;
+
+procedure TfrmMain.SystemCalibrateTrainGPU(Sender: TObject);
+begin
+  frmDebug.Show;
+  PySys.modPyIO.CalibrateTrain(True, 16 / 9);
+end;
+
+procedure TfrmMain.SystemCalibrateStyleCPU(Sender: TObject);
+begin
+  frmDebug.Show;
+  PySys.modPyIO.CalibrateStyle(False, 16 / 9);
+end;
+
+procedure TfrmMain.SystemCalibrateTrainCPU(Sender: TObject);
+begin
+  frmDebug.Show;
+  PySys.modPyIO.CalibrateTrain(False, 16 / 9);
+end;
+
 procedure TfrmMain.SystemTestMenuClick(Sender: TObject);
 var
   I: Integer;
 begin
   frmDebug.Show;
-{$IFDEF JSONTEST}
-  PySys.modPyIO.CalibrateStyle(True, 16 / 9);
-  PySys.modPyIO.CalibrateTrain(True, 16 / 9);
-  exit;
-{$ENDIF}
 
   if Assigned(PySys) and SystemActive then
     begin
