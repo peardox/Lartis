@@ -91,6 +91,7 @@ type
     modStyle: TModStyle;
     modTrain: TModTrain;
     modPyIO: TModPyIO;
+    modCalibrate: TModCalibration;
 
     property LogTarget: TMemo read FLogTarget write SetLogTarget;
     constructor Create(AOwner: TComponent); override;
@@ -165,6 +166,7 @@ begin
   modStyle.Free;
   modTrain.Free;
   modPyIO.Free;
+  modCalibrate.Free;
 
   Torch.Free;
   {$IF NOT DEFINED(CPUARM)}
@@ -534,6 +536,11 @@ begin
               modPyIO.Engine := PyEng;
               modPyIO.ModuleName := 'pinout';
               modPyIO.Initialize;
+
+              modCalibrate := TModCalibration.Create(Self);
+              modCalibrate.Engine := PyEng;
+              modCalibrate.ModuleName := 'pcalibrate';
+              modCalibrate.Initialize;
             end
           );
 

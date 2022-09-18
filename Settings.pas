@@ -44,6 +44,7 @@ implementation
 procedure CreateSettings;
 begin
   InstallRequired := False;
+  EnableGPU := True;
 //  InstallRequired := True;
 
   {$IF DEFINED(MACOS64)}

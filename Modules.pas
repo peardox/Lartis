@@ -20,8 +20,15 @@ type
     StyleAbortFlag: Boolean;
     StyleFilename: String;
     StyleJsonLog: String;
-    aspect: Single;
+    CalibrateJsonLog: String;
+    CalibrationResultJson: String;
+  end;
+
+  TCalibrationOptions = record
+    AspectRatio: Single;
     ignore_gpu: Boolean;
+    BatchSize: Integer;
+    OneShot: Boolean;
   end;
 
   TTrainOptions = record
@@ -86,6 +93,28 @@ type
     event: Integer;
     subevent: Integer;
     time: Single;
+  end;
+
+  TCalibrationLog = record
+    result: Integer;
+    width: Integer;
+    height: Integer;
+    size: Integer;
+    time: Single;
+    next_size: Integer;
+    window_size: Integer;
+    error_flag: Boolean;
+    batch: Integer;
+    log: Integer;
+    done: Integer;
+  end;
+
+  TCalibrationResult = record
+    result: Integer;
+    time: Single;
+    batch: Integer;
+    log: Integer;
+    done: Integer;
   end;
 
   TModTrain = class(TPythonModule)
@@ -153,6 +182,9 @@ type
   TModPyIO = class(TPythonModule)
   private
     FOptions: TPyIOOptions;
+    FModProgressEvent: TModProgressEvent;
+    FModFinishedEvent: TModFinishedEvent;
+    FModErrorEvent: TModErrorEvent;
   public
     property Options: TPyIOOptions read FOptions write FOptions;
     constructor Create(AOwner: TComponent); override;
@@ -161,8 +193,31 @@ type
     function GetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function SetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
-    procedure CalibrateStyle(const UseGPU: Boolean; const aspect: Single = 1.0);
-    procedure CalibrateTrain(const UseGPU: Boolean; const aspect: Single = 1.0);
+  end;
+
+  TModCalibration = class(TPythonModule)
+  private
+    FTask: ITask;
+    FOptions: TCalibrationOptions;
+    FModProgressEvent: TModProgressEvent;
+    FModFinishedEvent: TModFinishedEvent;
+    FModErrorEvent: TModErrorEvent;
+    procedure DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+    procedure DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+    procedure DoModProgressEvent(const AValue: Single);
+    procedure DoModFinishedEvent(const AFile: String);
+    procedure DoModErrorEvent(const AString: String);
+  public
+    property Options: TCalibrationOptions read FOptions write FOptions;
+    constructor Create(AOwner: TComponent); override;
+    procedure CreateDefaultOptions;
+    procedure InitializeModule(Sender: TObject);
+    function GetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
+    function SetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
+    function GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
+    procedure CalibrateStyle(const AUseGPU: Boolean; const AAspect: Single = 1.0);
+    procedure CalibrateTrain(const AUseGPU: Boolean; const AAspect: Single = 1.0);
+    procedure ClearEvents;
   end;
 
   TModHelper = class helper for TPythonModule
@@ -1007,53 +1062,33 @@ begin
   FOptions.StyleAbortFlag := False;
   FOptions.StyleFilename := String.Empty;
   FOptions.StyleJsonLog := String.Empty;
-  FOptions.aspect := 1.0;
-  FOptions.ignore_gpu := True;
+  FOptions.CalibrateJsonLog := String.Empty;
+  FOptions.CalibrationResultJson := String.Empty;
 end;
 
 procedure TModPyIO.InitializeModule(Sender: TObject);
+var
+  ev: TEventDef;
 begin
   with Sender as TPythonModule do
     begin
       AddDelphiMethod( 'GetProperty', GetProperty, 'GetProperty(PropName) -> PropValue' );
       AddDelphiMethod( 'SetProperty', SetProperty, 'SetProperty(PropName, PropValue) -> None' );
       AddDelphiMethod( 'GetPropertyList', GetPropertyList, 'GetPropertyList() -> List of property names' );
+{
+      ev := TEventDef.Create(Events);
+      ev.Name := 'CalibrateProgress';
+      ev.OnExecute := DoProgress;
 
+      ev := TEventDef.Create(Events);
+      ev.Name := 'CalibrateFinished';
+      ev.OnExecute := DoFinished;
+}
     if Assigned(PySys) then
       begin
         PySys.Log('Initialized ModPyIO - ' + String(ModuleName));
       end;
     end;
-end;
-
-procedure TModPyIO.CalibrateStyle(const UseGPU: Boolean; const aspect: Single = 1.0);
-var
-  _im: Variant;
-begin
-  PySys.modStyle.ClearEvents;
-
-  FOptions.ignore_gpu := not UseGPU;
-  FOptions.aspect := aspect;
-  _im := MainModule.delphi_calibration_style();
-  PySys.Log('Finished');
-
-end;
-
-procedure TModPyIO.CalibrateTrain(const UseGPU: Boolean; const aspect: Single = 1.0);
-var
-  _im: Variant;
-begin
-  if not DirectoryExists(TPath.Combine(DataSetsPath, 'train/unsplash/lite/256')) then
-    begin
-      ShowMessage('Need datasets to calibrate training');
-      Exit;
-    end;
-  PySys.modTrain.ClearEvents;
-
-  FOptions.ignore_gpu := not UseGPU;
-  FOptions.aspect := aspect;
-  _im := MainModule.delphi_calibration_train();
-  PySys.Log('Finished');
 end;
 
 function TModPyIO.GetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
@@ -1077,10 +1112,11 @@ begin
           Result := VariantAsPyObject(FOptions.StyleFilename)
         else if key = 'StyleJsonLog' then
           Result := VariantAsPyObject(FOptions.StyleJsonLog)
-        else if key = 'aspect' then
-          Result := VariantAsPyObject(FOptions.aspect)
-        else if key = 'ignore_gpu' then
-          Result := VariantAsPyObject(FOptions.ignore_gpu)
+        else if key = 'CalibrateJsonLog' then
+          Result := VariantAsPyObject(FOptions.CalibrateJsonLog)
+        else if key = 'CalibrationResultJson' then
+          Result := VariantAsPyObject(FOptions.CalibrationResultJson)
+
         else
           begin
             PyErr_SetString (PyExc_AttributeError^, PAnsiChar(Format('Unknown property "%s"', [key])));
@@ -1134,14 +1170,14 @@ begin
             FOptions.StyleJsonLog := PyObjectAsVariant( value );
             Result := ReturnNone;
           end
-        else if key = 'aspect' then
+        else if key = 'CalibrateJsonLog' then
           begin
-            FOptions.aspect := PyObjectAsVariant( value );
+            FOptions.CalibrateJsonLog := PyObjectAsVariant( value );
             Result := ReturnNone;
           end
-        else if key = 'ignore_gpu' then
+        else if key = 'CalibrationResultJson' then
           begin
-            FOptions.ignore_gpu := PyObjectAsVariant( value );
+            FOptions.CalibrationResultJson := PyObjectAsVariant( value );
             Result := ReturnNone;
           end
         else
@@ -1160,16 +1196,262 @@ begin
     begin
       Result := PyList_New(9);
       PyList_SetItem(Result, 0, PyUnicodeFromString('TrainJsonLog'));
-      PyList_SetItem(Result, 2, PyUnicodeFromString('TrainAbortFlag'));
-      PyList_SetItem(Result, 3, PyUnicodeFromString('TrainSampleFlag'));
+      PyList_SetItem(Result, 1, PyUnicodeFromString('TrainAbortFlag'));
+      PyList_SetItem(Result, 2, PyUnicodeFromString('TrainSampleFlag'));
       PyList_SetItem(Result, 3, PyUnicodeFromString('SampleFilename'));
       PyList_SetItem(Result, 4, PyUnicodeFromString('StyleAbortFlag'));
       PyList_SetItem(Result, 5, PyUnicodeFromString('StyleFilename'));
       PyList_SetItem(Result, 6, PyUnicodeFromString('StyleJsonLog'));
-      PyList_SetItem(Result, 7, PyUnicodeFromString('aspect'));
-      PyList_SetItem(Result, 8, PyUnicodeFromString('ignore_gpu'));
+      PyList_SetItem(Result, 7, PyUnicodeFromString('CalibrateJsonLog'));
+      PyList_SetItem(Result, 8, PyUnicodeFromString('CalibrationResultJson'));
     end;
 end;
+
+///// Calibration Module Definitions /////
+
+constructor TModCalibration.Create(AOwner: TComponent);
+begin
+  inherited;
+  OnInitialization := InitializeModule;
+  CreateDefaultOptions;
+end;
+
+procedure TModCalibration.DoModProgressEvent(const AValue: Single);
+begin
+  if Assigned(FModProgressEvent) then
+    FModProgressEvent(Self, AValue);
+end;
+
+procedure TModCalibration.DoModFinishedEvent(const AFile: String);
+begin
+  if Assigned(FModFinishedEvent) then
+    FModFinishedEvent(Self, AFile);
+end;
+
+procedure TModCalibration.DoModErrorEvent(const AString: String);
+begin
+  if Assigned(FModErrorEvent) then
+    FModErrorEvent(Self, AString);
+end;
+
+procedure TModCalibration.ClearEvents;
+begin
+  FModProgressEvent := Nil;
+  FModFinishedEvent := Nil;
+  FModErrorEvent := Nil;
+end;
+
+procedure TModCalibration.CreateDefaultOptions;
+begin
+  FOptions.AspectRatio := 1.0;
+  FOptions.ignore_gpu := True;
+  FOptions.BatchSize := 1;
+  FOptions.OneShot := True;
+end;
+
+procedure TModCalibration.InitializeModule(Sender: TObject);
+var
+  ev: TEventDef;
+begin
+  with Sender as TPythonModule do
+    begin
+      AddDelphiMethod( 'GetProperty', GetProperty, 'GetProperty(PropName) -> PropValue' );
+      AddDelphiMethod( 'SetProperty', SetProperty, 'SetProperty(PropName, PropValue) -> None' );
+      AddDelphiMethod( 'GetPropertyList', GetPropertyList, 'GetPropertyList() -> List of property names' );
+
+      ev := TEventDef.Create(Events);
+      ev.Name := 'CalibrateProgress';
+      ev.OnExecute := DoProgress;
+
+      ev := TEventDef.Create(Events);
+      ev.Name := 'CalibrateFinished';
+      ev.OnExecute := DoFinished;
+
+    if Assigned(PySys) then
+      begin
+        PySys.Log('Initialized ModCalibration - ' + String(ModuleName));
+      end;
+    end;
+end;
+
+procedure TModCalibration.CalibrateStyle(const AUseGPU: Boolean; const AAspect: Single = 1.0);
+begin
+  PySys.modStyle.ClearEvents;
+
+  FOptions.ignore_gpu := not AUseGPU;
+  FOptions.AspectRatio := AAspect;
+
+  SafeMaskFPUExceptions(True);
+
+  FTask := TTask.Run(
+    procedure()
+      begin
+        TThread.Synchronize(nil,
+          procedure()
+          begin
+            MainModule.delphi_calibration_style();
+          end
+          )
+      end
+    );
+
+  SafeMaskFPUExceptions(False);
+end;
+
+procedure TModCalibration.CalibrateTrain(const AUseGPU: Boolean; const AAspect: Single = 1.0);
+begin
+  if not DirectoryExists(TPath.Combine(DataSetsPath, 'train/unsplash/lite/256')) then
+    begin
+      ShowMessage('Need datasets to calibrate training');
+      Exit;
+    end;
+  PySys.modTrain.ClearEvents;
+
+  PySys.modStyle.ClearEvents;
+
+  FOptions.ignore_gpu := not AUseGPU;
+  FOptions.AspectRatio := AAspect;
+  FOptions.BatchSize := 1;
+
+  SafeMaskFPUExceptions(True);
+
+  FTask := TTask.Run(
+    procedure()
+      begin
+        TThread.Synchronize(nil,
+          procedure()
+          begin
+            MainModule.delphi_calibration_train();
+          end
+          )
+      end
+    );
+
+  SafeMaskFPUExceptions(False);
+end;
+
+function TModCalibration.GetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
+var
+  key : PAnsiChar;
+begin
+  with GetPythonEngine do
+    if PyArg_ParseTuple( args, 's:GetProperty',@key ) <> 0 then
+      begin
+        if key = 'AspectRatio' then
+          Result := VariantAsPyObject(FOptions.AspectRatio)
+        else if key = 'ignore_gpu' then
+          Result := VariantAsPyObject(FOptions.ignore_gpu)
+        else
+          begin
+            PyErr_SetString (PyExc_AttributeError^, PAnsiChar(Format('Unknown property "%s"', [key])));
+            Result := nil;
+          end;
+      end
+    else
+      Result := nil;
+end;
+
+function TModCalibration.SetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
+var
+  key : PAnsiChar;
+  value : PPyObject;
+begin
+  with GetPythonEngine do
+    if PyArg_ParseTuple( args, 'sO:SetProperty',@key, @value ) <> 0 then
+      begin
+        if key = 'AspectRatio' then
+          begin
+            FOptions.AspectRatio := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
+        else if key = 'ignore_gpu' then
+          begin
+            FOptions.ignore_gpu := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
+        else if key = 'BatchSize' then
+          begin
+            FOptions.BatchSize := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
+        else if key = 'OneShot' then
+          begin
+            FOptions.OneShot := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
+        else
+          begin
+            PyErr_SetString (PyExc_AttributeError^, PAnsiChar(Format('Unknown property "%s"', [key])));
+            Result := nil;
+          end;
+      end
+    else
+      Result := nil;
+end;
+
+function TModCalibration.GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
+begin
+  with GetPythonEngine do
+    begin
+      Result := PyList_New(4);
+      PyList_SetItem(Result, 0, PyUnicodeFromString('AspectRatio'));
+      PyList_SetItem(Result, 1, PyUnicodeFromString('ignore_gpu'));
+      PyList_SetItem(Result, 2, PyUnicodeFromString('BatchSize'));
+      PyList_SetItem(Result, 3, PyUnicodeFromString('OneShot'));
+    end;
+end;
+
+procedure TModCalibration.DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+  procedure HandleLogLine(const ALogLine: String);
+  var
+    lSerializer: TJsonSerializer;
+    log: TCalibrationLog;
+  begin
+    lSerializer := TJsonSerializer.Create;
+    try
+      try
+        if ALogLine <> String.Empty then
+          begin
+            log := lSerializer.Deserialize<TCalibrationLog>(ALogLine);
+
+            PySys.Log('-> ' + ALogLine);
+            Application.ProcessMessages;
+          end;
+      except
+       on E : Exception do
+       begin
+         PySys.Log('Exception class name = '+E.ClassName);
+         PySys.Log('Exception message = '+E.Message);
+         PySys.Log('LogLine = ' + '"' + ALogLine + '"');
+       end;
+      end;
+    finally
+      FreeAndNil(lSerializer);
+    end;
+  end;
+begin
+  if TThread.CurrentThread.ThreadID <> MainThreadID then
+    TThread.Synchronize(nil,
+      procedure()
+      begin
+        PySys.Log('InThread');
+      end)
+    else
+      HandleLogLine(PySys.modPyIO.Options.CalibrateJsonLog);
+
+//  PySys.Log('==> ' + );
+  Result := Engine.ReturnNone;
+end;
+
+procedure TModCalibration.DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+begin
+  PySys.Log('Result > ' + PySys.modPyIO.Options.CalibrationResultJson );
+//  frmStyle.ShowStyledImage(Self, PySys.modPyIO.Options.StyleFilename);
+//  DoModFinishedEvent(PySys.modPyIO.Options.StyleFilename);
+  Result := Engine.ReturnNone;
+  PySys.Log('Finished');
+end;
+
 
 end.
 

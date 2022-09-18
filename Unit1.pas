@@ -276,25 +276,25 @@ end;
 procedure TfrmMain.SystemCalibrateStyleGPU(Sender: TObject);
 begin
   frmDebug.Show;
-  PySys.modPyIO.CalibrateStyle(True, 16 / 9);
+  PySys.modCalibrate.CalibrateStyle(True, 16 / 9);
 end;
 
 procedure TfrmMain.SystemCalibrateTrainGPU(Sender: TObject);
 begin
   frmDebug.Show;
-  PySys.modPyIO.CalibrateTrain(True, 16 / 9);
+  PySys.modCalibrate.CalibrateTrain(True, 16 / 9);
 end;
 
 procedure TfrmMain.SystemCalibrateStyleCPU(Sender: TObject);
 begin
   frmDebug.Show;
-  PySys.modPyIO.CalibrateStyle(False, 16 / 9);
+  PySys.modCalibrate.CalibrateStyle(False, 16 / 9);
 end;
 
 procedure TfrmMain.SystemCalibrateTrainCPU(Sender: TObject);
 begin
   frmDebug.Show;
-  PySys.modPyIO.CalibrateTrain(False, 16 / 9);
+  PySys.modCalibrate.CalibrateTrain(False, 16 / 9);
 end;
 
 procedure TfrmMain.SystemTestMenuClick(Sender: TObject);
