@@ -52,6 +52,7 @@ type
     imgStyleThumb1: TImageControl;
     imgStyleThumb3: TImageControl;
     imgStyleThumb2: TImageControl;
+    Label1: TLabel;
     procedure btnBackClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
@@ -82,6 +83,7 @@ type
     procedure ShowStyleProgress(Sender: TObject; const AValue: Single);
     procedure ShowStyledImage(Sender: TObject; const AFileName: String);
     procedure DoSaveLayers;
+    procedure UpdateDebugInfo;
   public
     { Public declarations }
     procedure MakeStyleSelectors;
@@ -107,6 +109,8 @@ uses
 
 procedure TfrmStyle.FormCreate(Sender: TObject);
 begin
+  Label1.Text := '';
+
   cbxColourMode.Items.Add('Use Styled Colors');
   cbxColourMode.Items.Add('Use Original (YUV)');
   cbxColourMode.Items.Add('Use Original (HLS)');
@@ -507,9 +511,21 @@ begin
   end;
 end;
 
+procedure TfrmStyle.UpdateDebugInfo;
+var
+  txt: String;
+begin
+  txt := '';
+  if Assigned(Layers) then
+    txt := txt +  'Layers = ' + IntToStr(Length(Layers));
+
+  Label1.Text := txt;
+end;
+
 procedure TfrmStyle.FormPaint(Sender: TObject; Canvas: TCanvas;
   const ARect: TRectF);
 begin
+  UpdateDebugInfo;
   if FSaveInNextPaint then
     DoSaveLayers;
 end;

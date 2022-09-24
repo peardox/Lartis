@@ -28,7 +28,7 @@ type
     AspectRatio: Single;
     ignore_gpu: Boolean;
     BatchSize: Integer;
-    OneShot: Boolean;
+    OneShot: Integer;
   end;
 
   TTrainOptions = record
@@ -215,7 +215,7 @@ type
     function GetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function SetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
-    procedure CalibrateStyle(const AUseGPU: Boolean; const AAspect: Single = 1.0);
+    procedure CalibrateStyle(const AUseGPU: Boolean; const AAspect: Single = 1.0; const AOneShot: Integer = 0);
     procedure CalibrateTrain(const AUseGPU: Boolean; const AAspect: Single = 1.0);
     procedure ClearEvents;
   end;
@@ -1246,7 +1246,7 @@ begin
   FOptions.AspectRatio := 1.0;
   FOptions.ignore_gpu := True;
   FOptions.BatchSize := 1;
-  FOptions.OneShot := True;
+  FOptions.OneShot := 0;
 end;
 
 procedure TModCalibration.InitializeModule(Sender: TObject);
@@ -1274,28 +1274,35 @@ begin
     end;
 end;
 
-procedure TModCalibration.CalibrateStyle(const AUseGPU: Boolean; const AAspect: Single = 1.0);
+procedure TModCalibration.CalibrateStyle(const AUseGPU: Boolean; const AAspect: Single = 1.0; const AOneShot: Integer = 0);
 begin
   PySys.modStyle.ClearEvents;
 
   FOptions.ignore_gpu := not AUseGPU;
   FOptions.AspectRatio := AAspect;
   FOptions.BatchSize := 1;
-  FOptions.OneShot := False;
+  FOptions.OneShot := AOneShot;
 
   SafeMaskFPUExceptions(True);
 
-  FTask := TTask.Run(
-    procedure()
-      begin
-        TThread.Synchronize(nil,
-          procedure()
+  if AOneShot <> 0 then
+    begin
+      MainModule.delphi_calibration_style();
+    end
+  else
+    begin
+      FTask := TTask.Run(
+        procedure()
           begin
-            MainModule.delphi_calibration_style();
+            TThread.Synchronize(nil,
+              procedure()
+              begin
+                MainModule.delphi_calibration_style();
+              end
+              )
           end
-          )
-      end
-    );
+        );
+    end;
 
   SafeMaskFPUExceptions(False);
 end;
@@ -1313,7 +1320,7 @@ begin
   FOptions.ignore_gpu := not AUseGPU;
   FOptions.AspectRatio := AAspect;
   FOptions.BatchSize := 1;
-  FOptions.OneShot := False;
+  FOptions.OneShot := 0;
 
   SafeMaskFPUExceptions(True);
 

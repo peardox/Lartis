@@ -231,11 +231,20 @@ end;
 
 procedure TfrmMain.SetupFinished(Sender: TObject; const AStatus: Boolean);
 begin
-  PySys.LogTarget := Nil;
-  frmSetup.OnSetupFinished := Nil;
-  FreeAndNil(frmSetup);
-  if not AStatus then
-    ShowMessage('System not ready');
+  if AStatus then
+    begin
+      if EnableGPU then
+        begin
+          PySys.Log('One moment please, warming up GPU');
+          PySys.modCalibrate.CalibrateStyle(True, 16 / 9, 256);
+        end;
+        PySys.LogTarget := Nil;
+        frmSetup.OnSetupFinished := Nil;
+        FreeAndNil(frmSetup);
+      end
+    else
+      ShowMessage('System not ready')
+
 end;
 
   procedure TfrmMain.DebugMenuClick(Sender: TObject);

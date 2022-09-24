@@ -49,6 +49,8 @@ begin
 
   {$IF DEFINED(MACOS64)}
   AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath) + appname;
+  {$ELSEIF DEFINED(LINUX)}
+  AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetHomePath) + '.' + appname;
   {$ELSE}
   AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetHomePath) + appname;
   {$ENDIF}

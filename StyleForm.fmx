@@ -34,6 +34,15 @@ object frmStyle: TfrmStyle
       Text = 'btnBack'
       OnClick = btnBackClick
     end
+    object Label1: TLabel
+      Position.X = 232.000000000000000000
+      Position.Y = 2.000000000000000000
+      Size.Width = 641.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Label1'
+      TabOrder = 2
+    end
   end
   object layStyleControl: TLayout
     Align = Right
@@ -50,8 +59,8 @@ object frmStyle: TfrmStyle
       Size.Height = 173.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      Viewport.Width = 140.000000000000000000
-      Viewport.Height = 169.000000000000000000
+      Viewport.Width = 160.000000000000000000
+      Viewport.Height = 173.000000000000000000
       object layStyleThumb1: TLayout
         Align = Top
         Size.Width = 140.000000000000000000
@@ -275,8 +284,8 @@ object frmStyle: TfrmStyle
       Size.Height = 573.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      Viewport.Width = 156.000000000000000000
-      Viewport.Height = 569.000000000000000000
+      Viewport.Width = 160.000000000000000000
+      Viewport.Height = 573.000000000000000000
       object layStyleSelect1: TLayout
         Align = Top
         Size.Width = 156.000000000000000000

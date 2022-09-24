@@ -60,7 +60,7 @@ end;
 procedure TfrmSetup.SetupComplete(Sender: TObject; const AStatus: Boolean);
 begin
   Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'setup_form.log');
-  Close;
+  Close;  // SBDBG
   if Assigned(FSetupFinishedEvent) then
     FSetupFinishedEvent(Self, AStatus);
 end;
