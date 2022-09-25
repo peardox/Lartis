@@ -38,12 +38,17 @@ type
     procedure Memo1Click(Sender: TObject);
   private
     { Private declarations }
+    DidRunInstall: Boolean;
+    SystemError: Boolean;
     SettingUp: Boolean;
     FHaveGPU: Boolean;
     FInstallFinishedEvent: TInstallFinishedEvent;
     SetupInfo: String;
     procedure DoInstallFinished(Sender: TObject; const AStatus: Boolean);
     procedure AllDone;
+    procedure DoGPUWarmup;
+    function DoSystemTest: Boolean;
+    procedure FinishInit(Sender: TObject; const AStatus: Boolean);
     function HandleFileList(const AFileList: String): TJSONFileArray;
     procedure MultiThreadedMediaDownload(const outpath: String);
     procedure SingleThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
@@ -78,6 +83,7 @@ uses
 
 procedure TfrmInit.FormCreate(Sender: TObject);
 begin
+  DidRunInstall := False;
   SettingUp := True;
   layInstall.Visible := True;
   StatusBar.Visible := True;
@@ -271,6 +277,21 @@ begin
     end;
 end;
 
+procedure TfrmInit.DoGPUWarmup;
+begin
+  PySys.Log('One moment please, warming up GPU');
+  PySys.modCalibrate.CalibrateStyle(True, 1, 256);
+end;
+
+function TfrmInit.DoSystemTest: Boolean;
+begin
+  SystemError := PySys.RunShim(pyshim);
+
+  if not SystemError then
+    SystemError := PySys.RunTest;
+  if not SystemError then
+    SystemError := PySys.RunSystem;
+end;
 procedure TfrmInit.SetupComplete(Sender: TObject; const AStatus: Boolean);
 begin
   if not InstallRequired then
@@ -281,26 +302,43 @@ begin
   else
     begin
       Memo1.Lines.Add('Setup Complete');
-      Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'initialisation.log');
+      Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'setup.log');
     end;
-  if EnableGPU then
+  if AStatus and EnableGPU then
     begin
-      PySys.Log('One moment please, warming up GPU');
-      PySys.modCalibrate.CalibrateStyle(True, 1, 256);
+//      DoGPUWarmup;
     end;
+  if DidRunInstall then
+    begin
+      btnInstall.Text := 'Continue';
+    end
+  else
+    FinishInit(Self, AStatus);
+end;
+
+procedure TfrmInit.FinishInit(Sender: TObject; const AStatus: Boolean);
+begin
   PySys.LogTarget := Nil;
   if Assigned(CloseMyself) then
       CloseMyself(Self);
-  DoInstallFinished(Self, True);
+  DoInstallFinished(Self, AStatus);
 end;
 
 procedure TfrmInit.btnInstallClick(Sender: TObject);
 begin
-  ToggleBlurb(Memo1);
-  btnInstall.Enabled := False;
-  Memo1.Lines.Add('Starting installation');
-  MultiThreadedMediaDownload(AppHome);
-  AllDone;
+  if not DidRunInstall then
+    begin
+      ToggleBlurb(Memo1);
+      btnInstall.Enabled := False;
+      DidRunInstall := True;
+      Memo1.Lines.Add('Starting installation');
+      MultiThreadedMediaDownload(AppHome);
+      AllDone;
+    end
+  else
+    begin
+      DoGPUWarmup;
+    end;
 end;
 
 procedure TfrmInit.MultiThreadedMediaDownload(const outpath: String);

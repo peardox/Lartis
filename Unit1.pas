@@ -216,7 +216,10 @@ begin
       CreateEmbeddedForms
     end
   else
-    PySys.Log('Restart system');
+    begin
+      ShowMessage('Restart system');
+      SystemSettings.PythonInstalled := True;
+    end;
 end;
 
 procedure TfrmMain.DebugMenuClick(Sender: TObject);
@@ -283,6 +286,12 @@ var
   I: Integer;
 begin
   frmDebug.Show;
+
+  if not PySys.RunSystem then
+    PySys.Log('Bad')
+  else
+    PySys.Log('Good');
+  Exit;
 
   if Assigned(PySys) and SystemActive then
     begin

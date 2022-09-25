@@ -86,7 +86,6 @@ type
     procedure ReActivate;
     procedure SetLogTarget(AStringContainer: TMemo);
     procedure SetupPackage(APackage: TPyManagedPackage; const AExtraURL: String = '');
-    function RunShim(const ShimPath: String): Boolean;
     procedure ThreadedSetup;
   public
     Torch: TPyTorch;
@@ -103,6 +102,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure SetupSystem(OnSetupComplete: TPySysFinishedEvent = Nil; const HaveGPU: Boolean = False; const InstallationActive: Boolean = False);
+    function RunShim(const ShimPath: String): Boolean;
     function RunTest: Boolean;
     function RunSystem: Boolean;
     procedure ShutdownSystem;
@@ -562,19 +562,22 @@ begin
             begin
               Log('Testing Python');
 
+{
               SystemError := RunShim(pyshim);
+
               if not SystemError then
                 SystemError := RunTest;
               if not SystemError then
                 SystemError := RunSystem;
-
-              Log('Python Available');
+}
               if not Installing then
                 begin
 //                  FLogTarget.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'startup.log');
 //                  FLogTarget := Nil;
                 end;
               SystemActive := not SystemError;
+              if SystemActive then
+                Log('Python Available');
               SystemSettings.PythonInstalled := SystemActive;
               DoPySysFinishedEvent(SystemActive);
             end
