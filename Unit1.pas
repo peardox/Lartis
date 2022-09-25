@@ -55,7 +55,6 @@ type
     procedure DebugMenuClick(Sender: TObject);
     procedure SystemTestMenuClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure SetupFinished(Sender: TObject; const AStatus: Boolean);
     procedure InstallFinished(Sender: TObject; const AStatus: Boolean);
     procedure CreateEmbeddedForms;
     procedure SystemCalibrateTrainCPU(Sender: TObject);
@@ -66,6 +65,7 @@ type
     procedure mnuCalibrateStyleGPUClick(Sender: TObject);
     procedure mnuCalibrateTrainCPUClick(Sender: TObject);
     procedure mnuCalibrateTrainGPUClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     function EmbedForm(AParent:TControl; AForm:TEmbeddedForm): TEmbeddedForm;
@@ -85,7 +85,6 @@ implementation
 uses
   Settings,
   StyleModel,
-  Math,
   FunctionLibrary,
   InitializeForm,
   PythonSystem,
@@ -102,7 +101,7 @@ uses
   {$IFDEF ENABLE_MOVIE}
   MovieForm,
   {$ENDIF}
-  SetupForm;
+  Math;
 
 {$R *.fmx}
 {$R *.Windows.fmx MSWINDOWS}
@@ -170,17 +169,15 @@ end;
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   PySys := TPySys.Create(Sender as TComponent);
-  if InstallRequired then
-    begin
-      frmInit := EmbedForm(InitLayout, TfrmInit.Create(Self)) as TfrmInit;
-      frmInit.ShowForm;
-      frmInit.OnInstallFinished := InstallFinished;
-      ActiveForm := frmInit;
-    end
-  else
-    begin
-      CreateEmbeddedForms;
-    end;
+  frmInit := EmbedForm(InitLayout, TfrmInit.Create(Self)) as TfrmInit;
+  frmInit.ShowForm;
+  frmInit.OnInstallFinished := InstallFinished;
+  ActiveForm := frmInit;
+end;
+
+procedure TfrmMain.FormShow(Sender: TObject);
+begin
+  frmInit.CheckWipe;
 end;
 
 procedure TfrmMain.CreateEmbeddedForms;
@@ -210,44 +207,19 @@ begin
   frmStyle.ShowForm;
   ActiveForm := frmStyle;
   {$ENDIF}
-
-  {$IFDEF ENABLE_PYTHON}
-  if not SystemActive then
-    begin
-      frmSetup := TfrmSetup.Create(Self);
-      frmSetup.Parent := Self;
-      frmSetup.OnSetupFinished := SetupFinished;
-      frmSetup.Show;
-      Caption := appname;
-    end;
-  {$ENDIF}
 end;
 
 procedure TfrmMain.InstallFinished(Sender: TObject; const AStatus: Boolean);
 begin
   if AStatus then
-    CreateEmbeddedForms;
-end;
-
-procedure TfrmMain.SetupFinished(Sender: TObject; const AStatus: Boolean);
-begin
-  if AStatus then
     begin
-      if EnableGPU then
-        begin
-          PySys.Log('One moment please, warming up GPU');
-          PySys.modCalibrate.CalibrateStyle(True, 16 / 9, 256);
-        end;
-        PySys.LogTarget := Nil;
-        frmSetup.OnSetupFinished := Nil;
-        FreeAndNil(frmSetup);
-      end
-    else
-      ShowMessage('System not ready')
-
+      CreateEmbeddedForms
+    end
+  else
+    PySys.Log('Restart system');
 end;
 
-  procedure TfrmMain.DebugMenuClick(Sender: TObject);
+procedure TfrmMain.DebugMenuClick(Sender: TObject);
 begin
   frmDebug.Show;
 end;

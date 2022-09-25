@@ -58,6 +58,8 @@ object frmOptions: TfrmOptions
         StyleLookup = ''
         TabOrder = 0
         Text = 'Styling'
+        ExplicitSize.cx = 56.000000000000000000
+        ExplicitSize.cy = 26.000000000000000000
       end
       object TrainTab: TTabItem
         CustomIcon = <
@@ -70,6 +72,8 @@ object frmOptions: TfrmOptions
         StyleLookup = ''
         TabOrder = 0
         Text = 'Training'
+        ExplicitSize.cx = 62.000000000000000000
+        ExplicitSize.cy = 26.000000000000000000
       end
       object SystemTab: TTabItem
         CustomIcon = <
@@ -82,25 +86,27 @@ object frmOptions: TfrmOptions
         StyleLookup = ''
         TabOrder = 0
         Text = 'System'
+        ExplicitSize.cx = 58.000000000000000000
+        ExplicitSize.cy = 26.000000000000000000
         object SystermLayout: TLayout
           Align = Client
           Size.Width = 640.000000000000000000
           Size.Height = 414.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 0
-          object Label1: TLabel
+          object lblHomeLabel: TLabel
             Position.X = 32.000000000000000000
             Position.Y = 32.000000000000000000
-            Text = 'Label1'
+            Text = 'Lartis Home'
             TabOrder = 0
           end
-          object Label2: TLabel
+          object lblHomeValue: TLabel
             Position.X = 192.000000000000000000
             Position.Y = 32.000000000000000000
             Size.Width = 425.000000000000000000
             Size.Height = 17.000000000000000000
             Size.PlatformDefault = False
-            Text = 'Label2'
+            Text = 'lblHomeValue'
             TabOrder = 1
           end
           object Label3: TLabel
@@ -116,6 +122,14 @@ object frmOptions: TfrmOptions
             Size.Height = 19.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 3
+            OnChange = cbWipeOnStartChange
+          end
+          object btnHomeOpen: TButton
+            Position.X = 192.000000000000000000
+            Position.Y = 48.000000000000000000
+            TabOrder = 4
+            Text = 'Open'
+            OnClick = btnHomeOpenClick
           end
         end
       end

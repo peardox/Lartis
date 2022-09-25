@@ -268,9 +268,6 @@
         </DCCReference>
         <DCCReference Include="PythonSystem.pas"/>
         <DCCReference Include="Modules.pas"/>
-        <DCCReference Include="SetupForm.pas">
-            <Form>frmSetup</Form>
-        </DCCReference>
         <DCCReference Include="OptionsForm.pas">
             <Form>frmOptions</Form>
         </DCCReference>
@@ -933,6 +930,12 @@
                 </DeployFile>
                 <DeployFile LocalName="OSXARM64\Release\Lartis.entitlements" Configuration="Release" Class="ProjectOSXEntitlements">
                     <Platform Name="OSXARM64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\Lartis.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>Lartis.rsm</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

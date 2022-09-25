@@ -5,6 +5,9 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, Skia, Skia.FMX,
+  {$IFDEF MSWINDOWS}
+  ShellApi,
+  {$ENDIF}
   FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts, FMX.TabControl;
 
 type
@@ -17,13 +20,16 @@ type
     TrainTab: TTabItem;
     SystemTab: TTabItem;
     SystermLayout: TLayout;
-    Label1: TLabel;
-    Label2: TLabel;
+    lblHomeLabel: TLabel;
+    lblHomeValue: TLabel;
     Label3: TLabel;
     cbWipeOnStart: TCheckBox;
+    btnHomeOpen: TButton;
     procedure Button1Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure btnHomeOpenClick(Sender: TObject);
+    procedure cbWipeOnStartChange(Sender: TObject);
   private
     { Private declarations }
   public
@@ -40,20 +46,37 @@ implementation
 uses
   Settings;
 
+procedure TfrmOptions.btnHomeOpenClick(Sender: TObject);
+begin
+{$IFDEF MSWINDOWS}
+ShellExecute(0, 'open', 'explorer.exe', PChar('"' + ExcludeTrailingPathDelimiter(AppHome) + '"'), nil, 1);
+{$ENDIF}
+end;
+
 procedure TfrmOptions.Button1Click(Sender: TObject);
 begin
   ModalResult := mrOK;
 end;
 
+procedure TfrmOptions.cbWipeOnStartChange(Sender: TObject);
+begin
+  SystemSettings.WipeOnStart := cbWipeOnStart.IsChecked;
+end;
+
 procedure TfrmOptions.FormCreate(Sender: TObject);
 begin
-//  SystermLayout
+  {$IFNDEF MSWINDOWS}
+  btnHomeOpen.Visible := False;
+  {$ENDIF}
 end;
 
 procedure TfrmOptions.FormShow(Sender: TObject);
 begin
-  Label1.Text := 'Lartis Home';
-  Label2.Text := AppHome;
+  lblHomeLabel.Text := 'Lartis Home';
+  lblHomeValue.Text := AppHome;
+
+  cbWipeOnStart.IsChecked := SystemSettings.WipeOnStart;
+
 end;
 
 end.

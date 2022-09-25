@@ -19,25 +19,26 @@ type
     RESTClient1: TRESTClient;
     RESTRequest1: TRESTRequest;
     RESTResponse1: TRESTResponse;
-    StatusBar1: TStatusBar;
+    StatusBar: TStatusBar;
     ProgressBar1: TProgressBar;
-    Layout1: TLayout;
-    Layout2: TLayout;
-    Button1: TButton;
-    Button2: TButton;
+    layInstall: TLayout;
+    laySplash: TLayout;
+    btnAbort: TButton;
+    btnInstall: TButton;
     Image1: TImage;
     Layout3: TLayout;
     Memo1: TMemo;
     layBlurb: TLayout;
     Blurb: TSkLabel;
-    procedure Button1Click(Sender: TObject);
+    procedure btnAbortClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
-    procedure Layout2Resize(Sender: TObject);
+    procedure btnInstallClick(Sender: TObject);
+    procedure laySplashResize(Sender: TObject);
     procedure BlurbClick(Sender: TObject);
     procedure Memo1Click(Sender: TObject);
   private
     { Private declarations }
+    SettingUp: Boolean;
     FHaveGPU: Boolean;
     FInstallFinishedEvent: TInstallFinishedEvent;
     SetupInfo: String;
@@ -45,11 +46,6 @@ type
     procedure AllDone;
     function HandleFileList(const AFileList: String): TJSONFileArray;
     procedure MultiThreadedMediaDownload(const outpath: String);
-{
-    procedure MultiThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
-      const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
-      Logger: TMemo = Nil; Progress: TProgressBar = Nil);
-}
     procedure SingleThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
       const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
       Logger: TMemo = Nil; Progress: TProgressBar = Nil);
@@ -57,6 +53,7 @@ type
     procedure ToggleBlurb(const Force: TComponent = Nil);
   public
     { Public declarations }
+    procedure CheckWipe;
   published
     property OnInstallFinished: TInstallFinishedEvent read FInstallFinishedEvent write FInstallFinishedEvent;
   end;
@@ -81,6 +78,9 @@ uses
 
 procedure TfrmInit.FormCreate(Sender: TObject);
 begin
+  SettingUp := True;
+  layInstall.Visible := True;
+  StatusBar.Visible := True;
   FHaveGPU := True;
   AbortFlag := False;
   Caption := 'System Setup';
@@ -90,14 +90,15 @@ begin
   Blurb.TextSettings.FontColor := TAlphaColorRec.Azure;
   ToggleBlurb(layBlurb);
 
-  Button1.Text := 'Abort';
-  Button2.Text := 'Continue';
+  btnAbort.Visible := False;
+  btnAbort.Text := 'Abort';
+  btnInstall.Text := 'Install';
 
   RESTClient1.BaseURL := APIBase;
   RESTRequest1.Resource := 'system.json';
   RESTRequest1.AcceptEncoding := 'gzip, deflate';
   RESTRequest1.Execute;
-  Memo1.Lines.Add('JSON = ' + RestResponse1.StatusCode.ToString);
+//  Memo1.Lines.Add('JSON = ' + RestResponse1.StatusCode.ToString);
   if RestResponse1.StatusCode = 200 then
     begin
       Memo1.Lines.Add(SetupInfo);
@@ -108,22 +109,66 @@ begin
       ShowMessage('Something has gone horribly wrong');
     end;
 
+    if SystemSettings.WipeOnStart then
+       begin
+
+       end
+    else
+      begin
+      if not InstallRequired and SystemSettings.PythonInstalled then
+        begin
+          layInstall.Visible := False;
+          StatusBar.Visible := False;
+          AllDone;
+        end;
+      end;
+end;
+
+procedure TfrmInit.CheckWipe;
+begin
+  if SystemSettings.WipeOnStart then
+    begin
+      MessageDlg('The system is marked for wiping - do you really want to do this?',
+        TMsgDlgType.mtConfirmation, [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], 0, TMsgDlgBtn.mbNo,
+          procedure(const AResult: TModalResult)
+            begin
+              if AResult = mrYes then
+                begin
+                  if DirectoryExists(AppHome) then
+                    begin
+                      layInstall.Visible := True;
+                      StatusBar.Visible := True;
+                      Memo1.Lines.Add('Wiping system, please wait...');
+                      TDirectory.Delete(AppHome, True);
+                      InitialiseSystem;
+                      Memo1.Lines.Add('System wiped.');
+                    end;
+                end
+              else
+                begin
+                  layInstall.Visible := False;
+                  StatusBar.Visible := False;
+                  AllDone;
+                end;
+              SystemSettings.WipeOnStart := False;
+            end);
+    end;
 end;
 
 // Center the logo
-procedure TfrmInit.Layout2Resize(Sender: TObject);
+procedure TfrmInit.laySplashResize(Sender: TObject);
 begin
-  Image1.Width := Layout2.Width;
+  Image1.Width := laySplash.Width;
   Image1.Height := Floor(Image1.Width * (640 / 1920));
   Image1.Position.X := 0;
   Image1.Position.Y := 0;
 
-  if Image1.Height > (Layout2.Height * 0.69) then
+  if Image1.Height > (laySplash.Height * 0.69) then
     begin
-      Image1.Height := Floor(Layout2.Height * 0.6848);
+      Image1.Height := Floor(laySplash.Height * 0.6848);
       Image1.Width := Image1.Height * (1920 / 640);
-      Image1.Position.X := (Layout2.Width - Image1.Width) / 2;
-      Image1.Position.Y := (Layout2.Height - Image1.Height) / 2;
+      Image1.Position.X := (laySplash.Width - Image1.Width) / 2;
+      Image1.Position.Y := (laySplash.Height - Image1.Height) / 2;
     end;
 end;
 
@@ -167,11 +212,11 @@ begin
     FInstallFinishedEvent(Self, AStatus);
 end;
 
-procedure TfrmInit.Button1Click(Sender: TObject);
+procedure TfrmInit.btnAbortClick(Sender: TObject);
 begin
   Memo1.Lines.Add('Aborting');
   Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
-  Button1.Enabled := False;
+  btnAbort.Enabled := False;
   AbortFlag := True;
   Application.Terminate;
 end;
@@ -212,27 +257,47 @@ begin
   end;
 end;
 
+procedure TfrmInit.AllDone;
+begin
+  btnAbort.Enabled := False;
+  btnInstall.Enabled := False;
+  ToggleBlurb(Memo1);
+  PySys.LogTarget := Memo1;
+  if SettingUp then
+    begin
+      SettingUp := False;
+      PySys.Log('Starting Python Subsystem');
+      PySys.SetupSystem(SetupComplete, FHaveGPU, True);
+    end;
+end;
 
 procedure TfrmInit.SetupComplete(Sender: TObject; const AStatus: Boolean);
 begin
+  if not InstallRequired then
+    begin
+      Memo1.Lines.Add('Installation Complete');
+      Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
+    end
+  else
+    begin
+      Memo1.Lines.Add('Setup Complete');
+      Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'initialisation.log');
+    end;
+  if EnableGPU then
+    begin
+      PySys.Log('One moment please, warming up GPU');
+      PySys.modCalibrate.CalibrateStyle(True, 1, 256);
+    end;
   PySys.LogTarget := Nil;
-  Memo1.Lines.Add('Installation Complete');
-  Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
   if Assigned(CloseMyself) then
       CloseMyself(Self);
   DoInstallFinished(Self, True);
 end;
 
-procedure TfrmInit.AllDone;
-begin
-  PySys.LogTarget := Memo1;
-  PySys.SetupSystem(SetupComplete, FHaveGPU, True);
-end;
-
-procedure TfrmInit.Button2Click(Sender: TObject);
+procedure TfrmInit.btnInstallClick(Sender: TObject);
 begin
   ToggleBlurb(Memo1);
-  Button2.Enabled := False;
+  btnInstall.Enabled := False;
   Memo1.Lines.Add('Starting installation');
   MultiThreadedMediaDownload(AppHome);
   AllDone;
@@ -273,14 +338,8 @@ begin
       DirList.Free;
       Memo1.Lines.Add('Got filelist');
 
-      {$IFNDEF MACOS64}
       Memo1.Lines.Add('Downloading');
       SingleThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1, ProgressBar1);
-//      MultiThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1, ProgressBar1);
-      {$ELSE}
-      Memo1.Lines.Add('Downloading');
-      SingleThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1, ProgressBar1);
-      {$ENDIF}
 
     except
       on E: Exception do
@@ -295,95 +354,6 @@ begin
 
   end;
 end;
-
-{
-procedure TfrmInit.MultiThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
-  const ABaseURL: String; const ADestPath: String; const FullSize: Integer;
-  Logger: TMemo = Nil; Progress: TProgressBar = Nil);
-var
-  sw: TStopWatch;
-  Downer: TDownerClient;
-  tp: TThreadPool;
-  ThreadsToUse: Integer;
-  TotalImageCount: Integer;
-  TotalDone: Integer;
-begin
-  if Assigned(Progress) then
-    begin
-      Progress.Min := 0;
-      Progress.Max := FullSize;
-    end;
-  TotalDone := 0;
-  TotalImageCount := Length(AFileList);
-  tp := TThreadPool.Create;
-  ThreadsToUse := 4;
-  if Assigned(Logger) then
-    begin
-      Logger.Lines.Add('CPUs : ' + CPUCount.ToString);
-      Logger.Lines.Add('ProcesserThreads : ' + TThread.ProcessorCount.ToString);
-      Logger.Lines.Add('MinThreads : ' + tp.MinWorkerThreads.ToString);
-      Logger.Lines.Add('Threadpool MaxThreads : ' + tp.MaxWorkerThreads.ToString);
-      Logger.Lines.Add('Threadpool MinThreads : ' + tp.MinWorkerThreads.ToString);
-    end;
-  if tp.SetMaxWorkerThreads(ThreadsToUse) then
-    if Assigned(Logger) then
-      begin
-        Logger.Lines.Add('Threadpool set to ' + ThreadsToUse.ToString);
-      end
-  else
-    if Assigned(Logger) then
-      begin
-        Logger.Lines.Add('Threadpool failed : ' + tp.MaxWorkerThreads.ToString);
-      end;
-  sw := TStopWatch.StartNew;
-
-	TThread.CreateAnonymousThread(
-		procedure
-		begin
-			TParallel.For(1, 0, ImageCount - 1,
-				procedure(I: Integer)
-				begin
-					var Downer := TDownerClient.Create(Self);
-          var infilerec := AFileList[I];
-          var DownSize := AFileList[I].Size;
-          var outfile := TPath.Combine(ADestPath, UnixToDos(infilerec.Name));
-          try
-            Downer.Download(ABaseURL, ADestPath, infilerec, I, Progress);
-          except
-            on E: Exception do
-              begin
-                TThread.Synchronize(nil,
-                  procedure
-                    begin
-                      if Assigned(Logger) then
-                        begin
-                          Logger.Lines.Add('Unhandled Exception in MultiThreadDownload');
-                          Logger.Lines.Add('Class : ' + E.ClassName);
-                          Logger.Lines.Add('Error : ' + E.Message);
-                          Logger.Lines.Add('Vars : I = ' + i.ToString + ', OutFile = ' + outfile + ', ImageCount = ' + ImageCount.ToString);
-                        end;
-                    end);
-              end;
-
-          end;
-          FreeAndNil(Downer);
-				end
-			, tp);
-			TThread.Synchronize(nil,
-				procedure
-				begin
-          if Assigned(Logger) then
-            begin
-					    Logger.Lines.Add('Finished ' + sw.ElapsedMilliseconds.ToString);
-            end;
-          tp.Free;
-          AllDone;
-				end
-			);
-		end
-	).Start;
-end;
-}
 
 procedure TfrmInit.SingleThreadDownload(const ImageCount: Integer; AFileList: TJSONFileArray;
   const ABaseURL: String; const ADestPath: String; const FullSize: Integer;

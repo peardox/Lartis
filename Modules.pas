@@ -1287,7 +1287,11 @@ begin
 
   if AOneShot <> 0 then
     begin
-      MainModule.delphi_calibration_style();
+      TThread.Synchronize(nil,
+        procedure()
+        begin
+          MainModule.delphi_calibration_style();
+        end);
     end
   else
     begin

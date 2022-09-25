@@ -8,6 +8,12 @@ uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes, System.Classes,
   System.Variants, FMX.Forms, FMX.Dialogs, StyleModel;
 
+type
+  TSettings = record
+    WipeOnStart: Boolean;
+    PythonInstalled: Boolean;
+  end;
+
 var
   InstallRequired: Boolean;
 
@@ -25,6 +31,7 @@ var
   FrameCount: Integer;
   EnableGPU: Boolean;
   SystemStyle: String;
+  SystemSettings: TSettings;
 
 const
   appname: String = 'Lartis';
@@ -38,14 +45,19 @@ const
 
 procedure CreateSettings;
 procedure DestroySettings;
+procedure LoadSystemSettings;
+procedure SaveSystemSettings;
+procedure InitialiseSystem;
 
 implementation
+
+uses
+  JSON.Serializers;
 
 procedure CreateSettings;
 begin
   InstallRequired := False;
   EnableGPU := True;
-//  InstallRequired := True;
 
   {$IF DEFINED(MACOS64)}
   AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath) + appname;
@@ -56,19 +68,87 @@ begin
   {$ENDIF}
   // System agnostic path for data files + Python
 
-  {$IFDEF CLEANSTART}
-  if DirectoryExists(AppHome) then
-    TDirectory.Delete(AppHome, True);
-  {$ENDIF}
+  if FileExists(IncludeTrailingPathDelimiter(AppHome) + 'Settings.json') then
+    begin
+      LoadSystemSettings;
+    end;
 
+    InitialiseSystem;
+end;
+
+procedure DestroySettings;
+begin
+  SaveSystemSettings;
+end;
+
+procedure LoadSystemSettings;
+var
+  lSerializer: TJsonSerializer;
+  JsonText: String;
+begin
+  try
+    JsonText := TFile.ReadAllText(IncludeTrailingPathDelimiter(AppHome) + 'Settings.json');
+  except
+     on E : Exception do
+       Raise Exception.Create('LoadSystemSettings - Exception : Class = ' +
+        E.ClassName + ', Message = ' + E.Message);
+  end;
+
+  lSerializer := TJsonSerializer.Create;
+  try
+    try
+      SystemSettings := lSerializer.Deserialize<TSettings>(JsonText);
+    except
+     on E : Exception do
+       Raise Exception.Create('LoadSystemSettings - Exception : Class = ' +
+        E.ClassName + ', Message = ' + E.Message);
+    end;
+  finally
+    FreeAndNil(lSerializer);
+  end;
+end;
+
+procedure SaveSystemSettings;
+var
+  lSerializer: TJsonSerializer;
+  JsonText: String;
+begin
+  lSerializer := TJsonSerializer.Create;
+  try
+    try
+      JsonText := lSerializer.Serialize<TSettings>(SystemSettings);
+      try
+        TFile.WriteAllText(IncludeTrailingPathDelimiter(AppHome) + 'Settings.json', JsonText);
+      except
+         on E : Exception do
+           Raise Exception.Create('SaveSystemSettings - Exception : Class = ' +
+            E.ClassName + ', Message = ' + E.Message);
+      end;
+    except
+     on E : Exception do
+     begin
+       Raise Exception.Create('SaveSystemSettings - Exception : Class = ' +
+        E.ClassName + ', Message = ' + E.Message);
+     end;
+    end;
+  finally
+    FreeAndNil(lSerializer);
+  end;
+end;
+
+procedure InitialiseSystem;
+  begin
   if not DirectoryExists(AppHome) then
     begin
       ForceDirectories(AppHome);
       InstallRequired := True;
     end;
 
+  if not SystemSettings.PythonInstalled then
+    InstallRequired := True;
+
   TempPath := TPath.Combine(AppHome, 'temp');;
-  if not DirectoryExists(ShaderPath) then
+  if not DirectoryExists(TempPath) then
     begin
       ForceDirectories(TempPath);
     end;
@@ -104,10 +184,8 @@ begin
       ForceDirectories(CachePath);
     end;
 
+  SaveSystemSettings;
 end;
 
-procedure DestroySettings;
-begin
-end;
 
 end.

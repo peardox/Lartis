@@ -13,8 +13,10 @@ uses
   PyEnvironment.Embeddable, PyEnvironment.Embeddable.Res,
   PyEnvironment.Embeddable.Res.Python39,
   {$ENDIF}
-  PyEnvironment.AddOn, PyEnvironment.AddOn.EnsurePip, PyEnvironment.Distribution,
+  PyEnvironment.AddOn, PyEnvironment.Distribution,
   PyCommon, PyModule, PyPackage, PythonEngine,
+//  PyEnvironment.AddOn.GetPip,
+  PyEnvironment.AddOn.EnsurePip,
   TorchVision, PyTorch, NumPy, SciPy,
   {$IF NOT DEFINED(CPUARM)}
   PSUtil,
@@ -45,6 +47,7 @@ type
     {$ENDIF}
     PyIO: TPythonInputOutput;
     PyEnsurePip: TPyEnvironmentAddOnEnsurePip;
+//    GetPip: TPyEnvironmentAddOnGetPip;
 
 
     NumPy: TNumPy;
@@ -71,7 +74,10 @@ type
     procedure PyEnvAfterDeactivate(Sender: TObject; const APythonVersion: string);
     procedure PyIOSendUniData(Sender: TObject; const Data: string);
 
-    procedure EnurePipError(const ASender: TObject; const ADistribution: TPyDistribution; const AException: Exception);
+    procedure OnEnsurePipError(const ASender: TObject; const ADistribution: TPyDistribution; const AException: Exception);
+    procedure OnEnsurePipExecute(const ASender: TObject;
+      const ATrigger: TPyEnvironmentaddOnTrigger;
+      const ADistribution: TPyDistribution);
 
     procedure SafeInstall(Sender: TObject; FTask: ITask = Nil);
     procedure SafeImport(Sender: TObject);
@@ -119,7 +125,6 @@ implementation
 uses
   Settings,
   Unit1,
-  SetupForm,
   {$IFDEF MESSAGE_SUPPORT}
   FMX.Dialogs,
   {$ENDIF}
@@ -389,17 +394,24 @@ begin
   Log('Ready Event');
 end;
 
-procedure TPySys.EnurePipError(const ASender: TObject;
+procedure TPySys.OnEnsurePipError(const ASender: TObject;
   const ADistribution: TPyDistribution; const AException: Exception);
 begin
-  Log('Unhandled Exception in EnurePipError');
+  Log('Unhandled Exception in EnsurePipError');
   Log('Class : ' + AException.ClassName);
   Log('Error : ' + AException.Message);
 end;
 
+procedure TPySys.OnEnsurePipExecute(const ASender: TObject;
+  const ATrigger: TPyEnvironmentaddOnTrigger;
+  const ADistribution: TPyDistribution);
+begin
+  Log('EnsurePip executing');
+end;
+
 procedure TPySys.SetupSystem(OnSetupComplete: TPySysFinishedEvent = Nil; const HaveGPU: Boolean = False; const InstallationActive: Boolean = False);
 begin
-  Installing := InstallationActive;
+  Installing := False; // InstallationActive;
   PySysFinishedEvent := OnSetupComplete;
 
   PyIO := TPythonInputOutput.Create(Self);
@@ -438,7 +450,8 @@ begin
 
   PyEnsurePip := TPyEnvironmentAddOnEnsurePip.Create(Self);
   PyEnsurePip.Environment := PyEnv;
-  PyEnsurePip.OnExecuteError := EnurePipError;
+  PyEnsurePip.OnExecuteError := OnEnsurePipError;
+  PyEnsurePip.OnExecute := OnEnsurePipExecute;
 //  PyEnv.AfterDeactivate := PyEnvAfterDeactivate;
   // Tidy up on exit (clean Python for testing)
 
@@ -558,10 +571,11 @@ begin
               Log('Python Available');
               if not Installing then
                 begin
-                  FLogTarget.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'startup.log');
-                  FLogTarget := Nil;
+//                  FLogTarget.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'startup.log');
+//                  FLogTarget := Nil;
                 end;
               SystemActive := not SystemError;
+              SystemSettings.PythonInstalled := SystemActive;
               DoPySysFinishedEvent(SystemActive);
             end
           );
