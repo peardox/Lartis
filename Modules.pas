@@ -169,8 +169,8 @@ type
     function GetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function SetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
-    procedure Stylize(const AFile: String; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil); overload;
-    procedure Stylize(const ABitmap: TBitmap; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil); overload;
+    procedure Stylize(const AFile: String; const APath: String; const AModel: String; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil); overload;
+    procedure Stylize(const ABitmap: TBitmap; const APath: String; const AModel: String; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil); overload;
     procedure StylizeAll(const AFile: String);
     procedure ClearEvents;
   published
@@ -952,7 +952,7 @@ begin
 end;
 
 ///// Style Module Procs /////
-procedure TModStyle.Stylize(const ABitmap: TBitmap; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil);
+procedure TModStyle.Stylize(const ABitmap: TBitmap; const APath: String; const AModel: String; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil);
 begin
   ProgressCount := 0;
 
@@ -964,8 +964,9 @@ begin
 
   FOptions.content_image := '';
   FOptions.content_image_raw := ABitmap.ClassName;
+  FOptions.model_dir := IncludeTrailingPathDelimiter(APath);
   FOptions.output_image := IncludeTrailingPathDelimiter(CachePath) + 'direct-test.jpg';
-  FOptions.model := 'mosaic/mosaic-100';
+  FOptions.model := AModel;
   FOptions.ignore_gpu :=  not EnableGPU;
   PySys.LogClear;
   if Assigned(FTask) then
@@ -993,7 +994,7 @@ begin
     Pysys.Log('Back from Python Stylize - Task ID = UnAssigned');
 end;
 
-procedure TModStyle.Stylize(const AFile: String; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil);
+procedure TModStyle.Stylize(const AFile: String; const APath: String; const AModel: String; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil);
 begin
   ProgressCount := 0;
 
@@ -1004,9 +1005,10 @@ begin
   DoModProgressEvent(0);
 
   FOptions.content_image := AFile;
+  FOptions.model_dir := IncludeTrailingPathDelimiter(APath);
   FOptions.output_image := IncludeTrailingPathDelimiter(CachePath) + System.IOUtils.TPath.GetFileNameWithoutExtension(AFile) + '-styled.jpg';
   FOptions.content_image_raw := '';
-  FOptions.model := 'mosaic/mosaic-100';
+  FOptions.model := AModel;
   FOptions.ignore_gpu :=  not EnableGPU;
   PySys.LogClear;
   if Assigned(FTask) then

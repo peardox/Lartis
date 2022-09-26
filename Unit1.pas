@@ -3,7 +3,7 @@ unit Unit1;
 interface
 
 {$DEFINE ENABLE_PYTHON}
- {$DEFINE ENABLE_TRAIN}
+// {$DEFINE ENABLE_TRAIN}
 // {$DEFINE ENABLE_EVOLVE}
 // {$DEFINE ENABLE_MOVIE}
 {$DEFINE JSONTEST}
@@ -66,8 +66,10 @@ type
     procedure mnuCalibrateTrainCPUClick(Sender: TObject);
     procedure mnuCalibrateTrainGPUClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormPaint(Sender: TObject; Canvas: TCanvas; const ARect: TRectF);
   private
     { Private declarations }
+    FrameCount: Integer;
     function EmbedForm(AParent:TControl; AForm:TEmbeddedForm): TEmbeddedForm;
     procedure ChildCloser(Sender: TObject);
     procedure ChildSwitcher(Sender: TObject);
@@ -168,11 +170,22 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
+  FrameCount := 0;
+  Caption := AppName;
   PySys := TPySys.Create(Sender as TComponent);
   frmInit := EmbedForm(InitLayout, TfrmInit.Create(Self)) as TfrmInit;
   frmInit.ShowForm;
   frmInit.OnInstallFinished := InstallFinished;
   ActiveForm := frmInit;
+end;
+
+procedure TfrmMain.FormPaint(Sender: TObject; Canvas: TCanvas;
+  const ARect: TRectF);
+begin
+  Inc(FrameCount);
+  Caption := AppName + ' - ' + IntToStr(FrameCount);
+  if Assigned(ActiveForm) then
+    ActiveForm.Paint;
 end;
 
 procedure TfrmMain.FormShow(Sender: TObject);

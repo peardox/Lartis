@@ -6,7 +6,8 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
   EmbeddedForm, FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts,
-  Shaders, StyleProject, FMX.ListBox, Skia, Skia.FMX, Skia.FMX.Graphics;
+  StyleModel,
+  Shaders, StyleProject, FMX.ListBox, Skia, Skia.FMX, Skia.FMX.Graphics, FMX.Ani;
 
 type
   TfrmStyle = class(TEmbeddedForm)
@@ -36,23 +37,17 @@ type
     SaveDialog1: TSaveDialog;
     btnSave: TButton;
     vsbStyles: TFramedVertScrollBox;
-    layStyleSelect1: TLayout;
+
     layStyleThumb1: TLayout;
-    layStyleThumb3: TLayout;
-    layStyleThumb2: TLayout;
-    imgStyleSelect1: TImage;
-    layStyleSelect5: TLayout;
-    imgStyleSelect5: TImage;
-    layStyleSelect4: TLayout;
-    imgStyleSelect4: TImage;
-    layStyleSelect3: TLayout;
-    imgStyleSelect3: TImage;
-    layStyleSelect2: TLayout;
-    imgStyleSelect2: TImage;
     imgStyleThumb1: TImageControl;
-    imgStyleThumb3: TImageControl;
+    layStyleThumb2: TLayout;
     imgStyleThumb2: TImageControl;
+    layStyleThumb3: TLayout;
+    imgStyleThumb3: TImageControl;
+
     Label1: TLabel;
+    RectAnimation1: TRectAnimation;
+    Splitter1: TSplitter;
     procedure btnBackClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
@@ -77,16 +72,19 @@ type
     ActiveLayer: TBaseShader;
     Container: TAspectLayout;
     Layers: TLayerArray;
+    StyleSelectors: TStyleSelectorArray;
     LayerCount: Integer;
+    FrameCount: Integer;
     function  AddLayer: TBaseShader;
     procedure ProjectInitialise;
     procedure ShowStyleProgress(Sender: TObject; const AValue: Single);
     procedure ShowStyledImage(Sender: TObject; const AFileName: String);
     procedure DoSaveLayers;
-    procedure UpdateDebugInfo;
+    procedure Stylize(Sender: TObject; const APath: String; const AModel: String);
   public
     { Public declarations }
     procedure MakeStyleSelectors;
+    procedure UpdateDebugInfo;
   end;
 
 var
@@ -99,7 +97,6 @@ implementation
 
 uses
   Settings,
-  StyleModel,
   Math,
   System.IOUtils,
   FunctionLibrary,
@@ -110,6 +107,7 @@ uses
 procedure TfrmStyle.FormCreate(Sender: TObject);
 begin
   Label1.Text := '';
+  FrameCount := 0;
 
   cbxColourMode.Items.Add('Use Styled Colors');
   cbxColourMode.Items.Add('Use Original (YUV)');
@@ -119,6 +117,7 @@ begin
   chkEnableGPU.IsChecked := EnableGPU;
 
   LayerCount := 0;
+  SetLength(StyleSelectors, 0);
 
   ProjectInitialise;
   MakeStyleSelectors;
@@ -259,33 +258,15 @@ procedure TfrmStyle.MakeStyleSelectors;
 var
   I: Integer;
   AStyleModel: TModelStyleCollection;
-  fn: String;
 begin
+  SetLength(StyleSelectors, StyleModels.Count);
+
   for I := 0 to StyleModels.Count - 1 do
     begin
-      AStyleModel := StyleModels.Collection[I];
-      fn := TPath.Combine(AStyleModel.StylePath,
-        AStyleModel.ImageFilename);
-
-      case I of
-        0: imgStyleSelect1.Bitmap.LoadFromFile(fn);
-        1: imgStyleSelect2.Bitmap.LoadFromFile(fn);
-        2: imgStyleSelect3.Bitmap.LoadFromFile(fn);
-        3: imgStyleSelect4.Bitmap.LoadFromFile(fn);
-        4: imgStyleSelect5.Bitmap.LoadFromFile(fn);
-      end;
-
-{
-      PySys.Log('JSON : ' + StyleModel.fpath + ' has ' + Length(StyleModel.models).ToString + ' models');
-      PySys.Log('     : ' + StyleModel.image.iTitle);
-      PySys.Log('     : ' + StyleModel.image.iName);
-      PySys.Log('     : ' + StyleModel.image.iDesc);
-      PySys.Log('     : ' + StyleModel.image.iType);
-      PySys.Log('     : ' + StyleModel.image.iWidth.ToString);
-      PySys.Log('     : ' + StyleModel.image.iHeight.ToString);
-      PySys.Log('     : ' + StyleModel.image.iHash);
-      PySys.Log('     : ' + StyleModel.image.sGroup);
-}
+      StyleSelectors[I] := TStyleSelector.Create(vsbStyles);
+      StyleSelectors[I].Style := StyleModels.Collection[I];
+      StyleSelectors[I].RunStyle := Stylize;
+      vsbStyles.AddObject(StyleSelectors[I]);
     end;
 end;
 
@@ -296,6 +277,7 @@ begin
   if LayerCount = 0 then
     begin
       Container := TAspectLayout.Create(StyleLayout);
+      Container.OnPaint := FormPaint;
       Grid := TGridShader.Create(Container);
     end;
 
@@ -353,7 +335,10 @@ begin
       if Assigned(Grid) then
         FreeAndNil(Grid);
       if Assigned(Container) then
-        FreeAndNil(Container);
+        begin
+          Container.OnPaint := Nil;
+          FreeAndNil(Container);
+        end;
     end;
 
 end;
@@ -427,6 +412,11 @@ begin
 end;
 
 procedure TfrmStyle.btnStylizeClick(Sender: TObject);
+begin
+  Stylize(Self, 'models', 'mosaic/mosaic-100');
+end;
+
+procedure TfrmStyle.Stylize(Sender: TObject; const APath: String; const AModel: String);
 var
   CurrentImage: String;
   CurrentBitMap: TBitmap;
@@ -463,8 +453,8 @@ begin
         with ActiveLayer as TProgressShader do
           begin
             if ImageFile <> String.Empty then
-              PySys.modStyle.Stylize(ImageFile, ShowStyleProgress, ShowStyledImage);
-//              PySys.modStyle.Stylize(Bitmap, ShowStyleProgress, ShowStyledImage);
+              PySys.modStyle.Stylize(ImageFile, APath, AModel, ShowStyleProgress, ShowStyledImage);
+//              PySys.modStyle.Stylize(Bitmap, APath, AModel, ShowStyleProgress, ShowStyledImage);
           end;
     end;
 end;
@@ -506,7 +496,7 @@ begin
   if SaveDialog1.Execute then
   begin
     FSaveInNextPaint := True;
-    Container.OnPaint := FormPaint;
+//    Container.OnPaint := FormPaint;
     Container.Repaint;
   end;
 end;
@@ -514,12 +504,21 @@ end;
 procedure TfrmStyle.UpdateDebugInfo;
 var
   txt: String;
+  LLCount: Integer;
 begin
-  txt := '';
-  if Assigned(Layers) then
-    txt := txt +  'Layers = ' + IntToStr(Length(Layers));
+  if Assigned(Container) then
+    begin
+      LLCount := 0;
+      Inc(FrameCount);
+      txt := '';
+      if Assigned(Layers) then
+        LLCount := Length(Layers);
+      txt := 'Layers = ' + IntToStr(LLCount)
+        + ', Frames = ' + IntToStr(FrameCount)
+        ;
 
-  Label1.Text := txt;
+      Label1.Text := txt;
+    end;
 end;
 
 procedure TfrmStyle.FormPaint(Sender: TObject; Canvas: TCanvas;

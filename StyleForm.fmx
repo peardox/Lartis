@@ -9,6 +9,7 @@ object frmStyle: TfrmStyle
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
+  OnPaint = FormPaint
   DesignerMasterStyle = 0
   object TopPanel: TPanel
     Align = Top
@@ -43,6 +44,9 @@ object frmStyle: TfrmStyle
       Text = 'Label1'
       TabOrder = 2
     end
+    object RectAnimation1: TRectAnimation
+      Duration = 0.200000002980232200
+    end
   end
   object layStyleControl: TLayout
     Align = Right
@@ -59,8 +63,8 @@ object frmStyle: TfrmStyle
       Size.Height = 173.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      Viewport.Width = 160.000000000000000000
-      Viewport.Height = 173.000000000000000000
+      Viewport.Width = 140.000000000000000000
+      Viewport.Height = 169.000000000000000000
       object layStyleThumb1: TLayout
         Align = Top
         Size.Width = 140.000000000000000000
@@ -257,6 +261,15 @@ object frmStyle: TfrmStyle
     Size.PlatformDefault = False
     TabOrder = 5
     OnResize = StyleLayoutResize
+    object Splitter1: TSplitter
+      Align = Right
+      Cursor = crHSplit
+      MinSize = 20.000000000000000000
+      Position.X = 757.000000000000000000
+      Size.Width = 4.000000000000000000
+      Size.Height = 573.000000000000000000
+      Size.PlatformDefault = False
+    end
   end
   object OpenDialog1: TOpenDialog
     Left = 320
@@ -284,92 +297,8 @@ object frmStyle: TfrmStyle
       Size.Height = 573.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      Viewport.Width = 160.000000000000000000
-      Viewport.Height = 573.000000000000000000
-      object layStyleSelect1: TLayout
-        Align = Top
-        Size.Width = 156.000000000000000000
-        Size.Height = 97.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 4
-        object imgStyleSelect1: TImage
-          MultiResBitmap = <
-            item
-            end>
-          Align = Client
-          Size.Width = 156.000000000000000000
-          Size.Height = 97.000000000000000000
-          Size.PlatformDefault = False
-        end
-      end
-      object layStyleSelect5: TLayout
-        Align = Top
-        Position.Y = 388.000000000000000000
-        Size.Width = 156.000000000000000000
-        Size.Height = 97.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 3
-        object imgStyleSelect5: TImage
-          MultiResBitmap = <
-            item
-            end>
-          Align = Client
-          Size.Width = 156.000000000000000000
-          Size.Height = 97.000000000000000000
-          Size.PlatformDefault = False
-        end
-      end
-      object layStyleSelect4: TLayout
-        Align = Top
-        Position.Y = 291.000000000000000000
-        Size.Width = 156.000000000000000000
-        Size.Height = 97.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 2
-        object imgStyleSelect4: TImage
-          MultiResBitmap = <
-            item
-            end>
-          Align = Client
-          Size.Width = 156.000000000000000000
-          Size.Height = 97.000000000000000000
-          Size.PlatformDefault = False
-        end
-      end
-      object layStyleSelect3: TLayout
-        Align = Top
-        Position.Y = 194.000000000000000000
-        Size.Width = 156.000000000000000000
-        Size.Height = 97.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 1
-        object imgStyleSelect3: TImage
-          MultiResBitmap = <
-            item
-            end>
-          Align = Client
-          Size.Width = 156.000000000000000000
-          Size.Height = 97.000000000000000000
-          Size.PlatformDefault = False
-        end
-      end
-      object layStyleSelect2: TLayout
-        Align = Top
-        Position.Y = 97.000000000000000000
-        Size.Width = 156.000000000000000000
-        Size.Height = 97.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 0
-        object imgStyleSelect2: TImage
-          MultiResBitmap = <
-            item
-            end>
-          Align = Client
-          Size.Width = 156.000000000000000000
-          Size.Height = 97.000000000000000000
-          Size.PlatformDefault = False
-        end
-      end
+      Viewport.Width = 156.000000000000000000
+      Viewport.Height = 569.000000000000000000
     end
   end
   object SaveDialog1: TSaveDialog

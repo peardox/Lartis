@@ -4,9 +4,12 @@ interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes,
-  System.Variants, JSON.Serializers;
+  System.Variants, JSON.Serializers,
+  FMX.Layouts, FMX.Types, FMX.StdCtrls, FMX.Objects;
 
 type
+  TStyleProc = procedure(Sender: TObject; const APath: String; const AModel: String) of object;
+
   TModelImage = record
     iTitle: String;
     iName: String;
@@ -63,6 +66,29 @@ type
       property Collection[Index: Integer]: TModelStyleCollection read GetCollection write SetCollection;
   end;
 
+  TStyleSelector = class(TLayout)
+    layInfo: TLayout;
+    lblName: TLabel;
+    lblScale: TLabel;
+    imgThumb: TImage;
+    trkScale: TTrackBar;
+    procedure DoClick(Sender: TObject);
+  private
+    FRunStyle: TStyleProc;
+    FScale: Integer;
+    FStyleModel: TModelStyleCollection;
+    procedure SetStyle(AStyle: TModelStyleCollection);
+    procedure DoResize(Sender: TObject);
+    procedure ChangeScale(Sender: TObject);
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property Style: TModelStyleCollection read FStyleModel write SetStyle;
+    property RunStyle: TStyleProc read FRunStyle write FRunStyle;
+  end;
+  TStyleSelectorArray = Array of TStyleSelector;
+
+
 function LoadJson(const AJsonFile: string): TModelStyleCollection;
 function DecodeJsonStyle(const JsonStyleText: String): TModelStyleCollection;
 procedure GetModelJson(var JsonList: TStringList; const AltModelDir: String = ''; const ModelSubDir: String = '');
@@ -71,9 +97,125 @@ implementation
 
 uses
   Settings,
+  Math,
   System.IOUtils,
-  FMX.Dialogs,
+  FMX.Dialogs, // REMOVE_ME
+  DebugForm, // REMOVE_ME
   PythonSystem;
+
+constructor TStyleSelector.Create(AOwner: TComponent);
+begin
+  inherited;
+  Parent := TFmxObject(AOwner);
+  Align := TAlignLayout.Top;
+
+  Width := 160;
+  Height := 128;
+  Position.X := 0;
+  Position.Y := 0;
+
+  trkScale := TTrackBar.Create(Self);
+  trkScale.Align := TAlignLayout.Bottom;
+  trkScale.Parent := Self;
+  trkScale.OnChange := ChangeScale;
+
+  layInfo := TLayout.Create(Self);
+  layInfo.Align := TAlignLayout.Bottom;
+  layInfo.Height := 30;
+  layInfo.Parent := Self;
+
+  lblName := TLabel.Create(layInfo);
+  lblName.TextSettings.HorzAlign := TTextAlign.Leading;
+  lblName.Height := 30;
+  lblName.Position.X := 8;
+  lblName.Position.Y := 0;
+  lblName.Parent := layInfo;
+
+  lblScale := TLabel.Create(layInfo);
+  lblScale.Position.Y := 0;
+  lblScale.Margins.Right := 8;
+  lblScale.Parent := layInfo;
+
+  imgThumb := TImage.Create(Self);
+  imgThumb.Align := TAlignLayout.Client;
+  imgThumb.Parent := Self;
+  imgThumb.OnClick := DoClick;
+
+  FScale := 0;
+  OnResize := DoResize;
+end;
+
+procedure TStyleSelector.ChangeScale(Sender: TObject);
+var
+  ScaleIndex: Integer;
+  mdl: TModelStyle;
+begin
+  ScaleIndex := floor(trkScale.Value);
+  mdl := FStyleModel.Models[ScaleIndex];
+
+  lblScale.Text := FormatFloat('0.00', mdl.mZoom / 100);
+end;
+
+procedure TStyleSelector.DoClick(Sender: TObject);
+var
+  ScaleIndex: Integer;
+  mdl: TModelStyle;
+  path: String;
+  model: String;
+begin
+  ScaleIndex := floor(trkScale.Value);
+  mdl := FStyleModel.Models[ScaleIndex];
+  path := FStyleModel.fpath;
+  model := mdl.mModel + '-' + IntToStr(mdl.mZoom);
+{
+  frmDebug.Show;
+
+  PySys.Log('Click3ed on ' + FStyleModel.Image.iTitle + ' - index = ' + IntToStr(ScaleIndex));
+  PySys.Log(FStyleModel.fpath + ' has ' + Length(FStyleModel.models).ToString + ' models');
+  PySys.Log(FStyleModel.image.iTitle);
+  PySys.Log(FStyleModel.image.iName);
+  PySys.Log(FStyleModel.image.iDesc);
+  PySys.Log(FStyleModel.image.iType);
+  PySys.Log(FStyleModel.image.iWidth.ToString);
+  PySys.Log(FStyleModel.image.iHeight.ToString);
+  PySys.Log(FStyleModel.image.iHash);
+  PySys.Log(FStyleModel.image.sGroup);
+
+  PySys.Log('mModel = ' + mdl.mModel);
+  PySys.Log('mZoom = ' + IntToStr(mdl.mZoom));
+  PySys.Log(path);
+  PySys.Log(model);
+}
+  if Assigned(FRunStyle) then
+    FRunStyle(Self, path, model);
+end;
+
+procedure TStyleSelector.DoResize(Sender: TObject);
+begin
+  if Assigned(Self.lblScale) then
+    begin
+      lblName.Width := floor((layInfo.Width * 8) / 10);
+      lblScale.Position.X := lblName.Width;
+      lblScale.Width := floor((layInfo.Width * 2) / 10);
+      lblScale.Height := 30;
+    end;
+end;
+
+procedure TStyleSelector.SetStyle(AStyle: TModelStyleCollection);
+begin
+  FStyleModel := AStyle;
+  lblName.Text := AStyle.Image.iTitle;
+  lblScale.Text := '1.00';
+  var fn := TPath.Combine(AStyle.StylePath,
+        AStyle.ImageFilename);
+  imgThumb.Bitmap.LoadFromFile(fn);
+
+  trkScale.Min := 0;
+  trkScale.Max := AStyle.Count - 1;
+  trkScale.Frequency := 1;
+
+//  DoResize(Self);
+end;
 
 function TModelStyleCollection.ImageFilename: String;
 begin

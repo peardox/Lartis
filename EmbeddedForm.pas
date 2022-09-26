@@ -19,6 +19,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure HideForm;
     procedure ShowForm;
+    procedure Paint;
   end;
 
 implementation
@@ -26,6 +27,12 @@ implementation
 constructor TEmbeddedForm.Create(AOwner: TComponent);
 begin
   inherited;
+end;
+
+procedure TEmbeddedForm.Paint;
+begin
+  if Assigned(OnPaint) then
+    DoPaint(Canvas, TRect.Create(0, 0, Width, Height));
 end;
 
 procedure TEmbeddedForm.HideForm;

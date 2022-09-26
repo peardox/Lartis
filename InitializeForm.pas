@@ -297,16 +297,6 @@ end;
 
 procedure TfrmInit.SetupComplete(Sender: TObject; const AStatus: Boolean);
 begin
-  if not InstallRequired then
-    begin
-      Memo1.Lines.Add('Installation Complete');
-      Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
-    end
-  else
-    begin
-      Memo1.Lines.Add('Setup Complete');
-      Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'setup.log');
-    end;
   if AStatus and EnableGPU then
     begin
       DoGPUWarmup;
@@ -324,6 +314,16 @@ end;
 
 procedure TfrmInit.FinishInit(Sender: TObject; const AStatus: Boolean);
 begin
+  if InstallRequired then
+    begin
+      Memo1.Lines.Add('Installation Complete');
+      Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
+    end
+  else
+    begin
+      Memo1.Lines.Add('Setup Complete');
+      Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'setup.log');
+    end;
   PySys.LogTarget := Nil;
   if Assigned(CloseMyself) then
       CloseMyself(Self);

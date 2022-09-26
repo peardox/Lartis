@@ -32,6 +32,7 @@ object frmTrain: TfrmTrain
     Position.X = 168.000000000000000000
     Position.Y = 192.000000000000000000
     TabOrder = 1
+    OnChange = TrackBar1Change
   end
   object Label1: TLabel
     Position.X = 288.000000000000000000
