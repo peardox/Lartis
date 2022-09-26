@@ -87,6 +87,7 @@ type
     procedure SetLogTarget(AStringContainer: TMemo);
     procedure SetupPackage(APackage: TPyManagedPackage; const AExtraURL: String = '');
     procedure ThreadedSetup;
+    procedure GetSystemCode;
   public
     Torch: TPyTorch;
     {$IF NOT DEFINED(CPUARM)}
@@ -196,13 +197,19 @@ begin
   PyIsReactivating := False;
   PyCleanOnExit := False;
   // Wipe Python when finished
+end;
+
+procedure TPySys.GetSystemCode;
+begin
   if not DirectoryExists(IncludeTrailingPathDelimiter(AppHome) + pyshim) then
     ForceDirectories(IncludeTrailingPathDelimiter(AppHome) + pyshim);
   if FileExists(IncludeTrailingPathDelimiter(AppHome) + pycode) then
     begin
       SystemCode := TStringList.Create;
       SystemCode.LoadFromFile(IncludeTrailingPathDelimiter(AppHome) + pycode)
-    end;
+    end
+  else
+    Raise Exception.Create('GetSystemCode : Can''t find SystemCode');
 end;
 
 procedure TPySys.DoPySysFinishedEvent(const AStatus: Boolean);
@@ -560,16 +567,17 @@ begin
           TThread.Synchronize(nil,
             procedure()
             begin
+              GetSystemCode;
               Log('Testing Python');
 
-{
+
               SystemError := RunShim(pyshim);
 
               if not SystemError then
                 SystemError := RunTest;
               if not SystemError then
                 SystemError := RunSystem;
-}
+
               if not Installing then
                 begin
 //                  FLogTarget.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'startup.log');

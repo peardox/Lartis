@@ -291,7 +291,10 @@ begin
     SystemError := PySys.RunTest;
   if not SystemError then
     SystemError := PySys.RunSystem;
+
+  Result := not SystemError;
 end;
+
 procedure TfrmInit.SetupComplete(Sender: TObject; const AStatus: Boolean);
 begin
   if not InstallRequired then
@@ -306,14 +309,17 @@ begin
     end;
   if AStatus and EnableGPU then
     begin
-//      DoGPUWarmup;
+      DoGPUWarmup;
     end;
   if DidRunInstall then
     begin
+      btnInstall.Enabled := True;
       btnInstall.Text := 'Continue';
     end
   else
-    FinishInit(Self, AStatus);
+    begin
+      FinishInit(Self, AStatus);
+    end;
 end;
 
 procedure TfrmInit.FinishInit(Sender: TObject; const AStatus: Boolean);
@@ -337,7 +343,7 @@ begin
     end
   else
     begin
-      DoGPUWarmup;
+      FinishInit(Self, True);
     end;
 end;
 
