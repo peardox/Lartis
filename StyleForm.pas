@@ -17,8 +17,7 @@ type
     chkEnableGPU: TCheckBox;
     btnBack: TButton;
     SaveDialog1: TSaveDialog;
-
-    Label1: TLabel;
+    lblInfo: TLabel;
     RectAnimation1: TRectAnimation;
     Layout1: TLayout;
     layStyleControl: TLayout;
@@ -31,7 +30,6 @@ type
     imgStyleThumb2: TImageControl;
     layControls: TLayout;
     btnAddLayer: TButton;
-    btnStylize: TButton;
     cbxColourMode: TComboBox;
     expTransparency: TExpander;
     chkEnableTransparency: TCheckBox;
@@ -53,7 +51,6 @@ type
     procedure btnBackClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
-    procedure btnStylizeClick(Sender: TObject);
     procedure StyleLayoutResize(Sender: TObject);
     procedure trkStyleWeightChange(Sender: TObject);
     procedure cbxColourModeChange(Sender: TObject);
@@ -80,7 +77,8 @@ type
     function  AddLayer: TBaseShader;
     procedure ProjectInitialise;
     procedure ShowStyleProgress(Sender: TObject; const AValue: Single);
-    procedure ShowStyledImage(Sender: TObject; const AFileName: String);
+    procedure ShowStyledImage(Sender: TObject; const AFileName: String; const ATime: Single);
+    procedure HandleStyleError(Sender: TObject; const AMessage: String);
     procedure DoSaveLayers;
     procedure Stylize(Sender: TObject; const APath: String; const AModel: String);
   public
@@ -108,7 +106,7 @@ uses
 
 procedure TfrmStyle.FormCreate(Sender: TObject);
 begin
-  Label1.Text := '';
+  lblInfo.Text := '';
   FrameCount := 0;
 
   cbxColourMode.Items.Add('Use Styled Colors');
@@ -141,7 +139,6 @@ begin
     expTransparency.Size.Height +
 
     btnAddLayer.Size.Height +
-    btnStylize.Size.Height +
     btnClearLayers.Size.Height +
     btnSave.Size.Height +
     (ControlMargin * 8);
@@ -169,12 +166,8 @@ begin
   btnAddLayer.Position.Y := expTransparency.Position.Y + expTransparency.Size.Height + ControlMargin;
   btnAddLayer.Size.Width := layControls.Width - (ControlMargin * 2);
 
-  btnStylize.Position.X := ControlMargin;
-  btnStylize.Position.Y := btnAddLayer.Position.Y + 24;
-  btnStylize.Size.Width := layControls.Width - (ControlMargin * 2);
-
   btnClearLayers.Position.X := ControlMargin;
-  btnClearLayers.Position.Y := btnStylize.Position.Y + 24;
+  btnClearLayers.Position.Y := btnAddLayer.Position.Y + 24;
   btnClearLayers.Size.Width := layControls.Width - (ControlMargin * 2);
 
   btnSave.Position.X := ControlMargin;
@@ -206,6 +199,19 @@ begin
           TProgressShader(ActiveLayer).Progress := AValue;
           prgStyleBatch.Value := AValue;
         end;
+end;
+
+procedure TfrmStyle.HandleStyleError(Sender: TObject; const AMessage: String);
+begin
+  if Assigned(ActiveLayer) then
+    begin
+      if ActiveLayer is TProgressShader then
+        begin
+          TProgressShader(ActiveLayer).Progress := 1;
+          prgStyleBatch.Value := 1;
+          ShowMessage(AMessage);
+        end;
+    end;
 end;
 
 procedure TfrmStyle.StyleLayoutResize(Sender: TObject);
@@ -370,7 +376,7 @@ begin
     Result := NewLayer;
 end;
 
-procedure TfrmStyle.ShowStyledImage(Sender: TObject; const AFileName: String);
+procedure TfrmStyle.ShowStyledImage(Sender: TObject; const AFileName: String; const ATime: Single);
 var
   CurrentImage: String;
   CurrentBitMap: TBitmap;
@@ -380,6 +386,9 @@ begin
     begin
       if ActiveLayer is TProgressShader then
         begin
+          lblInfo.Text := 'Last Style : Model = ' +
+            PySys.modStyle.Options.model + // Lazy - Really should return this as a param!!!
+            ', Time = ' + FormatFloat('0.000', ATime) + 's';
           PySys.Log('Removing ProgressShader');
           CurrentImage := TProgressShader(ActiveLayer).ImageFile;
           if Assigned(TProgressShader(ActiveLayer).Bitmap) then
@@ -411,11 +420,6 @@ begin
         end;
     end;
 
-end;
-
-procedure TfrmStyle.btnStylizeClick(Sender: TObject);
-begin
-  Stylize(Self, 'models', 'mosaic/mosaic-100');
 end;
 
 procedure TfrmStyle.Stylize(Sender: TObject; const APath: String; const AModel: String);
@@ -455,7 +459,7 @@ begin
         with ActiveLayer as TProgressShader do
           begin
             if ImageFile <> String.Empty then
-              PySys.modStyle.Stylize(ImageFile, APath, AModel, ShowStyleProgress, ShowStyledImage);
+              PySys.modStyle.Stylize(ImageFile, APath, AModel, ShowStyleProgress, ShowStyledImage, HandleStyleError);
 //              PySys.modStyle.Stylize(Bitmap, APath, AModel, ShowStyleProgress, ShowStyledImage);
           end;
     end;
@@ -519,14 +523,14 @@ begin
         + ', Frames = ' + IntToStr(FrameCount)
         ;
 
-      Label1.Text := txt;
+      lblInfo.Text := txt;
     end;
 end;
 
 procedure TfrmStyle.FormPaint(Sender: TObject; Canvas: TCanvas;
   const ARect: TRectF);
 begin
-  UpdateDebugInfo;
+//  UpdateDebugInfo;
   if FSaveInNextPaint then
     DoSaveLayers;
 end;

@@ -9,19 +9,22 @@ uses
 
 type
   TModProgressEvent = procedure(Sender: TObject; const AValue: Single) of object;
-  TModFinishedEvent = procedure(Sender: TObject; const AFile: String) of object;
+  TModFinishedEvent = procedure(Sender: TObject; const AFile: String; const ATime: Single) of object;
   TModErrorEvent = procedure(Sender: TObject; const AString: String) of object;
 
   TPyIOOptions = record
     TrainJsonLog: String;
+    TrainErrorLog: String;
     TrainAbortFlag: Boolean;
     TrainSampleFlag: Boolean;
     SampleFilename: String;
     StyleAbortFlag: Boolean;
     StyleFilename: String;
     StyleJsonLog: String;
+    StyleErrorLog: String;
     CalibrateJsonLog: String;
     CalibrationResultJson: String;
+    ProcessRuntime: Single;
   end;
 
   TCalibrationOptions = record
@@ -90,8 +93,8 @@ type
   end;
 
   TStyleLog = record
-    event: Integer;
-    subevent: Integer;
+    event: String;
+    subevent: String;
     time: Single;
   end;
 
@@ -127,7 +130,7 @@ type
     procedure DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
     procedure DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
     procedure DoModProgressEvent(const AValue: Single);
-    procedure DoModFinishedEvent(const AFile: String);
+    procedure DoModFinishedEvent(const AFile: String; const ATime: Single);
     procedure DoModErrorEvent(const AString: String);
   public
     ProgressCount: Integer;
@@ -157,8 +160,9 @@ type
     FModErrorEvent: TModErrorEvent;
     procedure DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
     procedure DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+    procedure DoError(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
     procedure DoModProgressEvent(const AValue: Single);
-    procedure DoModFinishedEvent(const AFile: String);
+    procedure DoModFinishedEvent(const AFile: String; const ATime: Single);
     procedure DoModErrorEvent(const AString: String);
   public
     ProgressCount: Integer;
@@ -205,7 +209,7 @@ type
     procedure DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
     procedure DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
     procedure DoModProgressEvent(const AValue: Single);
-    procedure DoModFinishedEvent(const AFile: String);
+    procedure DoModFinishedEvent(const AFile: String; const ATime: Single);
     procedure DoModErrorEvent(const AString: String);
   public
     property Options: TCalibrationOptions read FOptions write FOptions;
@@ -266,10 +270,10 @@ begin
     FModProgressEvent(Self, AValue);
 end;
 
-procedure TModTrain.DoModFinishedEvent(const AFile: String);
+procedure TModTrain.DoModFinishedEvent(const AFile: String; const ATime: Single);
 begin
   if Assigned(FModFinishedEvent) then
-    FModFinishedEvent(Self, AFile);
+    FModFinishedEvent(Self, AFile, ATime);
 end;
 
 procedure TModTrain.DoModErrorEvent(const AString: String);
@@ -690,10 +694,10 @@ begin
     FModProgressEvent(Self, AValue);
 end;
 
-procedure TModStyle.DoModFinishedEvent(const AFile: String);
+procedure TModStyle.DoModFinishedEvent(const AFile: String; const ATime: Single);
 begin
   if Assigned(FModFinishedEvent) then
-    FModFinishedEvent(Self, AFile);
+    FModFinishedEvent(Self, AFile, ATime);
 end;
 
 procedure TModStyle.DoModErrorEvent(const AString: String);
@@ -744,6 +748,10 @@ begin
       ev := TEventDef.Create(Events);
       ev.Name := 'StyleFinished';
       ev.OnExecute := DoFinished;
+
+      ev := TEventDef.Create(Events);
+      ev.Name := 'StyleError';
+      ev.OnExecute := DoError;
 
       if Assigned(PySys) then
         begin
@@ -900,19 +908,31 @@ begin
 end;
 
 ///// Style Module Events /////
+procedure TModStyle.DoError(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+begin
+  if TThread.CurrentThread.ThreadID <> MainThreadID then
+    TThread.Synchronize(nil,
+      procedure()
+      begin
+        PySys.Log('InThread');
+      end)
+    else
+      DoModErrorEvent(PySys.modPyIO.Options.StyleErrorLog);
+  Result := Engine.ReturnNone;
+end;
 
 procedure TModStyle.DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
   procedure HandleLogLine(const ALogLine: String);
   var
     lSerializer: TJsonSerializer;
-    log: TTrainLog;
+    log: TStyleLog;
   begin
     lSerializer := TJsonSerializer.Create;
     try
       try
         if ALogLine <> String.Empty then
           begin
-            log := lSerializer.Deserialize<TTrainLog>(ALogLine);
+            log := lSerializer.Deserialize<TStyleLog>(ALogLine);
             Inc(ProgressCount);
             DoModProgressEvent(ProgressCount / 45);
             Application.ProcessMessages;
@@ -920,8 +940,8 @@ procedure TModStyle.DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Resu
       except
        on E : Exception do
        begin
-         PySys.Log('Exception class name = '+E.ClassName);
-         PySys.Log('Exception message = '+E.Message);
+         PySys.Log('TModStyle.DoProgress - HandleLog - Exception class name = '+E.ClassName);
+         PySys.Log('TModStyle.DoProgress - HandleLog - Exception message = '+E.Message);
          PySys.Log('LogLine = ' + '"' + ALogLine + '"');
        end;
       end;
@@ -945,9 +965,7 @@ end;
 
 procedure TModStyle.DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
 begin
-//  PySys.Log('FN > ' + PySys.modPyIO.Options.StyleFilename );
-//  frmStyle.ShowStyledImage(Self, PySys.modPyIO.Options.StyleFilename);
-  DoModFinishedEvent(PySys.modPyIO.Options.StyleFilename);
+  DoModFinishedEvent(PySys.modPyIO.Options.StyleFilename, PySys.modPyIO.Options.ProcessRuntime);
   Result := Engine.ReturnNone;
 end;
 
@@ -1058,14 +1076,17 @@ end;
 procedure TModPyIO.CreateDefaultOptions;
 begin
   FOptions.TrainJsonLog := String.Empty;
+  FOptions.TrainErrorLog := String.Empty;
   FOptions.TrainAbortFlag := False;
   FOptions.TrainSampleFlag := False;
   FOptions.SampleFilename:= String.Empty;
   FOptions.StyleAbortFlag := False;
   FOptions.StyleFilename := String.Empty;
   FOptions.StyleJsonLog := String.Empty;
+  FOptions.StyleErrorLog := String.Empty;
   FOptions.CalibrateJsonLog := String.Empty;
   FOptions.CalibrationResultJson := String.Empty;
+  FOptions.ProcessRuntime := 0;
 end;
 
 procedure TModPyIO.InitializeModule(Sender: TObject);
@@ -1102,6 +1123,8 @@ begin
       begin
         if key = 'TrainJsonLog' then
           Result := VariantAsPyObject(FOptions.TrainJsonLog)
+        else if key = 'TrainErrorLog' then
+          Result := VariantAsPyObject(FOptions.TrainErrorLog)
         else if key = 'TrainAbortFlag' then
           Result := VariantAsPyObject(FOptions.TrainAbortFlag)
         else if key = 'TrainSampleFlag' then
@@ -1114,10 +1137,14 @@ begin
           Result := VariantAsPyObject(FOptions.StyleFilename)
         else if key = 'StyleJsonLog' then
           Result := VariantAsPyObject(FOptions.StyleJsonLog)
+        else if key = 'StyleErrorLog' then
+          Result := VariantAsPyObject(FOptions.StyleErrorLog)
         else if key = 'CalibrateJsonLog' then
           Result := VariantAsPyObject(FOptions.CalibrateJsonLog)
         else if key = 'CalibrationResultJson' then
           Result := VariantAsPyObject(FOptions.CalibrationResultJson)
+        else if key = 'ProcessRuntime' then
+          Result := VariantAsPyObject(FOptions.ProcessRuntime)
 
         else
           begin
@@ -1140,6 +1167,11 @@ begin
         if key = 'TrainJsonLog' then
           begin
             FOptions.TrainJsonLog := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
+        else if key = 'TrainErrorLog' then
+          begin
+            FOptions.TrainErrorLog := PyObjectAsVariant( value );
             Result := ReturnNone;
           end
         else if key = 'TrainAbortFlag' then
@@ -1172,6 +1204,11 @@ begin
             FOptions.StyleJsonLog := PyObjectAsVariant( value );
             Result := ReturnNone;
           end
+        else if key = 'StyleErrorLog' then
+          begin
+            FOptions.StyleErrorLog := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
         else if key = 'CalibrateJsonLog' then
           begin
             FOptions.CalibrateJsonLog := PyObjectAsVariant( value );
@@ -1180,6 +1217,11 @@ begin
         else if key = 'CalibrationResultJson' then
           begin
             FOptions.CalibrationResultJson := PyObjectAsVariant( value );
+            Result := ReturnNone;
+          end
+        else if key = 'ProcessRuntime' then
+          begin
+            FOptions.ProcessRuntime := PyObjectAsVariant( value );
             Result := ReturnNone;
           end
         else
@@ -1196,16 +1238,19 @@ function TModPyIO.GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
 begin
   with GetPythonEngine do
     begin
-      Result := PyList_New(9);
+      Result := PyList_New(11);
       PyList_SetItem(Result, 0, PyUnicodeFromString('TrainJsonLog'));
-      PyList_SetItem(Result, 1, PyUnicodeFromString('TrainAbortFlag'));
-      PyList_SetItem(Result, 2, PyUnicodeFromString('TrainSampleFlag'));
-      PyList_SetItem(Result, 3, PyUnicodeFromString('SampleFilename'));
-      PyList_SetItem(Result, 4, PyUnicodeFromString('StyleAbortFlag'));
-      PyList_SetItem(Result, 5, PyUnicodeFromString('StyleFilename'));
-      PyList_SetItem(Result, 6, PyUnicodeFromString('StyleJsonLog'));
-      PyList_SetItem(Result, 7, PyUnicodeFromString('CalibrateJsonLog'));
-      PyList_SetItem(Result, 8, PyUnicodeFromString('CalibrationResultJson'));
+      PyList_SetItem(Result, 1, PyUnicodeFromString('TrainErrorLog'));
+      PyList_SetItem(Result, 2, PyUnicodeFromString('TrainAbortFlag'));
+      PyList_SetItem(Result, 3, PyUnicodeFromString('TrainSampleFlag'));
+      PyList_SetItem(Result, 4, PyUnicodeFromString('SampleFilename'));
+      PyList_SetItem(Result, 5, PyUnicodeFromString('StyleAbortFlag'));
+      PyList_SetItem(Result, 6, PyUnicodeFromString('StyleFilename'));
+      PyList_SetItem(Result, 7, PyUnicodeFromString('StyleJsonLog'));
+      PyList_SetItem(Result, 8, PyUnicodeFromString('StyleErrorLog'));
+      PyList_SetItem(Result, 9, PyUnicodeFromString('CalibrateJsonLog'));
+      PyList_SetItem(Result, 10, PyUnicodeFromString('CalibrationResultJson'));
+      PyList_SetItem(Result, 11, PyUnicodeFromString('ProcessRuntime'));
     end;
 end;
 
@@ -1224,10 +1269,10 @@ begin
     FModProgressEvent(Self, AValue);
 end;
 
-procedure TModCalibration.DoModFinishedEvent(const AFile: String);
+procedure TModCalibration.DoModFinishedEvent(const AFile: String; const ATime: Single);
 begin
   if Assigned(FModFinishedEvent) then
-    FModFinishedEvent(Self, AFile);
+    FModFinishedEvent(Self, AFile, ATime);
 end;
 
 procedure TModCalibration.DoModErrorEvent(const AString: String);
@@ -1466,7 +1511,7 @@ procedure TModCalibration.DoFinished(Sender: TObject; PSelf, Args: PPyObject; va
 begin
   PySys.Log('Result > ' + PySys.modPyIO.Options.CalibrationResultJson );
 //  frmStyle.ShowStyledImage(Self, PySys.modPyIO.Options.StyleFilename);
-//  DoModFinishedEvent(PySys.modPyIO.Options.StyleFilename);
+//  DoModFinishedEvent(PySys.modPyIO.Options.CalibrationResultJson, PySys.modPyIO.Options.ProcessRuntime);
   Result := Engine.ReturnNone;
   PySys.Log('Finished');
 end;

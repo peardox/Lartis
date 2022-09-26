@@ -19,6 +19,7 @@ object frmStyle: TfrmStyle
     TabOrder = 1
     OnResize = TopPanelResize
     object chkEnableGPU: TCheckBox
+      Anchors = [akTop, akRight]
       Position.X = 952.000000000000000000
       TabOrder = 1
       Text = 'Enable GPU'
@@ -35,13 +36,15 @@ object frmStyle: TfrmStyle
       Text = 'btnBack'
       OnClick = btnBackClick
     end
-    object Label1: TLabel
-      Position.X = 232.000000000000000000
+    object lblInfo: TLabel
+      Anchors = [akTop, akRight]
+      Position.X = 592.000000000000000000
       Position.Y = 2.000000000000000000
-      Size.Width = 641.000000000000000000
+      Size.Width = 345.000000000000000000
       Size.Height = 17.000000000000000000
       Size.PlatformDefault = False
-      Text = 'Label1'
+      TextSettings.HorzAlign = Trailing
+      Text = 'lblInfo'
       TabOrder = 2
     end
     object RectAnimation1: TRectAnimation
@@ -149,23 +152,13 @@ object frmStyle: TfrmStyle
           Text = 'Add Layer'
           OnClick = btnAddLayerClick
         end
-        object btnStylize: TButton
-          Position.X = 23.000000000000000000
-          Position.Y = 274.000000000000000000
-          Size.Width = 137.000000000000000000
-          Size.Height = 22.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 4
-          Text = 'Style Layer'
-          OnClick = btnStylizeClick
-        end
         object cbxColourMode: TComboBox
           Position.X = 8.000000000000000000
           Position.Y = 56.000000000000000000
           Size.Width = 145.000000000000000000
           Size.Height = 22.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 9
+          TabOrder = 8
           OnChange = cbxColourModeChange
         end
         object expTransparency: TExpander
@@ -176,7 +169,7 @@ object frmStyle: TfrmStyle
           Size.Height = 129.000000000000000000
           Size.PlatformDefault = False
           Text = 'Transparency'
-          TabOrder = 8
+          TabOrder = 7
           OnExpandedChanged = expTransparencyExpandedChanged
           ContentSize = '104'
           object chkEnableTransparency: TCheckBox
@@ -249,9 +242,9 @@ object frmStyle: TfrmStyle
           TabOrder = 3
         end
         object btnClearLayers: TButton
-          Position.X = 24.000000000000000000
-          Position.Y = 312.000000000000000000
-          TabOrder = 10
+          Position.X = 16.000000000000000000
+          Position.Y = 272.000000000000000000
+          TabOrder = 9
           Text = 'Clear Layers'
           OnClick = btnClearLayersClick
         end
@@ -268,9 +261,9 @@ object frmStyle: TfrmStyle
           OnChange = trkStyleWeightChange
         end
         object btnSave: TButton
-          Position.X = 24.000000000000000000
-          Position.Y = 352.000000000000000000
-          TabOrder = 11
+          Position.X = 16.000000000000000000
+          Position.Y = 304.000000000000000000
+          TabOrder = 10
           Text = 'Save Image'
           OnClick = btnSaveClick
         end
