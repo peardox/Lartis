@@ -12,11 +12,23 @@ uses
 type
   TfrmStyle = class(TEmbeddedForm)
     TopPanel: TPanel;
-    layStyleControl: TLayout;
-    StyleLayout: TLayout;
     OpenDialog1: TOpenDialog;
     prgStyleBatch: TProgressBar;
+    chkEnableGPU: TCheckBox;
+    btnBack: TButton;
+    SaveDialog1: TSaveDialog;
+
+    Label1: TLabel;
+    RectAnimation1: TRectAnimation;
+    Layout1: TLayout;
+    layStyleControl: TLayout;
     vsbLayers: TFramedVertScrollBox;
+    layStyleThumb1: TLayout;
+    imgStyleThumb1: TImageControl;
+    layStyleThumb3: TLayout;
+    imgStyleThumb3: TImageControl;
+    layStyleThumb2: TLayout;
+    imgStyleThumb2: TImageControl;
     layControls: TLayout;
     btnAddLayer: TButton;
     btnStylize: TButton;
@@ -29,25 +41,15 @@ type
     chkInvertAlpha: TCheckBox;
     lblStyleWeightKey: TLabel;
     lblStyleWeightValue: TLabel;
-    chkEnableGPU: TCheckBox;
     btnClearLayers: TButton;
-    layStylePicker: TLayout;
     trkStyleWeight: TTrackBar;
-    btnBack: TButton;
-    SaveDialog1: TSaveDialog;
     btnSave: TButton;
+    Layout2: TLayout;
+    layStylePicker: TLayout;
     vsbStyles: TFramedVertScrollBox;
-
-    layStyleThumb1: TLayout;
-    imgStyleThumb1: TImageControl;
-    layStyleThumb2: TLayout;
-    imgStyleThumb2: TImageControl;
-    layStyleThumb3: TLayout;
-    imgStyleThumb3: TImageControl;
-
-    Label1: TLabel;
-    RectAnimation1: TRectAnimation;
+    StyleLayout: TLayout;
     Splitter1: TSplitter;
+    Splitter2: TSplitter;
     procedure btnBackClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);

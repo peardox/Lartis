@@ -138,6 +138,7 @@ begin
 
   imgThumb := TImage.Create(Self);
   imgThumb.Align := TAlignLayout.Client;
+  imgThumb.MarginWrapMode := TImageWrapMode.Center;
   imgThumb.Parent := Self;
   imgThumb.OnClick := DoClick;
 

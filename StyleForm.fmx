@@ -48,229 +48,6 @@ object frmStyle: TfrmStyle
       Duration = 0.200000002980232200
     end
   end
-  object layStyleControl: TLayout
-    Align = Right
-    Position.X = 921.000000000000000000
-    Position.Y = 24.000000000000000000
-    Size.Width = 160.000000000000000000
-    Size.Height = 573.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 3
-    OnResize = layStyleControlResize
-    object vsbLayers: TFramedVertScrollBox
-      Align = Client
-      Size.Width = 160.000000000000000000
-      Size.Height = 173.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 0
-      Viewport.Width = 140.000000000000000000
-      Viewport.Height = 169.000000000000000000
-      object layStyleThumb1: TLayout
-        Align = Top
-        Size.Width = 140.000000000000000000
-        Size.Height = 97.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 2
-        object imgStyleThumb1: TImageControl
-          Align = Client
-          Size.Width = 140.000000000000000000
-          Size.Height = 97.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 0
-        end
-      end
-      object layStyleThumb3: TLayout
-        Align = Top
-        Position.Y = 194.000000000000000000
-        Size.Width = 140.000000000000000000
-        Size.Height = 97.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 1
-        object imgStyleThumb3: TImageControl
-          Align = Client
-          Size.Width = 140.000000000000000000
-          Size.Height = 97.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 0
-        end
-      end
-      object layStyleThumb2: TLayout
-        Align = Top
-        Position.Y = 97.000000000000000000
-        Size.Width = 140.000000000000000000
-        Size.Height = 97.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 0
-        object imgStyleThumb2: TImageControl
-          Align = Client
-          Size.Width = 140.000000000000000000
-          Size.Height = 97.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 0
-        end
-      end
-    end
-    object layControls: TLayout
-      Align = Top
-      Size.Width = 160.000000000000000000
-      Size.Height = 400.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 1
-      object btnAddLayer: TButton
-        Hint = 'Open Image'
-        Position.X = 16.000000000000000000
-        Position.Y = 234.000000000000000000
-        Size.Width = 137.000000000000000000
-        Size.Height = 22.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 1
-        Text = 'Add Layer'
-        OnClick = btnAddLayerClick
-      end
-      object btnStylize: TButton
-        Position.X = 23.000000000000000000
-        Position.Y = 274.000000000000000000
-        Size.Width = 137.000000000000000000
-        Size.Height = 22.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 4
-        Text = 'Style Layer'
-        OnClick = btnStylizeClick
-      end
-      object cbxColourMode: TComboBox
-        Position.X = 8.000000000000000000
-        Position.Y = 56.000000000000000000
-        Size.Width = 145.000000000000000000
-        Size.Height = 22.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 9
-        OnChange = cbxColourModeChange
-      end
-      object expTransparency: TExpander
-        Position.X = 8.000000000000000000
-        Position.Y = 88.000000000000000000
-        ShowCheck = False
-        Size.Width = 145.000000000000000000
-        Size.Height = 129.000000000000000000
-        Size.PlatformDefault = False
-        Text = 'Transparency'
-        TabOrder = 8
-        OnExpandedChanged = expTransparencyExpandedChanged
-        ContentSize = '104'
-        object chkEnableTransparency: TCheckBox
-          Position.X = 8.000000000000000000
-          Size.Width = 129.000000000000000000
-          Size.Height = 19.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 1
-          Text = 'Enable Transparency'
-          OnChange = chkEnableTransparencyChange
-        end
-        object lblAlphaThresholdKey: TLabel
-          Position.X = 8.000000000000000000
-          Position.Y = 48.000000000000000000
-          Size.Width = 81.000000000000000000
-          Size.Height = 17.000000000000000000
-          Size.PlatformDefault = False
-          Text = 'Threshold'
-          TabOrder = 2
-        end
-        object trkAlphaThreshold: TTrackBar
-          CanParentFocus = True
-          Orientation = Horizontal
-          Position.X = 8.000000000000000000
-          Position.Y = 72.000000000000000000
-          Size.Width = 129.000000000000000000
-          Size.Height = 19.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 3
-          OnChange = trkAlphaThresholdChange
-        end
-        object lblAlphaThresholdValue: TLabel
-          Position.X = 100.000000000000000000
-          Position.Y = 48.000000000000000000
-          Size.Width = 40.000000000000000000
-          Size.Height = 17.000000000000000000
-          Size.PlatformDefault = False
-          TextSettings.HorzAlign = Trailing
-          Text = '1.00'
-          TabOrder = 4
-        end
-        object chkInvertAlpha: TCheckBox
-          Position.X = 8.000000000000000000
-          Position.Y = 24.000000000000000000
-          Size.Width = 129.000000000000000000
-          Size.Height = 19.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 0
-          Text = 'Invert Alpha'
-          OnChange = chkInvertAlphaChange
-        end
-      end
-      object lblStyleWeightKey: TLabel
-        Position.X = 8.000000000000000000
-        Position.Y = 8.000000000000000000
-        Size.Width = 81.000000000000000000
-        Size.Height = 17.000000000000000000
-        Size.PlatformDefault = False
-        Text = 'StyleWeight'
-        TabOrder = 2
-      end
-      object lblStyleWeightValue: TLabel
-        Position.X = 104.000000000000000000
-        Position.Y = 8.000000000000000000
-        Size.Width = 40.000000000000000000
-        Size.Height = 17.000000000000000000
-        Size.PlatformDefault = False
-        TextSettings.HorzAlign = Trailing
-        Text = '1.00'
-        TabOrder = 3
-      end
-      object btnClearLayers: TButton
-        Position.X = 24.000000000000000000
-        Position.Y = 312.000000000000000000
-        TabOrder = 10
-        Text = 'Clear Layers'
-        OnClick = btnClearLayersClick
-      end
-      object trkStyleWeight: TTrackBar
-        CanParentFocus = True
-        Max = 1.000000000000000000
-        Orientation = Horizontal
-        Position.X = 8.000000000000000000
-        Position.Y = 32.000000000000000000
-        Size.Width = 141.000000000000000000
-        Size.Height = 19.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 0
-        OnChange = trkStyleWeightChange
-      end
-      object btnSave: TButton
-        Position.X = 24.000000000000000000
-        Position.Y = 352.000000000000000000
-        TabOrder = 11
-        Text = 'Save Image'
-        OnClick = btnSaveClick
-      end
-    end
-  end
-  object StyleLayout: TLayout
-    Align = Client
-    Size.Width = 761.000000000000000000
-    Size.Height = 573.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 5
-    OnResize = StyleLayoutResize
-    object Splitter1: TSplitter
-      Align = Right
-      Cursor = crHSplit
-      MinSize = 20.000000000000000000
-      Position.X = 757.000000000000000000
-      Size.Width = 4.000000000000000000
-      Size.Height = 573.000000000000000000
-      Size.PlatformDefault = False
-    end
-  end
   object OpenDialog1: TOpenDialog
     Left = 320
     Top = 96
@@ -284,25 +61,269 @@ object frmStyle: TfrmStyle
     Size.Height = 20.000000000000000000
     Size.PlatformDefault = False
   end
-  object layStylePicker: TLayout
-    Align = Left
-    Position.Y = 24.000000000000000000
-    Size.Width = 160.000000000000000000
-    Size.Height = 573.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 0
-    object vsbStyles: TFramedVertScrollBox
-      Align = Client
-      Size.Width = 160.000000000000000000
-      Size.Height = 573.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 0
-      Viewport.Width = 156.000000000000000000
-      Viewport.Height = 569.000000000000000000
-    end
-  end
   object SaveDialog1: TSaveDialog
     Left = 384
     Top = 96
+  end
+  object Layout1: TLayout
+    Align = Client
+    Size.Width = 1081.000000000000000000
+    Size.Height = 573.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object layStyleControl: TLayout
+      Align = Right
+      Position.X = 921.000000000000000000
+      Size.Width = 160.000000000000000000
+      Size.Height = 573.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 4
+      OnResize = layStyleControlResize
+      object vsbLayers: TFramedVertScrollBox
+        Align = Client
+        Size.Width = 160.000000000000000000
+        Size.Height = 173.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Viewport.Width = 140.000000000000000000
+        Viewport.Height = 169.000000000000000000
+        object layStyleThumb1: TLayout
+          Align = Top
+          Size.Width = 140.000000000000000000
+          Size.Height = 97.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 2
+          object imgStyleThumb1: TImageControl
+            Align = Client
+            Size.Width = 140.000000000000000000
+            Size.Height = 97.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+        object layStyleThumb3: TLayout
+          Align = Top
+          Position.Y = 194.000000000000000000
+          Size.Width = 140.000000000000000000
+          Size.Height = 97.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          object imgStyleThumb3: TImageControl
+            Align = Client
+            Size.Width = 140.000000000000000000
+            Size.Height = 97.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+        object layStyleThumb2: TLayout
+          Align = Top
+          Position.Y = 97.000000000000000000
+          Size.Width = 140.000000000000000000
+          Size.Height = 97.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object imgStyleThumb2: TImageControl
+            Align = Client
+            Size.Width = 140.000000000000000000
+            Size.Height = 97.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+      end
+      object layControls: TLayout
+        Align = Top
+        Size.Width = 160.000000000000000000
+        Size.Height = 400.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object btnAddLayer: TButton
+          Hint = 'Open Image'
+          Position.X = 16.000000000000000000
+          Position.Y = 234.000000000000000000
+          Size.Width = 137.000000000000000000
+          Size.Height = 22.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          Text = 'Add Layer'
+          OnClick = btnAddLayerClick
+        end
+        object btnStylize: TButton
+          Position.X = 23.000000000000000000
+          Position.Y = 274.000000000000000000
+          Size.Width = 137.000000000000000000
+          Size.Height = 22.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 4
+          Text = 'Style Layer'
+          OnClick = btnStylizeClick
+        end
+        object cbxColourMode: TComboBox
+          Position.X = 8.000000000000000000
+          Position.Y = 56.000000000000000000
+          Size.Width = 145.000000000000000000
+          Size.Height = 22.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 9
+          OnChange = cbxColourModeChange
+        end
+        object expTransparency: TExpander
+          Position.X = 8.000000000000000000
+          Position.Y = 88.000000000000000000
+          ShowCheck = False
+          Size.Width = 145.000000000000000000
+          Size.Height = 129.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Transparency'
+          TabOrder = 8
+          OnExpandedChanged = expTransparencyExpandedChanged
+          ContentSize = '104'
+          object chkEnableTransparency: TCheckBox
+            Position.X = 8.000000000000000000
+            Size.Width = 129.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = 'Enable Transparency'
+            OnChange = chkEnableTransparencyChange
+          end
+          object lblAlphaThresholdKey: TLabel
+            Position.X = 8.000000000000000000
+            Position.Y = 48.000000000000000000
+            Size.Width = 81.000000000000000000
+            Size.Height = 17.000000000000000000
+            Size.PlatformDefault = False
+            Text = 'Threshold'
+            TabOrder = 2
+          end
+          object trkAlphaThreshold: TTrackBar
+            CanParentFocus = True
+            Orientation = Horizontal
+            Position.X = 8.000000000000000000
+            Position.Y = 72.000000000000000000
+            Size.Width = 129.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 3
+            OnChange = trkAlphaThresholdChange
+          end
+          object lblAlphaThresholdValue: TLabel
+            Position.X = 100.000000000000000000
+            Position.Y = 48.000000000000000000
+            Size.Width = 40.000000000000000000
+            Size.Height = 17.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.HorzAlign = Trailing
+            Text = '1.00'
+            TabOrder = 4
+          end
+          object chkInvertAlpha: TCheckBox
+            Position.X = 8.000000000000000000
+            Position.Y = 24.000000000000000000
+            Size.Width = 129.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = 'Invert Alpha'
+            OnChange = chkInvertAlphaChange
+          end
+        end
+        object lblStyleWeightKey: TLabel
+          Position.X = 8.000000000000000000
+          Position.Y = 8.000000000000000000
+          Size.Width = 81.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'StyleWeight'
+          TabOrder = 2
+        end
+        object lblStyleWeightValue: TLabel
+          Position.X = 104.000000000000000000
+          Position.Y = 8.000000000000000000
+          Size.Width = 40.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.HorzAlign = Trailing
+          Text = '1.00'
+          TabOrder = 3
+        end
+        object btnClearLayers: TButton
+          Position.X = 24.000000000000000000
+          Position.Y = 312.000000000000000000
+          TabOrder = 10
+          Text = 'Clear Layers'
+          OnClick = btnClearLayersClick
+        end
+        object trkStyleWeight: TTrackBar
+          CanParentFocus = True
+          Max = 1.000000000000000000
+          Orientation = Horizontal
+          Position.X = 8.000000000000000000
+          Position.Y = 32.000000000000000000
+          Size.Width = 141.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          OnChange = trkStyleWeightChange
+        end
+        object btnSave: TButton
+          Position.X = 24.000000000000000000
+          Position.Y = 352.000000000000000000
+          TabOrder = 11
+          Text = 'Save Image'
+          OnClick = btnSaveClick
+        end
+      end
+    end
+    object Layout2: TLayout
+      Align = Client
+      Size.Width = 917.000000000000000000
+      Size.Height = 573.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      object layStylePicker: TLayout
+        Align = Left
+        Size.Width = 160.000000000000000000
+        Size.Height = 573.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object vsbStyles: TFramedVertScrollBox
+          Align = Client
+          Size.Width = 160.000000000000000000
+          Size.Height = 573.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          Viewport.Width = 156.000000000000000000
+          Viewport.Height = 569.000000000000000000
+        end
+      end
+      object StyleLayout: TLayout
+        Align = Client
+        Size.Width = 753.000000000000000000
+        Size.Height = 573.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+        OnResize = StyleLayoutResize
+      end
+      object Splitter1: TSplitter
+        Align = Left
+        Cursor = crHSplit
+        MinSize = 20.000000000000000000
+        Position.X = 160.000000000000000000
+        Size.Width = 4.000000000000000000
+        Size.Height = 573.000000000000000000
+        Size.PlatformDefault = False
+      end
+    end
+    object Splitter2: TSplitter
+      Align = Right
+      Cursor = crHSplit
+      MinSize = 20.000000000000000000
+      Position.X = 917.000000000000000000
+      Size.Width = 4.000000000000000000
+      Size.Height = 573.000000000000000000
+      Size.PlatformDefault = False
+    end
   end
 end
