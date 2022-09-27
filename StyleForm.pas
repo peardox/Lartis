@@ -2,6 +2,8 @@ unit StyleForm;
 
 interface
 
+{$DEFINE NOLAYERS}
+
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
@@ -72,7 +74,6 @@ type
     Container: TAspectLayout;
     Layers: TLayerArray;
     StyleSelectors: TStyleSelectorArray;
-    LayerCount: Integer;
     FrameCount: Integer;
     function  AddLayer: TBaseShader;
     procedure ProjectInitialise;
@@ -81,6 +82,8 @@ type
     procedure HandleStyleError(Sender: TObject; const AMessage: String);
     procedure DoSaveLayers;
     procedure Stylize(Sender: TObject; const APath: String; const AModel: String);
+    procedure ClearLayers;
+    procedure ResetLayerOptions;
   public
     { Public declarations }
     procedure SaveStyleImage;
@@ -108,6 +111,19 @@ uses
 
 procedure TfrmStyle.FormCreate(Sender: TObject);
 begin
+  {$IFDEF NOLAYERS}
+  btnAddLayer.Visible := False;
+  btnAddLayer.Height := 0;
+  btnSave.Visible := False;
+  btnSave.Height := 0;
+  btnClearLayers.Visible := False;
+  btnClearLayers.Height := 0;
+  Splitter1.Enabled := False;
+  Splitter1.Width := 0;
+  Splitter2.Enabled := False;
+  Splitter2.Width := 0;
+  {$ENDIF}
+
   OpenDialog1.Filter:='Images (*.png; *jpg)|*.png; *jpg';
   SaveDialog1.Filter:='Images (*.png; *jpg)|*.png; *jpg';
 
@@ -121,8 +137,8 @@ begin
 
   chkEnableGPU.IsChecked := EnableGPU;
 
-  LayerCount := 0;
   SetLength(StyleSelectors, 0);
+  SetLength(Layers, 0);
 
   ProjectInitialise;
   MakeStyleSelectors;
@@ -294,11 +310,21 @@ begin
   AddStyleLayer;
 end;
 
+procedure TfrmStyle.ResetLayerOptions;
+begin
+  chkEnableTransparency.IsChecked := False;
+  chkInvertAlpha.IsChecked := False;
+  cbxColourMode.ItemIndex := 0;
+end;
+
 procedure TfrmStyle.AddStyleLayer;
 var
   NewLayer: TBaseShader;
 begin
-  if LayerCount = 0 then
+  {$IFDEF NOLAYERS}
+  ClearLayers;
+  {$ENDIF}
+  if Length(Layers) = 0 then
     begin
       Container := TAspectLayout.Create(StyleLayout);
       Container.OnPaint := FormPaint;
@@ -311,27 +337,26 @@ begin
     begin
       if NewLayer is TProgressShader then
         begin
-          if LayerCount = 0 then
-            imgStyleThumb1.Bitmap.LoadFromFile(TProgressShader(NewLayer).ImageFile)
-          else if LayerCount = 1 then
-            imgStyleThumb2.Bitmap.LoadFromFile(TProgressShader(NewLayer).ImageFile)
-          else if LayerCount = 2 then
-            imgStyleThumb3.Bitmap.LoadFromFile(TProgressShader(NewLayer).ImageFile);
+          imgStyleThumb1.Bitmap.LoadFromFile(TProgressShader(NewLayer).ImageFile)
         end;
 
-      LayerCount := Length(Layers) + 1;
-      SetLength(Layers, LayerCount);
-      Layers[LayerCount - 1] := NewLayer;
-      ActiveLayer := NewLayer;
+      SetLength(Layers, Length(Layers) + 1);
+      Layers[Length(Layers) - 1] := NewLayer;
+      ActiveLayer := Layers[Length(Layers) - 1];
+      ResetLayerOptions;
     end;
 end;
 
 procedure TfrmStyle.btnClearLayersClick(Sender: TObject);
+begin
+  ClearLayers;
+end;
+
+procedure TfrmStyle.ClearLayers;
 var
   I: Integer;
 begin
-  LayerCount := Length(Layers);
-  for I := LayerCount - 1 downto 0 do
+  for I := Length(Layers) - 1 downto 0 do
     begin
       if Assigned(Layers[I]) then
         begin
@@ -341,30 +366,23 @@ begin
             FreeAndNil(TProgressShader(Layers[I]))
           else
             begin
-              ShowMessage('Releasing Unknown Layer! Class = ' + Layers[I].ClassName);
+            //  ShowMessage('Releasing Unknown Layer! Class = ' + Layers[I].ClassName);
               Layers[I] := Nil;
             end;
-        end
-      else
-        ShowMessage('Unassigned Layer in Layer List!');
-      Dec(LayerCount);
-    end;
-
-  SetLength(Layers, LayerCount);
-  if LayerCount > 0 then
-    ActiveLayer := Layers[LayerCount - 1]
-  else
-    begin
-      ActiveLayer := Nil;
-      if Assigned(Grid) then
-        FreeAndNil(Grid);
-      if Assigned(Container) then
-        begin
-          Container.OnPaint := Nil;
-          FreeAndNil(Container);
         end;
+//      else
+//        ShowMessage('Unassigned Layer in Layer List!');
     end;
 
+  SetLength(Layers, 0);
+  ActiveLayer := Nil;
+  if Assigned(Grid) then
+    FreeAndNil(Grid);
+  if Assigned(Container) then
+    begin
+      Container.OnPaint := Nil;
+      FreeAndNil(Container);
+    end;
 end;
 
 function TfrmStyle.AddLayer: TBaseShader;

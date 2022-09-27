@@ -304,6 +304,7 @@ begin
   if DidRunInstall then
     begin
       btnInstall.Enabled := True;
+      FinishInit(Self, AStatus);
       btnInstall.Text := 'Continue';
     end
   else

@@ -195,9 +195,9 @@ end;
 
 destructor TBaseShader.Destroy;
 begin
-    Painter := Nil;
-    Effect := Nil;
-    ShaderText := String.Empty;
+  Painter := Nil;
+  Effect := Nil;
+  ShaderText := String.Empty;
   inherited;
 end;
 

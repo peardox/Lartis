@@ -75,7 +75,7 @@ begin
       LoadSystemSettings;
     end;
 
-    InitialiseSystem;
+  InitialiseSystem;
 end;
 
 procedure DestroySettings;
@@ -147,6 +147,9 @@ procedure InitialiseSystem;
     end;
 
   if not SystemSettings.PythonInstalled then
+    InstallRequired := True;
+
+  if not FileExists(TPath.Combine(AppHome, pycode)) then
     InstallRequired := True;
 
   TempPath := TPath.Combine(AppHome, 'temp');;
