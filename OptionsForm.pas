@@ -49,7 +49,8 @@ uses
 procedure TfrmOptions.btnHomeOpenClick(Sender: TObject);
 begin
 {$IFDEF MSWINDOWS}
-ShellExecute(0, 'open', 'explorer.exe', PChar('"' + ExcludeTrailingPathDelimiter(AppHome) + '"'), nil, 1);
+  ShellExecute(0, 'open', 'explorer.exe', PChar('"' + ExcludeTrailingPathDelimiter(AppHome) + '"'), nil, 1);
+  ModalResult := mrOK;
 {$ENDIF}
 end;
 

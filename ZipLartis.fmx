@@ -1,0 +1,64 @@
+object ZipExtractForm: TZipExtractForm
+  Left = 0
+  Top = 0
+  Caption = 'Extract Lartis Archive'
+  ClientHeight = 132
+  ClientWidth = 817
+  Position = DesktopCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object ProgressBar1: TProgressBar
+    Align = Bottom
+    Orientation = Horizontal
+    Position.Y = 80.000000000000000000
+    Size.Width = 817.000000000000000000
+    Size.Height = 20.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object Panel1: TPanel
+    Align = Bottom
+    Position.Y = 100.000000000000000000
+    Size.Width = 817.000000000000000000
+    Size.Height = 32.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    object Button1: TButton
+      Anchors = [akTop, akRight]
+      Position.X = 714.000000000000000000
+      Position.Y = 6.000000000000000000
+      Size.Width = 96.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Import'
+      OnClick = Button1Click
+    end
+    object Button2: TButton
+      Position.X = 8.000000000000000000
+      Position.Y = 6.000000000000000000
+      TabOrder = 2
+      Text = 'Cancel'
+      OnClick = Button2Click
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 216
+    Top = 104
+  end
+  object Label1: TLabel
+    Align = Client
+    StyledSettings = [Family, FontColor]
+    Margins.Left = 16.000000000000000000
+    Margins.Right = 16.000000000000000000
+    Size.Width = 785.000000000000000000
+    Size.Height = 80.000000000000000000
+    Size.PlatformDefault = False
+    TextSettings.Font.Size = 20.000000000000000000
+    TextSettings.Font.StyleExt = {00070000000000000004000000}
+    Text = 'Label1'
+    TabOrder = 4
+  end
+end

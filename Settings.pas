@@ -12,6 +12,8 @@ type
   TSettings = record
     WipeOnStart: Boolean;
     PythonInstalled: Boolean;
+    LastOpenStyleDir: String;
+    LastSaveStyleDir: String;
   end;
 
 var

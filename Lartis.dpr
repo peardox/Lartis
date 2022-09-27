@@ -1,5 +1,7 @@
 program Lartis;
 
+
+
 uses
   FMX.Forms,
   FMX.Types,
@@ -25,7 +27,8 @@ uses
   StyleProject in 'StyleProject.pas',
   InitializeForm in 'InitializeForm.pas' {frmInit},
   Downloader in 'Downloader.pas',
-  LartisTypes in 'LartisTypes.pas';
+  LartisTypes in 'LartisTypes.pas',
+  ZipLartis in 'ZipLartis.pas';
 
 {$R *.res}
 
@@ -44,5 +47,6 @@ begin
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmOptions, frmOptions);
   Application.CreateForm(TfrmDebug, frmDebug);
+  Application.CreateForm(TZipExtractForm, ZipExtractForm);
   Application.Run;
 end.

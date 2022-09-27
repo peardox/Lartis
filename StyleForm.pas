@@ -50,7 +50,6 @@ type
     Splitter2: TSplitter;
     procedure btnBackClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure btnAddLayerClick(Sender: TObject);
     procedure StyleLayoutResize(Sender: TObject);
     procedure trkStyleWeightChange(Sender: TObject);
     procedure cbxColourModeChange(Sender: TObject);
@@ -64,6 +63,7 @@ type
     procedure btnClearLayersClick(Sender: TObject);
     procedure FormPaint(Sender: TObject; Canvas: TCanvas; const ARect: TRectF);
     procedure btnSaveClick(Sender: TObject);
+    procedure btnAddLayerClick(Sender: TObject);
   private
     { Private declarations }
     FSaveInNextPaint: Boolean;
@@ -83,6 +83,8 @@ type
     procedure Stylize(Sender: TObject; const APath: String; const AModel: String);
   public
     { Public declarations }
+    procedure SaveStyleImage;
+    procedure AddStyleLayer;
     procedure MakeStyleSelectors;
     procedure UpdateDebugInfo;
   end;
@@ -106,6 +108,9 @@ uses
 
 procedure TfrmStyle.FormCreate(Sender: TObject);
 begin
+  OpenDialog1.Filter:='Images (*.png; *jpg)|*.png; *jpg';
+  SaveDialog1.Filter:='Images (*.png; *jpg)|*.png; *jpg';
+
   lblInfo.Text := '';
   FrameCount := 0;
 
@@ -267,6 +272,12 @@ var
   I: Integer;
   AStyleModel: TModelStyleCollection;
 begin
+  if(Length(StyleSelectors) > 0) then
+    begin
+      for I := Length(StyleSelectors) - 1 downto 0 do
+        FreeAndNil(StyleSelectors[I]);
+      SetLength(StyleSelectors, 0);
+    end;
   SetLength(StyleSelectors, StyleModels.Count);
 
   for I := 0 to StyleModels.Count - 1 do
@@ -279,6 +290,11 @@ begin
 end;
 
 procedure TfrmStyle.btnAddLayerClick(Sender: TObject);
+begin
+  AddStyleLayer;
+end;
+
+procedure TfrmStyle.AddStyleLayer;
 var
   NewLayer: TBaseShader;
 begin
@@ -359,8 +375,11 @@ begin
 
   if Assigned(PySys) then
     begin
+      OpenDialog1.InitialDir := SystemSettings.LastOpenStyleDir;
       if OpenDialog1.Execute then
         begin
+          SystemSettings.LastOpenStyleDir := OpenDialog1.InitialDir;
+
           NewLayer := TProgressShader.Create(Container);
 
           with NewLayer as TProgressShader do
@@ -499,12 +518,18 @@ end;
 
 procedure TfrmStyle.btnSaveClick(Sender: TObject);
 begin
+  SaveStyleImage;
+end;
+
+procedure TfrmStyle.SaveStyleImage;
+begin
+  SaveDialog1.InitialDir := SystemSettings.LastOpenStyleDir;
   if SaveDialog1.Execute then
-  begin
-    FSaveInNextPaint := True;
-//    Container.OnPaint := FormPaint;
-    Container.Repaint;
-  end;
+    begin
+      SystemSettings.LastOpenStyleDir := SaveDialog1.InitialDir;
+      FSaveInNextPaint := True;
+      Container.Repaint;
+    end;
 end;
 
 procedure TfrmStyle.UpdateDebugInfo;

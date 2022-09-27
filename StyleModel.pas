@@ -280,6 +280,8 @@ var
 begin
   RecCount := 0;
   JSonList := TStringList.Create;
+  JSonList.Sorted := True;
+  JSonList.Duplicates := dupIgnore;
   try
     GetModelJson(JsonList);
     if JsonList.Count > 0 then
@@ -373,7 +375,7 @@ begin
                 begin
                   if (ModelSubDir <> String.Empty) then
                     FileName := ModelSubDir; // + System.IOUtils.TPath.DirectorySeparatorChar + FileName;
-                  JsonList.Add(ModelDir  + System.IOUtils.TPath.DirectorySeparatorChar + FileName);
+                  JsonList.Add(ModelDir + System.IOUtils.TPath.DirectorySeparatorChar + FileName);
                 end;
             end
           else

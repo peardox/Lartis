@@ -22,7 +22,6 @@ uses
 
 type
   TfrmMain = class(TForm)
-    OpenDialog1: TOpenDialog;
     StyleBook1: TStyleBook;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
@@ -36,13 +35,16 @@ type
     DebugMenu: TMenuItem;
     SystemTestMenu: TMenuItem;
     InitLayout: TLayout;
-    MenuItem2: TMenuItem;
+    CalibrateMenu: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     mnuCalibrateStyleGPU: TMenuItem;
     mnuCalibrateStyleCPU: TMenuItem;
     mnuCalibrateTrainGPU: TMenuItem;
     mnuCalibrateTrainCPU: TMenuItem;
+    OpenFileMenu: TMenuItem;
+    SaveFileMenu: TMenuItem;
+    ImportMenu: TMenuItem;
     {$IFDEF ENABLE_EVOLVE}
     EvolveLayout: TLayout;
     {$ENDIF}
@@ -67,6 +69,10 @@ type
     procedure mnuCalibrateTrainGPUClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormPaint(Sender: TObject; Canvas: TCanvas; const ARect: TRectF);
+    procedure OpenFileMenuClick(Sender: TObject);
+    procedure SaveFileMenuClick(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
+    procedure ImportMenuClick(Sender: TObject);
   private
     { Private declarations }
     FrameCount: Integer;
@@ -92,6 +98,7 @@ uses
   PythonSystem,
   OptionsForm,
   DebugForm,
+  ZipLartis,
   ChoiceForm,
   StyleForm,
   {$IFDEF ENABLE_TRAIN}
@@ -107,6 +114,50 @@ uses
 
 {$R *.fmx}
 {$R *.Windows.fmx MSWINDOWS}
+
+procedure TfrmMain.FormCreate(Sender: TObject);
+begin
+  MenuItem1.Enabled := False;
+  FrameCount := 0;
+  Caption := AppName;
+  PySys := TPySys.Create(Sender as TComponent);
+  frmInit := EmbedForm(InitLayout, TfrmInit.Create(Self)) as TfrmInit;
+  frmInit.ShowForm;
+  frmInit.OnInstallFinished := InstallFinished;
+  ActiveForm := frmInit;
+end;
+
+procedure TfrmMain.CreateEmbeddedForms;
+begin
+  StyleModels := TStyleModels.Create(Self);
+  StyleModels.GetAllModels;
+
+  frmStyle := EmbedForm(StyleLayout, TfrmStyle.Create(Self)) as TfrmStyle;
+  {$IFDEF ENABLE_TRAIN}
+  frmTrain := EmbedForm(TrainLayout, TfrmTrain.Create(Self)) as TfrmTrain;
+  {$ENDIF}
+  {$IFDEF ENABLE_EVOLVE}
+  frmEvolve := EmbedForm(EvolveLayout, TfrmEvolve.Create(Self)) as TfrmEvolve;
+  {$ENDIF}
+  {$IFDEF ENABLE_MOVIE}
+  frmMovie := EmbedForm(MovieLayout, TfrmMovie.Create(Self)) as TfrmMovie;
+  {$ENDIF}
+
+  // Must be created last
+  frmChoice := EmbedForm(ChoiceLayout, TfrmChoice.Create(Self)) as TfrmChoice;
+
+  {$IFDEF ENABLE_TRAIN}
+  frmChoice.ShowForm;
+  ActiveForm := frmChoice;
+  {$ELSE}
+  frmStyle.btnBack.Visible := False;
+  frmStyle.ShowForm;
+  ActiveForm := frmStyle;
+  {$ENDIF}
+
+  MenuItem1.Enabled := True;
+
+end;
 
 procedure TfrmMain.ChildCloser(Sender: TObject);
 begin
@@ -168,17 +219,6 @@ begin
   DestroySettings;
 end;
 
-procedure TfrmMain.FormCreate(Sender: TObject);
-begin
-  FrameCount := 0;
-  Caption := AppName;
-  PySys := TPySys.Create(Sender as TComponent);
-  frmInit := EmbedForm(InitLayout, TfrmInit.Create(Self)) as TfrmInit;
-  frmInit.ShowForm;
-  frmInit.OnInstallFinished := InstallFinished;
-  ActiveForm := frmInit;
-end;
-
 procedure TfrmMain.FormPaint(Sender: TObject; Canvas: TCanvas;
   const ARect: TRectF);
 begin
@@ -191,35 +231,6 @@ end;
 procedure TfrmMain.FormShow(Sender: TObject);
 begin
   frmInit.CheckWipe;
-end;
-
-procedure TfrmMain.CreateEmbeddedForms;
-begin
-  StyleModels := TStyleModels.Create(Self);
-  StyleModels.GetAllModels;
-
-  frmStyle := EmbedForm(StyleLayout, TfrmStyle.Create(Self)) as TfrmStyle;
-  {$IFDEF ENABLE_TRAIN}
-  frmTrain := EmbedForm(TrainLayout, TfrmTrain.Create(Self)) as TfrmTrain;
-  {$ENDIF}
-  {$IFDEF ENABLE_EVOLVE}
-  frmEvolve := EmbedForm(EvolveLayout, TfrmEvolve.Create(Self)) as TfrmEvolve;
-  {$ENDIF}
-  {$IFDEF ENABLE_MOVIE}
-  frmMovie := EmbedForm(MovieLayout, TfrmMovie.Create(Self)) as TfrmMovie;
-  {$ENDIF}
-
-  // Must be created last
-  frmChoice := EmbedForm(ChoiceLayout, TfrmChoice.Create(Self)) as TfrmChoice;
-
-  {$IFDEF ENABLE_TRAIN}
-  frmChoice.ShowForm;
-  ActiveForm := frmChoice;
-  {$ELSE}
-  frmStyle.btnBack.Visible := False;
-  frmStyle.ShowForm;
-  ActiveForm := frmStyle;
-  {$ENDIF}
 end;
 
 procedure TfrmMain.InstallFinished(Sender: TObject; const AStatus: Boolean);
@@ -300,12 +311,6 @@ var
 begin
   frmDebug.Show;
 
-  if not PySys.RunSystem then
-    PySys.Log('Bad')
-  else
-    PySys.Log('Good');
-  Exit;
-
   if Assigned(PySys) and SystemActive then
     begin
       if not PySys.Torch.IsImported then
@@ -342,6 +347,43 @@ begin
       PySys.Log('PSUtil returned available_memory = ' + virtual_memory.available);
   {$ENDIF}
       end;
+end;
+
+procedure TfrmMain.MenuItem1Click(Sender: TObject);
+begin
+  if ActiveForm = frmStyle then
+    begin
+      CalibrateMenu.Enabled := True;
+      OpenFileMenu.Enabled := True;
+      SaveFileMenu.Enabled := True;
+    end
+  else
+    begin
+      CalibrateMenu.Enabled := False;
+      OpenFileMenu.Enabled := False;
+      SaveFileMenu.Enabled := False;
+    end;
+end;
+
+procedure TfrmMain.OpenFileMenuClick(Sender: TObject);
+begin
+  if ActiveForm = frmStyle then
+    frmStyle.AddStyleLayer;
+end;
+
+procedure TfrmMain.SaveFileMenuClick(Sender: TObject);
+begin
+  if ActiveForm = frmStyle then
+    frmStyle.SaveStyleImage;
+end;
+
+procedure TfrmMain.ImportMenuClick(Sender: TObject);
+begin
+  ZipExtractForm.ShowModal;
+  FreeAndNil(StyleModels);
+  StyleModels := TStyleModels.Create(Self);
+  StyleModels.GetAllModels;
+  frmStyle.MakeStyleSelectors;
 end;
 
 end.
