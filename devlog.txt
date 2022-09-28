@@ -2,10 +2,11 @@ v1.0.1 - 2022-09-28
 	Fix empty save filename (#2)
 	Fix save filetype (#1)
 	Fix Import ModalResult (#1)
-	Improve Style Out of GPU Memory handling
-	Run from Any Drive (USB stick is horrible)
-	Update SystemCode.py when version chages
-	Add Style Abort Button
+	Improve Style Out of GPU Memory handling (#1)
+	Run from Any Drive (USB stick is horrible) (#1)
+	Update SystemCode.py when version chages (#1)
+	Add Style Abort Button (#1)
+	Add timing to style saves
 	
 v1.0.0 - 2022-09-27
 	Initial Release
