@@ -15,10 +15,12 @@ type
     LastOpenStyleDir: String;
     LastSaveStyleDir: String;
     AppHome: String;
+    LartisVersion: String;
   end;
 
 var
   InstallRequired: Boolean;
+  VersionUpdate: Boolean;
 
   AppHome: String;
   SettingsHome: String;
@@ -44,6 +46,7 @@ const
   pyexe: String = 'python.exe';
   pyshim: String = 'pysrc';
   pycode: String = 'SystemCode.py';
+  appver: String = '1.0.1';
 
   APIBase: String = 'https://peardox.com/Lartis/';
 
@@ -63,6 +66,7 @@ var
   RealHome: String;
 begin
   InstallRequired := False;
+  VersionUpdate := False;
   EnableGPU := True;
 
   {$IF DEFINED(MACOS64)}
@@ -116,6 +120,9 @@ begin
       SystemSettings := lSerializer.Deserialize<TSettings>(JsonText);
       if SystemSettings.AppHome <> String.Empty then
         AppHome := SystemSettings.AppHome;
+      if SystemSettings.LartisVersion <> appver then
+        VersionUpdate := True;
+
     except
      on E : Exception do
        Raise Exception.Create('LoadSystemSettings - Exception : Class = ' +
@@ -168,6 +175,7 @@ procedure InitialiseSystem;
   if not FileExists(TPath.Combine(AppHome, pycode)) then
     InstallRequired := True;
 
+  SystemSettings.LartisVersion := appver;
   SaveSystemSettings;
 end;
 

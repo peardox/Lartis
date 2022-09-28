@@ -68,6 +68,7 @@ type
     procedure btnSaveClick(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
     procedure SetSaveDialogExtension(Sender: TObject);
+    procedure btnAbortClick(Sender: TObject);
   private
     { Private declarations }
     FSaveInNextPaint: Boolean;
@@ -84,6 +85,7 @@ type
     procedure ShowStyleProgress(Sender: TObject; const AValue: Single);
     procedure ShowStyledImage(Sender: TObject; const AFileName: String; const ATime: Single);
     procedure HandleStyleError(Sender: TObject; const AMessage: String);
+    procedure HandleStyleAbort(Sender: TObject);
     procedure DoSaveLayers;
     procedure Stylize(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False);
     procedure ClearLayers;
@@ -240,6 +242,19 @@ begin
         end;
 end;
 
+procedure TfrmStyle.HandleStyleAbort(Sender: TObject);
+begin
+  if Assigned(ActiveLayer) then
+    begin
+      if ActiveLayer is TProgressShader then
+        begin
+          TProgressShader(ActiveLayer).Progress := 1;
+          prgStyleBatch.Value := 1;
+//          ShowMessage('Aborted');
+        end;
+    end;
+end;
+
 procedure TfrmStyle.HandleStyleError(Sender: TObject; const AMessage: String);
 var
   mr: TModalResult;
@@ -339,6 +354,11 @@ begin
       StyleSelectors[I].RunStyle := Stylize;
       vsbStyles.AddObject(StyleSelectors[I]);
     end;
+end;
+
+procedure TfrmStyle.btnAbortClick(Sender: TObject);
+begin
+  PySys.modPyIO.AbortStyle;
 end;
 
 procedure TfrmStyle.btnAddLayerClick(Sender: TObject);
@@ -536,7 +556,7 @@ begin
                 LastPath := APath;
                 LastModel := AModel;
                 PySys.Log('Path = ' + APath + ', Model = ' + AModel);
-                PySys.modStyle.Stylize(ImageFile, APath, AModel, ByPassGPU, ShowStyleProgress, ShowStyledImage, HandleStyleError);
+                PySys.modStyle.Stylize(ImageFile, APath, AModel, ByPassGPU, ShowStyleProgress, ShowStyledImage, HandleStyleError, HandleStyleAbort);
   //              PySys.modStyle.Stylize(Bitmap, APath, AModel, ByPassGPU, ShowStyleProgress, ShowStyledImage);
               end;
           end;

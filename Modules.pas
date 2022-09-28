@@ -158,9 +158,12 @@ type
     FModProgressEvent: TModProgressEvent;
     FModFinishedEvent: TModFinishedEvent;
     FModErrorEvent: TModErrorEvent;
+    FModAbortEvent: TNotifyEvent;
     procedure DoProgress(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
     procedure DoFinished(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
     procedure DoError(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+    procedure DoAbort(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+    procedure DoModAbortEvent(Sender: TObject);
     procedure DoModProgressEvent(const AValue: Single);
     procedure DoModFinishedEvent(const AFile: String; const ATime: Single);
     procedure DoModErrorEvent(const AString: String);
@@ -173,14 +176,15 @@ type
     function GetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function SetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
     function GetPropertyList(pSelf, Args : PPyObject) : PPyObject; cdecl;
-    procedure Stylize(const AFile: String; const APath: String; const AModel: String; const ByPassGPU: Boolean = false; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil); overload;
-    procedure Stylize(const ABitmap: TBitmap; const APath: String; const AModel: String; const ByPassGPU: Boolean = false; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil); overload;
+    procedure Stylize(const AFile: String; const APath: String; const AModel: String; const ByPassGPU: Boolean = false; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil; OnAbort: TNotifyEvent = Nil); overload;
+    procedure Stylize(const ABitmap: TBitmap; const APath: String; const AModel: String; const ByPassGPU: Boolean = false; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil; OnAbort: TNotifyEvent = Nil); overload;
     procedure StylizeAll(const AFile: String);
     procedure ClearEvents;
   published
     property ModProgressEvent: TModProgressEvent read FModProgressEvent write FModProgressEvent;
     property ModFinishedEvent: TModFinishedEvent read FModFinishedEvent write FModFinishedEvent;
     property ModErrorEvent: TModErrorEvent read FModErrorEvent write FModErrorEvent;
+    property ModAbortEvent: TNotifyEvent read FModAbortEvent write FModAbortEvent;
   end;
 
   TModPyIO = class(TPythonModule)
@@ -192,6 +196,8 @@ type
   public
     property Options: TPyIOOptions read FOptions write FOptions;
     constructor Create(AOwner: TComponent); override;
+    procedure AbortStyle;
+    procedure ClearAbortStyle;
     procedure CreateDefaultOptions;
     procedure InitializeModule(Sender: TObject);
     function GetProperty(pSelf, Args : PPyObject) : PPyObject; cdecl;
@@ -706,6 +712,12 @@ begin
     FModErrorEvent(Self, AString);
 end;
 
+procedure TModStyle.DoModAbortEvent;
+begin
+  if Assigned(FModAbortEvent) then
+    FModAbortEvent(Self);
+end;
+
 procedure TModStyle.ClearEvents;
 begin
   FModProgressEvent := Nil;
@@ -752,6 +764,10 @@ begin
       ev := TEventDef.Create(Events);
       ev.Name := 'StyleError';
       ev.OnExecute := DoError;
+
+      ev := TEventDef.Create(Events);
+      ev.Name := 'StyleAbort';
+      ev.OnExecute := DoAbort;
 
       if Assigned(PySys) then
         begin
@@ -908,6 +924,20 @@ begin
 end;
 
 ///// Style Module Events /////
+procedure TModStyle.DoAbort(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
+begin
+  if TThread.CurrentThread.ThreadID <> MainThreadID then
+    TThread.Synchronize(nil,
+      procedure()
+      begin
+        PySys.Log('InThread');
+        DoModAbortEvent(Self);
+      end)
+    else
+      DoModAbortEvent(Self);
+  Result := Engine.ReturnNone;
+end;
+
 procedure TModStyle.DoError(Sender: TObject; PSelf, Args: PPyObject; var Result: PPyObject);
 begin
   if TThread.CurrentThread.ThreadID <> MainThreadID then
@@ -970,13 +1000,15 @@ begin
 end;
 
 ///// Style Module Procs /////
-procedure TModStyle.Stylize(const ABitmap: TBitmap; const APath: String; const AModel: String; const ByPassGPU: Boolean = false; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil);
+procedure TModStyle.Stylize(const ABitmap: TBitmap; const APath: String; const AModel: String; const ByPassGPU: Boolean = false; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil; OnAbort: TNotifyEvent = Nil);
 begin
   ProgressCount := 0;
+  PySys.modPyIO.ClearAbortStyle;
 
   FModProgressEvent := OnProgress;
   FModFinishedEvent := OnFinished;
   FModErrorEvent := OnError;
+  FModAbortEvent := OnAbort;
 
   DoModProgressEvent(0);
 
@@ -1015,13 +1047,15 @@ begin
     Pysys.Log('Back from Python Stylize - Task ID = UnAssigned');
 end;
 
-procedure TModStyle.Stylize(const AFile: String; const APath: String; const AModel: String; const ByPassGPU: Boolean = false; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil);
+procedure TModStyle.Stylize(const AFile: String; const APath: String; const AModel: String; const ByPassGPU: Boolean = false; OnProgress: TModProgressEvent = Nil; OnFinished: TModFinishedEvent = Nil; OnError: TModErrorEvent = Nil; OnAbort: TNotifyEvent = Nil);
 begin
   ProgressCount := 0;
+  PySys.modPyIO.ClearAbortStyle;
 
   FModProgressEvent := OnProgress;
   FModFinishedEvent := OnFinished;
   FModErrorEvent := OnError;
+  FModAbortEvent := OnAbort;
 
   DoModProgressEvent(0);
 
@@ -1258,6 +1292,16 @@ begin
       PyList_SetItem(Result, 10, PyUnicodeFromString('CalibrationResultJson'));
       PyList_SetItem(Result, 11, PyUnicodeFromString('ProcessRuntime'));
     end;
+end;
+
+procedure TModPyIO.AbortStyle;
+begin
+  FOptions.StyleAbortFlag := True;
+end;
+
+procedure TModPyIO.ClearAbortStyle;
+begin
+  FOptions.StyleAbortFlag := False;
 end;
 
 ///// Calibration Module Definitions /////

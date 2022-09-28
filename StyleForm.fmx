@@ -88,8 +88,8 @@ object frmStyle: TfrmStyle
         Size.Height = 173.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
-        Viewport.Width = 140.000000000000000000
-        Viewport.Height = 169.000000000000000000
+        Viewport.Width = 160.000000000000000000
+        Viewport.Height = 173.000000000000000000
         object layStyleThumb1: TLayout
           Align = Top
           Size.Width = 140.000000000000000000
@@ -287,8 +287,8 @@ object frmStyle: TfrmStyle
           Size.Height = 551.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 1
-          Viewport.Width = 156.000000000000000000
-          Viewport.Height = 547.000000000000000000
+          Viewport.Width = 160.000000000000000000
+          Viewport.Height = 551.000000000000000000
         end
         object btnAbort: TButton
           Align = Bottom
@@ -298,6 +298,7 @@ object frmStyle: TfrmStyle
           Size.PlatformDefault = False
           TabOrder = 0
           Text = 'Abort Style'
+          OnClick = btnAbortClick
         end
       end
       object StyleLayout: TLayout

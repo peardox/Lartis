@@ -60,6 +60,7 @@ type
     procedure ToggleBlurb(const Force: TComponent = Nil);
     procedure CheckPaths;
     procedure Log(const AMsg: String);
+    procedure GetVersionUpdate;
   public
     { Public declarations }
     procedure CheckWipe;
@@ -88,6 +89,28 @@ uses
 procedure TfrmInit.Log(const AMsg: String);
 begin
   Memo1.Lines.Add(AMsg);
+end;
+
+procedure TfrmInit.GetVersionUpdate;
+var
+  SysCode: String;
+begin
+  RESTClient1.BaseURL := APIBase;
+  RESTRequest1.Resource := 'SystemCode.py';
+  RESTRequest1.AcceptEncoding := 'gzip, deflate';
+  RESTRequest1.Execute;
+  if RestResponse1.StatusCode = 200 then
+    begin
+      SysCode := RestResponse1.Content;
+      try
+        TFile.WriteAllText(IncludeTrailingPathDelimiter(AppHome) + 'SystemCode.py', SysCode);
+      except
+         on E : Exception do
+           ShowMessage('Couldn''t update system code, ' +
+            'Exception : Class = ' + E.ClassName +
+            ', Message = ' + E.Message);
+      end;
+    end;
 end;
 
 procedure TfrmInit.FormCreate(Sender: TObject);
@@ -135,6 +158,8 @@ begin
           layInstall.Visible := False;
           StatusBar.Visible := False;
           CheckPaths;
+          if VersionUpdate then
+            GetVersionUpdate;
           AllDone;
         end;
       end;
