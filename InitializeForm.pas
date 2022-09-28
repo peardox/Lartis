@@ -30,12 +30,14 @@ type
     Memo1: TMemo;
     layBlurb: TLayout;
     Blurb: TSkLabel;
+    btnHomeLocation: TButton;
+    Timer1: TTimer;
     procedure btnAbortClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnInstallClick(Sender: TObject);
     procedure laySplashResize(Sender: TObject);
-    procedure BlurbClick(Sender: TObject);
-    procedure Memo1Click(Sender: TObject);
+    procedure btnHomeLocationClick(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
     DidRunInstall: Boolean;
@@ -56,6 +58,8 @@ type
       Logger: TMemo = Nil; Progress: TProgressBar = Nil);
     procedure SetupComplete(Sender: TObject; const AStatus: Boolean);
     procedure ToggleBlurb(const Force: TComponent = Nil);
+    procedure CheckPaths;
+    procedure Log(const AMsg: String);
   public
     { Public declarations }
     procedure CheckWipe;
@@ -81,6 +85,11 @@ uses
 
 {$R *.fmx}
 
+procedure TfrmInit.Log(const AMsg: String);
+begin
+  Memo1.Lines.Add(AMsg);
+end;
+
 procedure TfrmInit.FormCreate(Sender: TObject);
 begin
   DidRunInstall := False;
@@ -104,10 +113,10 @@ begin
   RESTRequest1.Resource := 'system.json';
   RESTRequest1.AcceptEncoding := 'gzip, deflate';
   RESTRequest1.Execute;
-//  Memo1.Lines.Add('JSON = ' + RestResponse1.StatusCode.ToString);
+//  Log('JSON = ' + RestResponse1.StatusCode.ToString);
   if RestResponse1.StatusCode = 200 then
     begin
-      Memo1.Lines.Add(SetupInfo);
+      Log(SetupInfo);
       SetupInfo := RestResponse1.Content;
     end
   else
@@ -125,9 +134,65 @@ begin
         begin
           layInstall.Visible := False;
           StatusBar.Visible := False;
+          CheckPaths;
           AllDone;
         end;
       end;
+end;
+
+procedure TfrmInit.CheckPaths;
+begin
+  try
+
+    TempPath := TPath.Combine(AppHome, 'temp');;
+    if not DirectoryExists(TempPath) then
+      begin
+        ForceDirectories(TempPath);
+      end;
+
+    ShaderPath := TPath.Combine(AppHome, 'shaders');;
+    if not DirectoryExists(ShaderPath) then
+      begin
+        ForceDirectories(ShaderPath);
+      end;
+
+    SystemStyle := '';
+    StylesPath := TPath.Combine(AppHome, 'styles');;
+    if not DirectoryExists(ShaderPath) then
+      begin
+        ForceDirectories(StylesPath);
+      end;
+
+    PreTrainedPath := TPath.Combine(AppHome, 'pretrained');;
+    if not DirectoryExists(PreTrainedPath) then
+      begin
+        ForceDirectories(PreTrainedPath);
+      end;
+
+    DataSetsPath := TPath.Combine(AppHome, 'datasets');
+    if not DirectoryExists(DataSetsPath) then
+      begin
+        ForceDirectories(DataSetsPath);
+      end;
+
+    CachePath := TPath.Combine(AppHome, 'cache');;
+    if not DirectoryExists(CachePath) then
+      begin
+        ForceDirectories(CachePath);
+      end;
+
+    SaveSystemSettings;
+    Log('Updated System Settings');
+    Log('Checked paths');
+
+  except
+    on E: Exception do
+      begin
+        Log('Unhandled Exception in CheckPaths');
+        Log('Class : ' + E.ClassName);
+        Log('Error : ' + E.Message);
+      end;
+  end;
 end;
 
 procedure TfrmInit.CheckWipe;
@@ -144,10 +209,10 @@ begin
                     begin
                       layInstall.Visible := True;
                       StatusBar.Visible := True;
-                      Memo1.Lines.Add('Wiping system, please wait...');
+                      Log('Wiping system, please wait...');
                       TDirectory.Delete(AppHome, True);
                       InitialiseSystem;
-                      Memo1.Lines.Add('System wiped.');
+                      Log('System wiped.');
                     end;
                 end
               else
@@ -178,6 +243,11 @@ begin
     end;
 end;
 
+procedure TfrmInit.Timer1Timer(Sender: TObject);
+begin
+  Application.ProcessMessages;
+end;
+
 procedure TfrmInit.ToggleBlurb(const Force: TComponent = Nil);
 begin
   if Force is TMemo then
@@ -202,16 +272,6 @@ begin
     end;
 end;
 
-procedure TfrmInit.BlurbClick(Sender: TObject);
-begin
-  ToggleBlurb;
-end;
-
-procedure TfrmInit.Memo1Click(Sender: TObject);
-begin
-  ToggleBlurb;
-end;
-
 procedure TfrmInit.DoInstallFinished(Sender: TObject; const AStatus: Boolean);
 begin
   if Assigned(FInstallFinishedEvent) then
@@ -220,17 +280,30 @@ end;
 
 procedure TfrmInit.btnAbortClick(Sender: TObject);
 begin
-  Memo1.Lines.Add('Aborting');
+  Log('Aborting');
   Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
   btnAbort.Enabled := False;
   AbortFlag := True;
   Application.Terminate;
 end;
 
+procedure TfrmInit.btnHomeLocationClick(Sender: TObject);
+var
+  LPath: String;
+begin
+  if FMX.Dialogs.SelectDirectory('Select Data Directory Location', AppHome, LPath) then
+    begin
+      AppHome := LPath;
+      SystemSettings.AppHome := AppHome;
+      SaveSystemSettings;
+      Log('Updated System Settings');
+    end;
+end;
+
 function TfrmInit.HandleFileList(const AFileList: String): TJSONFileArray;
 var
   lSerializer: TJsonSerializer;
-  log: TJSONFileList;
+  data: TJSONFileList;
   Idx, I, F: Integer;
   Res: TJSONFileArray;
 begin
@@ -239,23 +312,23 @@ begin
   SetLength(Res, Idx);
   try
     try
-      log := lSerializer.Deserialize<TJSONFileList>(AFileList);
-      for I := 0 to Length(log.Content) - 1 do
+      data := lSerializer.Deserialize<TJSONFileList>(AFileList);
+      for I := 0 to Length(data.Content) - 1 do
         begin
-          for F := 0 to Length(log.Content[I].Data) - 1 do
+          for F := 0 to Length(data.Content[I].Data) - 1 do
             begin
               Inc(Idx);
               SetLength(Res, Idx);
-              Res[Idx - 1] := log.Content[I].Data[F];
+              Res[Idx - 1] := data.Content[I].Data[F];
             end;
         end;
     except
-     on E : Exception do
-     begin
-       Memo1.Lines.Add('Exception class name = '+E.ClassName);
-       Memo1.Lines.Add('Exception message = '+E.Message);
-       Memo1.Lines.Add(AFileList);
-     end;
+      on E: Exception do
+        begin
+          Log('Unhandled Exception in MultiThreadedMediaDownload');
+          Log('Class : ' + E.ClassName);
+          Log('Error : ' + E.Message);
+        end;
     end;
   finally
     FreeAndNil(lSerializer);
@@ -273,7 +346,9 @@ begin
     begin
       SettingUp := False;
       PySys.Log('Starting Python Subsystem');
+      Timer1.Enabled := True;
       PySys.SetupSystem(SetupComplete, FHaveGPU, True);
+      Timer1.Enabled := False;
     end;
 end;
 
@@ -317,12 +392,12 @@ procedure TfrmInit.FinishInit(Sender: TObject; const AStatus: Boolean);
 begin
   if InstallRequired then
     begin
-      Memo1.Lines.Add('Installation Complete');
+      Log('Installation Complete');
       Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'install.log');
     end
   else
     begin
-      Memo1.Lines.Add('Setup Complete');
+      Log('Setup Complete');
       Memo1.Lines.SaveToFile(IncludeTrailingPathDelimiter(AppHome) + 'setup.log');
     end;
   PySys.LogTarget := Nil;
@@ -335,10 +410,12 @@ procedure TfrmInit.btnInstallClick(Sender: TObject);
 begin
   if not DidRunInstall then
     begin
+      btnHomeLocation.Enabled := False;
+      CheckPaths;
       ToggleBlurb(Memo1);
       btnInstall.Enabled := False;
       DidRunInstall := True;
-      Memo1.Lines.Add('Starting installation');
+      Log('Starting installation');
       MultiThreadedMediaDownload(AppHome);
       AllDone;
     end
@@ -374,24 +451,24 @@ begin
           if not DirectoryExists(DirList[I]) then
             begin
               if ForceDirectories(DirList[I]) then
-                Memo1.Lines.Add('Created ' + DirList[I])
+                Log('Created ' + DirList[I])
               else
-                Memo1.Lines.Add('Failed to created ' + DirList[I])
+                Log('Failed to created ' + DirList[I])
             end;
         end;
 
       DirList.Free;
-      Memo1.Lines.Add('Got filelist');
+      Log('Got filelist');
 
-      Memo1.Lines.Add('Downloading');
+      Log('Downloading');
       SingleThreadDownload(Length(FileList), FileList, APIBase, outpath, FullSize, Memo1, ProgressBar1);
 
     except
       on E: Exception do
         begin
-          Memo1.Lines.Add('Unhandled Exception in MultiThreadedMediaDownload');
-          Memo1.Lines.Add('Class : ' + E.ClassName);
-          Memo1.Lines.Add('Error : ' + E.Message);
+          Log('Unhandled Exception in MultiThreadedMediaDownload');
+          Log('Class : ' + E.ClassName);
+          Log('Error : ' + E.Message);
         end;
     end;
 

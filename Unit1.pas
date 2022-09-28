@@ -242,8 +242,9 @@ begin
     end
   else
     begin
-      ShowMessage('Restart system');
+      ShowMessage('Please Restart Lartis');
       SystemSettings.PythonInstalled := True;
+      MenuItem1.Enabled := True;
     end;
 end;
 
@@ -352,18 +353,25 @@ end;
 
 procedure TfrmMain.MenuItem1Click(Sender: TObject);
 begin
+  CalibrateMenu.Enabled := False;
+  OpenFileMenu.Enabled := False;
+  SaveFileMenu.Enabled := False;
+  OptionsMenu.Enabled := False;
+  DebugMenu.Enabled := False;
+  SystemTestMenu.Enabled := False;
+  ImportMenu.Enabled := False;
+{
   if ActiveForm = frmStyle then
     begin
       CalibrateMenu.Enabled := True;
       OpenFileMenu.Enabled := True;
       SaveFileMenu.Enabled := True;
-    end
-  else
-    begin
-      CalibrateMenu.Enabled := False;
-      OpenFileMenu.Enabled := False;
-      SaveFileMenu.Enabled := False;
+      ImportMenu.Enabled := True;
+      OptionsMenu.Enabled := True;
+      DebugMenu.Enabled := True;
+      SystemTestMenu.Enabled := True;
     end;
+    }
 end;
 
 procedure TfrmMain.OpenFileMenuClick(Sender: TObject);

@@ -284,11 +284,20 @@ object frmStyle: TfrmStyle
         object vsbStyles: TFramedVertScrollBox
           Align = Client
           Size.Width = 160.000000000000000000
-          Size.Height = 573.000000000000000000
+          Size.Height = 551.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          Viewport.Width = 156.000000000000000000
+          Viewport.Height = 547.000000000000000000
+        end
+        object btnAbort: TButton
+          Align = Bottom
+          Position.Y = 551.000000000000000000
+          Size.Width = 160.000000000000000000
+          Size.Height = 22.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 0
-          Viewport.Width = 156.000000000000000000
-          Viewport.Height = 569.000000000000000000
+          Text = 'Abort Style'
         end
       end
       object StyleLayout: TLayout

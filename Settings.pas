@@ -14,12 +14,14 @@ type
     PythonInstalled: Boolean;
     LastOpenStyleDir: String;
     LastSaveStyleDir: String;
+    AppHome: String;
   end;
 
 var
   InstallRequired: Boolean;
 
   AppHome: String;
+  SettingsHome: String;
   CachePath: String;
   ShaderPath: String;
   StylesPath: String;
@@ -57,22 +59,34 @@ uses
   JSON.Serializers;
 
 procedure CreateSettings;
+var
+  RealHome: String;
 begin
   InstallRequired := False;
   EnableGPU := True;
 
   {$IF DEFINED(MACOS64)}
-  AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath) + appname;
+  RealHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath) + appname;
   {$ELSEIF DEFINED(LINUX)}
-  AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetHomePath) + '.' + appname;
+  RealHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetHomePath) + '.' + appname;
   {$ELSE}
-  AppHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetHomePath) + appname;
+  RealHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetHomePath) + appname;
   {$ENDIF}
   // System agnostic path for data files + Python
 
-  if FileExists(IncludeTrailingPathDelimiter(AppHome) + 'Settings.json') then
+  AppHome := RealHome;
+  SettingsHome := AppHome;
+
+  if FileExists(IncludeTrailingPathDelimiter(SettingsHome) + 'Settings.json') then
     begin
       LoadSystemSettings;
+      // If AppHome has been removed (e.g. USB) then it won't exist any more
+      // so reset it back to default in that situation
+      if not DirectoryExists(AppHome) then
+        begin
+          AppHome := RealHome;
+          SystemSettings.AppHome := AppHome;
+        end;
     end;
 
   InitialiseSystem;
@@ -89,7 +103,7 @@ var
   JsonText: String;
 begin
   try
-    JsonText := TFile.ReadAllText(IncludeTrailingPathDelimiter(AppHome) + 'Settings.json');
+    JsonText := TFile.ReadAllText(IncludeTrailingPathDelimiter(SettingsHome) + 'Settings.json');
   except
      on E : Exception do
        Raise Exception.Create('LoadSystemSettings - Exception : Class = ' +
@@ -100,6 +114,8 @@ begin
   try
     try
       SystemSettings := lSerializer.Deserialize<TSettings>(JsonText);
+      if SystemSettings.AppHome <> String.Empty then
+        AppHome := SystemSettings.AppHome;
     except
      on E : Exception do
        Raise Exception.Create('LoadSystemSettings - Exception : Class = ' +
@@ -120,7 +136,7 @@ begin
     try
       JsonText := lSerializer.Serialize<TSettings>(SystemSettings);
       try
-        TFile.WriteAllText(IncludeTrailingPathDelimiter(AppHome) + 'Settings.json', JsonText);
+        TFile.WriteAllText(IncludeTrailingPathDelimiter(SettingsHome) + 'Settings.json', JsonText);
       except
          on E : Exception do
            Raise Exception.Create('SaveSystemSettings - Exception : Class = ' +
@@ -151,43 +167,6 @@ procedure InitialiseSystem;
 
   if not FileExists(TPath.Combine(AppHome, pycode)) then
     InstallRequired := True;
-
-  TempPath := TPath.Combine(AppHome, 'temp');;
-  if not DirectoryExists(TempPath) then
-    begin
-      ForceDirectories(TempPath);
-    end;
-
-  ShaderPath := TPath.Combine(AppHome, 'shaders');;
-  if not DirectoryExists(ShaderPath) then
-    begin
-      ForceDirectories(ShaderPath);
-    end;
-
-  SystemStyle := '';
-  StylesPath := TPath.Combine(AppHome, 'styles');;
-  if not DirectoryExists(ShaderPath) then
-    begin
-      ForceDirectories(StylesPath);
-    end;
-
-  PreTrainedPath := TPath.Combine(AppHome, 'pretrained');;
-  if not DirectoryExists(PreTrainedPath) then
-    begin
-      ForceDirectories(PreTrainedPath);
-    end;
-
-  DataSetsPath := TPath.Combine(AppHome, 'datasets');
-  if not DirectoryExists(DataSetsPath) then
-    begin
-      ForceDirectories(DataSetsPath);
-    end;
-
-  CachePath := TPath.Combine(AppHome, 'cache');;
-  if not DirectoryExists(CachePath) then
-    begin
-      ForceDirectories(CachePath);
-    end;
 
   SaveSystemSettings;
 end;

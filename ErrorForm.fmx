@@ -1,0 +1,54 @@
+object frmErrorDialog: TfrmErrorDialog
+  Left = 0
+  Top = 0
+  BorderIcons = []
+  BorderStyle = Single
+  Caption = 'Form3'
+  ClientHeight = 216
+  ClientWidth = 577
+  Position = MainFormCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object Label1: TLabel
+    Align = Client
+    StyledSettings = [Family, FontColor]
+    Margins.Left = 16.000000000000000000
+    Margins.Right = 16.000000000000000000
+    Size.Width = 545.000000000000000000
+    Size.Height = 184.000000000000000000
+    Size.PlatformDefault = False
+    TextSettings.Font.Size = 16.000000000000000000
+    TextSettings.Font.StyleExt = {00070000000000000004000000}
+    TextSettings.HorzAlign = Center
+    Text = 'Label1'
+    TabOrder = 3
+  end
+  object Panel1: TPanel
+    Align = Bottom
+    Position.Y = 184.000000000000000000
+    Size.Width = 577.000000000000000000
+    Size.Height = 32.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object Button1: TButton
+      Anchors = [akTop, akRight]
+      Position.X = 474.000000000000000000
+      Position.Y = 6.000000000000000000
+      Size.Width = 96.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Import'
+      OnClick = Button1Click
+    end
+    object Button2: TButton
+      Position.X = 8.000000000000000000
+      Position.Y = 6.000000000000000000
+      TabOrder = 2
+      Text = 'Cancel'
+      OnClick = Button2Click
+    end
+  end
+end

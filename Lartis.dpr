@@ -28,7 +28,8 @@ uses
   InitializeForm in 'InitializeForm.pas' {frmInit},
   Downloader in 'Downloader.pas',
   LartisTypes in 'LartisTypes.pas',
-  ZipLartis in 'ZipLartis.pas';
+  ZipLartis in 'ZipLartis.pas',
+  ErrorForm in 'ErrorForm.pas' {frmErrorDialog};
 
 {$R *.res}
 
@@ -48,5 +49,6 @@ begin
   Application.CreateForm(TfrmOptions, frmOptions);
   Application.CreateForm(TfrmDebug, frmDebug);
   Application.CreateForm(TZipExtractForm, ZipExtractForm);
+  Application.CreateForm(TfrmErrorDialog, frmErrorDialog);
   Application.Run;
 end.

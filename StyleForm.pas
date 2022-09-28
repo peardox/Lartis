@@ -50,6 +50,7 @@ type
     StyleLayout: TLayout;
     Splitter1: TSplitter;
     Splitter2: TSplitter;
+    btnAbort: TButton;
     procedure btnBackClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure StyleLayoutResize(Sender: TObject);
@@ -76,13 +77,15 @@ type
     Layers: TLayerArray;
     StyleSelectors: TStyleSelectorArray;
     FrameCount: Integer;
+    LastPath: String;
+    LastModel: String;
     function  AddLayer: TBaseShader;
     procedure ProjectInitialise;
     procedure ShowStyleProgress(Sender: TObject; const AValue: Single);
     procedure ShowStyledImage(Sender: TObject; const AFileName: String; const ATime: Single);
     procedure HandleStyleError(Sender: TObject; const AMessage: String);
     procedure DoSaveLayers;
-    procedure Stylize(Sender: TObject; const APath: String; const AModel: String);
+    procedure Stylize(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False);
     procedure ClearLayers;
     procedure ResetLayerOptions;
   public
@@ -104,6 +107,7 @@ implementation
 uses
   Settings,
   Math,
+  ErrorForm,
   System.IOUtils,
   FunctionLibrary,
   PythonSystem;
@@ -124,6 +128,9 @@ begin
   Splitter2.Enabled := False;
   Splitter2.Width := 0;
   {$ENDIF}
+
+  LastPath := String.Empty;
+  LastModel := String.Empty;
 
   OpenDialog1.Filter:='Images (*.png; *jpg)|*.png; *jpg';
   SaveDialog1.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
@@ -234,6 +241,8 @@ begin
 end;
 
 procedure TfrmStyle.HandleStyleError(Sender: TObject; const AMessage: String);
+var
+  mr: TModalResult;
 begin
   if Assigned(ActiveLayer) then
     begin
@@ -241,7 +250,23 @@ begin
         begin
           TProgressShader(ActiveLayer).Progress := 1;
           prgStyleBatch.Value := 1;
-          ShowMessage(AMessage);
+          if AMessage = 'ERR_GPU_OOM' then
+            begin
+              frmErrorDialog.ErrorMode(AMessage);
+              mr := frmErrorDialog.ShowModal();
+              if mr = mrRetry then
+                begin
+                  Stylize(Self, LastPath, LastModel, True);
+                end
+              else
+                begin
+                  // May need some other stuff here
+                end;
+            end
+          else
+            begin
+              //ShowMessage(AMessage);
+            end;
         end;
     end;
 end;
@@ -470,7 +495,7 @@ begin
 
 end;
 
-procedure TfrmStyle.Stylize(Sender: TObject; const APath: String; const AModel: String);
+procedure TfrmStyle.Stylize(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False);
 var
   CurrentImage: String;
   CurrentBitMap: TBitmap;
@@ -507,8 +532,13 @@ begin
         with ActiveLayer as TProgressShader do
           begin
             if ImageFile <> String.Empty then
-              PySys.modStyle.Stylize(ImageFile, APath, AModel, ShowStyleProgress, ShowStyledImage, HandleStyleError);
-//              PySys.modStyle.Stylize(Bitmap, APath, AModel, ShowStyleProgress, ShowStyledImage);
+              begin
+                LastPath := APath;
+                LastModel := AModel;
+                PySys.Log('Path = ' + APath + ', Model = ' + AModel);
+                PySys.modStyle.Stylize(ImageFile, APath, AModel, ByPassGPU, ShowStyleProgress, ShowStyledImage, HandleStyleError);
+  //              PySys.modStyle.Stylize(Bitmap, APath, AModel, ByPassGPU, ShowStyleProgress, ShowStyledImage);
+              end;
           end;
     end;
 end;

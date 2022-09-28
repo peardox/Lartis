@@ -639,6 +639,7 @@ begin
       SafeMaskFPUExceptions(False);
 
       LastShimPath := IncludeTrailingPathDelimiter(AppHome) + ShimPath;
+      Log('ShimPath = ' + ShimPath);
     except
       on E: EPyImportError do
         begin
@@ -690,8 +691,8 @@ begin
   PythonCode.Add('import sys');
   PythonCode.Add('print("Hello World from ", sys.version)');
   PythonCode.Add('print("Python =", sys.executable)');
-  PythonCode.Add('import torch');
-  PythonCode.Add('print("Torch =", torch.__version__)');
+//  PythonCode.Add('import torch');
+//  PythonCode.Add('print("Torch =", torch.__version__)');
   // A little script to check we're working as expected
   try
     try

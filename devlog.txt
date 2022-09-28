@@ -2,6 +2,7 @@ v1.0.1 - 2022-09-28
 	Fix empty save filename (#2)
 	Fix save filetype (#1)
 	Fix Import ModalResult (#1)
+	Improve Style Out of GPU Memory handling
 	
 v1.0.0 - 2022-09-27
 	Initial Release

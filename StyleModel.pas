@@ -8,7 +8,7 @@ uses
   FMX.Layouts, FMX.Types, FMX.StdCtrls, FMX.Objects;
 
 type
-  TStyleProc = procedure(Sender: TObject; const APath: String; const AModel: String) of object;
+  TStyleProc = procedure(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False) of object;
 
   TModelImage = record
     iTitle: String;
@@ -168,25 +168,7 @@ begin
   mdl := FStyleModel.Models[ScaleIndex];
   path := FStyleModel.fpath;
   model := mdl.mModel + '-' + IntToStr(mdl.mZoom);
-{
-  frmDebug.Show;
 
-  PySys.Log('Click3ed on ' + FStyleModel.Image.iTitle + ' - index = ' + IntToStr(ScaleIndex));
-  PySys.Log(FStyleModel.fpath + ' has ' + Length(FStyleModel.models).ToString + ' models');
-  PySys.Log(FStyleModel.image.iTitle);
-  PySys.Log(FStyleModel.image.iName);
-  PySys.Log(FStyleModel.image.iDesc);
-  PySys.Log(FStyleModel.image.iType);
-  PySys.Log(FStyleModel.image.iWidth.ToString);
-  PySys.Log(FStyleModel.image.iHeight.ToString);
-  PySys.Log(FStyleModel.image.iHash);
-  PySys.Log(FStyleModel.image.sGroup);
-
-  PySys.Log('mModel = ' + mdl.mModel);
-  PySys.Log('mZoom = ' + IntToStr(mdl.mZoom));
-  PySys.Log(path);
-  PySys.Log(model);
-}
   if Assigned(FRunStyle) then
     FRunStyle(Self, path, model);
 end;
