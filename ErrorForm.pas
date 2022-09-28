@@ -45,12 +45,13 @@ begin
   FormReset;
   if AErrorMode = 'ERR_GPU_OOM' then
     begin
-      Label1.Text := 'This style appears to have used up all the GPU memory' + sLineBreak
+      Label1.Text := 'Styling this image appears to have used up all the GPU memory' + sLineBreak
        + sLineBreak
        + 'You can either try running it with the CPU or Abort the style' + sLineBreak
        + sLineBreak
-       + 'If you select [Use CPU] then the GPU will be ignored for'
-       + 'the retry (render will be slow but it should finish)';
+       + 'If you select [Use CPU] then the GPU will be ignored for '
+       + 'the retry (render will be slow but it should finish)'
+       ;
       Button1.Text := 'Use CPU';
       Button2.Text := 'Abort';
     end;

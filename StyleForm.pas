@@ -8,7 +8,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
   EmbeddedForm, FMX.StdCtrls, FMX.Controls.Presentation, FMX.Layouts,
-  StyleModel,
+  StyleModel, System.Diagnostics,
   Shaders, StyleProject, FMX.ListBox, Skia, Skia.FMX, Skia.FMX.Graphics, FMX.Ani;
 
 type
@@ -644,8 +644,11 @@ var
   AWidth, AHeight: Integer;
   LSurface: ISkSurface;
   IDX: Integer;
+  sw: TStopWatch;
+  rend: Single;
 begin
   FSaveInNextPaint := False;
+  sw := TStopWatch.StartNew;
 
   AWidth := Container.ChildMaxImWidth;
   AHeight := Container.ChildMaxImHeight;
@@ -668,8 +671,13 @@ begin
         end;
     end;
 
-  LSurface.MakeImageSnapshot.EncodeToFile(SaveDialog1.FileName);
+  rend := sw.ElapsedMilliseconds;
 
+  LSurface.MakeImageSnapshot.EncodeToFile(SaveDialog1.FileName);
+  lblInfo.Text := 'Saving ' +
+    ExtractFileName(SaveDialog1.FileName) + ' took ' +
+    FormatFloat('0.000s', rend / 1000) + ' to compose and ' +
+    FormatFloat('0.000s', (sw.ElapsedMilliseconds - rend) / 1000) + ' to write';
 end;
 
 end.
