@@ -21,6 +21,9 @@ type
     procedure ShowZipProgress(Sender: TObject; AFilename: String; AHeader: TZipHeader; APosition: Int64);
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     ProgCount: Int64;
@@ -28,7 +31,7 @@ type
     ProgTick: Int64;
     ProgFile: String;
     ProgressBar: TProgressBar;
-    LogMemo: TMemo;
+    procedure FormReset;
   public
     { Public declarations }
   end;
@@ -134,7 +137,9 @@ begin
       Button1.Enabled := True;
 
       ProgressBar.Value := 0;
-  end;
+    end
+  else
+    ModalResult := mrCancel;
 end;
 
 procedure TZipExtractForm.Button1Click(Sender: TObject);
@@ -143,13 +148,16 @@ begin
   Button2.Enabled := False;
   if Button1.Text = 'Close' then
     begin
-      if(TFmxFormState.Modal in Self.FormState) then
-        ModalResult := mrClose
-      else
-        Close;
+      ModalResult := mrClose
     end
   else
     ExtractLartisZip;
+end;
+
+procedure TZipExtractForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  if ModalResult <> mrClose then
+    ModalResult := mrCancel;
 end;
 
 procedure TZipExtractForm.FormCreate(Sender: TObject);
@@ -172,6 +180,23 @@ begin
 
   OpenDialog1.Filter:='Lartis Style Archives (*.lartis.zip)|*.lartis.zip';
   OpenDialog1.InitialDir := DownPath;
+end;
+
+procedure TZipExtractForm.FormShow(Sender: TObject);
+begin
+  FormReset;
+end;
+
+procedure TZipExtractForm.FormActivate(Sender: TObject);
+begin
+  FormReset;
+end;
+
+procedure TZipExtractForm.FormReset;
+begin
+  Button1.Enabled := True;
+  Button2.Enabled := True;
+  ModalResult := mrNone;
 end;
 
 end.

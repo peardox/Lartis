@@ -1,6 +1,8 @@
 object ZipExtractForm: TZipExtractForm
   Left = 0
   Top = 0
+  BorderIcons = []
+  BorderStyle = Single
   Caption = 'Extract Lartis Archive'
   ClientHeight = 132
   ClientWidth = 817
@@ -8,7 +10,10 @@ object ZipExtractForm: TZipExtractForm
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
+  OnActivate = FormActivate
   OnCreate = FormCreate
+  OnClose = FormClose
+  OnShow = FormShow
   DesignerMasterStyle = 0
   object ProgressBar1: TProgressBar
     Align = Bottom

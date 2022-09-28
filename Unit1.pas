@@ -119,7 +119,7 @@ procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   MenuItem1.Enabled := False;
   FrameCount := 0;
-  Caption := AppName;
+  Caption := AppName; // + ' - ' + AppHome;
   PySys := TPySys.Create(Sender as TComponent);
   frmInit := EmbedForm(InitLayout, TfrmInit.Create(Self)) as TfrmInit;
   frmInit.ShowForm;
@@ -223,7 +223,8 @@ procedure TfrmMain.FormPaint(Sender: TObject; Canvas: TCanvas;
   const ARect: TRectF);
 begin
   Inc(FrameCount);
-  Caption := AppName + ' - ' + IntToStr(FrameCount);
+
+//  Caption := AppName + ' - ' + IntToStr(FrameCount);
   if Assigned(ActiveForm) then
     ActiveForm.Paint;
 end;
@@ -378,12 +379,17 @@ begin
 end;
 
 procedure TfrmMain.ImportMenuClick(Sender: TObject);
+var
+  mr: TModalResult;
 begin
-  ZipExtractForm.ShowModal;
-  FreeAndNil(StyleModels);
-  StyleModels := TStyleModels.Create(Self);
-  StyleModels.GetAllModels;
-  frmStyle.MakeStyleSelectors;
+  mr := ZipExtractForm.ShowModal;
+  if mr = mrOK then
+    begin
+      FreeAndNil(StyleModels);
+      StyleModels := TStyleModels.Create(Self);
+      StyleModels.GetAllModels;
+      frmStyle.MakeStyleSelectors;
+    end;
 end;
 
 end.

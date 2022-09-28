@@ -66,6 +66,7 @@ type
     procedure FormPaint(Sender: TObject; Canvas: TCanvas; const ARect: TRectF);
     procedure btnSaveClick(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
+    procedure SetSaveDialogExtension(Sender: TObject);
   private
     { Private declarations }
     FSaveInNextPaint: Boolean;
@@ -125,7 +126,9 @@ begin
   {$ENDIF}
 
   OpenDialog1.Filter:='Images (*.png; *jpg)|*.png; *jpg';
-  SaveDialog1.Filter:='Images (*.png; *jpg)|*.png; *jpg';
+  SaveDialog1.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
+  SaveDialog1.DefaultExt := 'png';
+  SaveDialog1.OnTypeChange := SetSaveDialogExtension;
 
   lblInfo.Text := '';
   FrameCount := 0;
@@ -142,6 +145,14 @@ begin
 
   ProjectInitialise;
   MakeStyleSelectors;
+end;
+
+procedure TfrmStyle.SetSaveDialogExtension(Sender: TObject);
+begin
+  case (Sender as TSaveDialog).FilterIndex of
+    0: (Sender as TSaveDialog).DefaultExt := 'png';
+    1: (Sender as TSaveDialog).DefaultExt := 'jpg';
+  end;
 end;
 
 procedure TfrmStyle.expTransparencyExpandedChanged(Sender: TObject);
