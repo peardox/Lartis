@@ -98,6 +98,7 @@ implementation
 uses
   Settings,
   Math,
+  StyleForm,
   System.IOUtils,
   FMX.Dialogs, // REMOVE_ME
   DebugForm, // REMOVE_ME
@@ -108,11 +109,13 @@ begin
   inherited;
   Parent := TFmxObject(AOwner);
   Align := TAlignLayout.Top;
-
+ {
   Width := 160;
-  Height := 128;
   Position.X := 0;
   Position.Y := 0;
+ }
+  Height := 128;
+  Margins.Top := 4;
 
   trkScale := TTrackBar.Create(Self);
   trkScale.Align := TAlignLayout.Bottom;
@@ -126,14 +129,20 @@ begin
 
   lblName := TLabel.Create(layInfo);
   lblName.TextSettings.HorzAlign := TTextAlign.Leading;
+  lblName.Align := TAlignLayout.Left;
+  lblName.Width := 80;
   lblName.Height := 30;
-  lblName.Position.X := 8;
   lblName.Position.Y := 0;
+  lblName.Margins.Left := 4;
   lblName.Parent := layInfo;
 
   lblScale := TLabel.Create(layInfo);
+  lblScale.TextSettings.HorzAlign := TTextAlign.Trailing;
+  lblScale.Align := TAlignLayout.Right;
+  lblScale.Width := 40;
+  lblScale.Height := 30;
   lblScale.Position.Y := 0;
-  lblScale.Margins.Right := 8;
+  lblScale.Margins.Right := 4;
   lblScale.Parent := layInfo;
 
   imgThumb := TImage.Create(Self);
@@ -144,6 +153,29 @@ begin
 
   FScale := 0;
   OnResize := DoResize;
+end;
+
+procedure TStyleSelector.DoResize(Sender: TObject);
+begin
+  if Assigned(Self.lblScale) then
+    begin
+      frmStyle.lblInfo.Text := 'Info - '
+        + FloatToStr(layInfo.Width)
+        + ' : '
+        + FloatToStr(layInfo.Position.X)
+        + ', ' + FloatToStr(lblName.Width)
+        + ' : '
+        + FloatToStr(lblName.Position.X)
+        + ', ' + FloatToStr(lblScale.Width)
+        + ' : '
+        + FloatToStr(lblScale.Position.X)
+      ;
+
+//      lblName.Width := floor((layInfo.Width * 8) / 10);
+//      lblScale.Position.X := lblName.Width;
+//      lblScale.Width := floor((layInfo.Width * 2) / 10);
+//      lblScale.Height := 30;
+    end;
 end;
 
 procedure TStyleSelector.ChangeScale(Sender: TObject);
@@ -171,17 +203,6 @@ begin
 
   if Assigned(FRunStyle) then
     FRunStyle(Self, path, model);
-end;
-
-procedure TStyleSelector.DoResize(Sender: TObject);
-begin
-  if Assigned(Self.lblScale) then
-    begin
-      lblName.Width := floor((layInfo.Width * 8) / 10);
-      lblScale.Position.X := lblName.Width;
-      lblScale.Width := floor((layInfo.Width * 2) / 10);
-      lblScale.Height := 30;
-    end;
 end;
 
 procedure TStyleSelector.SetStyle(AStyle: TModelStyleCollection);

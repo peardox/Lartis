@@ -125,8 +125,8 @@ begin
   btnSave.Height := 0;
   btnClearLayers.Visible := False;
   btnClearLayers.Height := 0;
-  Splitter1.Enabled := False;
-  Splitter1.Width := 0;
+//  Splitter1.Enabled := False;
+//  Splitter1.Width := 0;
   Splitter2.Enabled := False;
   Splitter2.Width := 0;
   {$ENDIF}
