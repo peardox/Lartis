@@ -360,7 +360,7 @@ begin
   DebugMenu.Enabled := False;
   SystemTestMenu.Enabled := False;
   ImportMenu.Enabled := False;
-{
+
   if ActiveForm = frmStyle then
     begin
       CalibrateMenu.Enabled := True;
@@ -371,7 +371,7 @@ begin
       DebugMenu.Enabled := True;
       SystemTestMenu.Enabled := True;
     end;
-    }
+
 end;
 
 procedure TfrmMain.OpenFileMenuClick(Sender: TObject);

@@ -1,3 +1,8 @@
+v1.0.2 - 2022-09-28
+	Fix main for resizing issue (#4)
+	Adjust layout of Style Picker so it looks "better"
+	Fixed save taking too long (#3)
+	
 v1.0.1 - 2022-09-28
 	Fix empty save filename (#2)
 	Fix save filetype (#1)

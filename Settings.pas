@@ -69,7 +69,7 @@ begin
   VersionUpdate := False;
   EnableGPU := True;
 
-  {$IF DEFINED(MACOS64)}
+  {$IF DEFINED(MACOS)}
   RealHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath) + appname;
   {$ELSEIF DEFINED(LINUX)}
   RealHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetHomePath) + '.' + appname;

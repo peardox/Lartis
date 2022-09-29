@@ -135,8 +135,9 @@ begin
   LastModel := String.Empty;
 
   OpenDialog1.Filter:='Images (*.png; *jpg)|*.png; *jpg';
+//  OpenDialog1.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
   SaveDialog1.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
-  SaveDialog1.DefaultExt := 'png';
+  SaveDialog1.DefaultExt := '.png';
   SaveDialog1.OnTypeChange := SetSaveDialogExtension;
 
   lblInfo.Text := '';
@@ -159,8 +160,8 @@ end;
 procedure TfrmStyle.SetSaveDialogExtension(Sender: TObject);
 begin
   case (Sender as TSaveDialog).FilterIndex of
-    0: (Sender as TSaveDialog).DefaultExt := 'png';
-    1: (Sender as TSaveDialog).DefaultExt := 'jpg';
+    0: (Sender as TSaveDialog).DefaultExt := '.png';
+    1: (Sender as TSaveDialog).DefaultExt := '.jpg';
   end;
 end;
 
@@ -653,8 +654,8 @@ begin
   AWidth := Container.ChildMaxImWidth;
   AHeight := Container.ChildMaxImHeight;
 
-  if (Self.Canvas is TGrCanvasCustom) and Assigned(TGrCanvasCustom(Self.Canvas).Context) then
-    LSurface := TSkSurface.MakeRenderTarget(TGrCanvasCustom(Self.Canvas).Context, False, TSkImageInfo.Create(AWidth, AHeight))
+  if (Container.Canvas is TGrCanvasCustom) and Assigned(TGrCanvasCustom(Container.Canvas).Context) then
+    LSurface := TSkSurface.MakeRenderTarget(TGrCanvasCustom(Container.Canvas).Context, False, TSkImageInfo.Create(AWidth, AHeight))
   else
     LSurface := TSkSurface.MakeRaster(AWidth, AHeight);
   LSurface.Canvas.Clear(TAlphaColors.Null);

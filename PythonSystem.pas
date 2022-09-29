@@ -7,7 +7,7 @@ uses
   System.SysUtils, System.IOUtils, System.Types, System.UITypes,
   System.Classes, System.Variants, System.Threading, PyEnvironment,
   FMX.Types, FMX.Dialogs, FMX.Memo, FMX.Forms, Math,
-  {$IF DEFINED(MACOS64)}
+  {$IF DEFINED(MACOS)}
   PyEnvironment.Local,
   {$ELSE}
   PyEnvironment.Embeddable, PyEnvironment.Embeddable.Res,
@@ -40,7 +40,7 @@ type
     FTask: ITask;
 
     PyEng: TPythonEngine;
-    {$IF DEFINED(MACOS64)}
+    {$IF DEFINED(MACOS)}
     PyEnv: TPyLocalEnvironment;
     {$ELSE}
     PyEnv: TPyEmbeddedResEnvironment39;
@@ -357,7 +357,7 @@ begin
     end
   else if PyCleanOnExit then
     begin
-      {$IFDEF MACOS64}
+      {$IFDEF MACOS}
       {$ELSE}
       TDirectory.Delete(PyEnv.EnvironmentPath, True);
       {$ENDIF}
@@ -434,7 +434,7 @@ begin
   PyEng.OnBeforeUnload := PyEngBeforeUnload;
   // Python Engine
 
-  {$IF DEFINED(MACOS64)}
+  {$IF DEFINED(MACOS)}
   PyEnv := TPyLocalEnvironment.Create(Self);
   PyEnv.FilePath := '../Resources/macpython.json';
   {$ELSE}
