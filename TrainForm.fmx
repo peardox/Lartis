@@ -47,7 +47,7 @@ object frmTrain: TfrmTrain
     Text = 'Button2'
     OnClick = Button2Click
   end
-  object OpenDialog1: TOpenDialog
+  object OpenTrainingImageDialog: TOpenDialog
     Left = 224
     Top = 104
   end

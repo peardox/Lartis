@@ -14,22 +14,18 @@ uses
 type
   TfrmStyle = class(TEmbeddedForm)
     TopPanel: TPanel;
-    OpenDialog1: TOpenDialog;
+    OpenImageDialog: TOpenDialog;
     prgStyleBatch: TProgressBar;
     chkEnableGPU: TCheckBox;
     btnBack: TButton;
-    SaveDialog1: TSaveDialog;
+    SaveImageDialog: TSaveDialog;
     lblInfo: TLabel;
     RectAnimation1: TRectAnimation;
     Layout1: TLayout;
     layStyleControl: TLayout;
     vsbLayers: TFramedVertScrollBox;
     layStyleThumb1: TLayout;
-    imgStyleThumb1: TImageControl;
-    layStyleThumb3: TLayout;
-    imgStyleThumb3: TImageControl;
-    layStyleThumb2: TLayout;
-    imgStyleThumb2: TImageControl;
+    imgStyleThumb1zzz: TImageControl;
     layControls: TLayout;
     btnAddLayer: TButton;
     cbxColourMode: TComboBox;
@@ -69,6 +65,7 @@ type
     procedure btnAddLayerClick(Sender: TObject);
     procedure SetSaveDialogExtension(Sender: TObject);
     procedure btnAbortClick(Sender: TObject);
+    procedure imgStyleThumb1zzzClick(Sender: TObject);
   private
     { Private declarations }
     FSaveInNextPaint: Boolean;
@@ -80,7 +77,7 @@ type
     FrameCount: Integer;
     LastPath: String;
     LastModel: String;
-    function  AddLayer: TBaseShader;
+    function  AddNewLayer: TBaseShader;
     procedure ProjectInitialise;
     procedure ShowStyleProgress(Sender: TObject; const AValue: Single);
     procedure ShowStyledImage(Sender: TObject; const AFileName: String; const ATime: Single);
@@ -90,6 +87,7 @@ type
     procedure Stylize(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False);
     procedure ClearLayers;
     procedure ResetLayerOptions;
+    procedure UpdateLayerOptions;
   public
     { Public declarations }
     procedure SaveStyleImage;
@@ -125,8 +123,8 @@ begin
   btnSave.Height := 0;
   btnClearLayers.Visible := False;
   btnClearLayers.Height := 0;
-//  Splitter1.Enabled := False;
-//  Splitter1.Width := 0;
+  Splitter1.Enabled := False;
+  Splitter1.Width := 0;
   Splitter2.Enabled := False;
   Splitter2.Width := 0;
   {$ENDIF}
@@ -134,11 +132,11 @@ begin
   LastPath := String.Empty;
   LastModel := String.Empty;
 
-  OpenDialog1.Filter:='Images (*.png; *jpg)|*.png; *jpg';
-//  OpenDialog1.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
-  SaveDialog1.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
-  SaveDialog1.DefaultExt := '.png';
-  SaveDialog1.OnTypeChange := SetSaveDialogExtension;
+  OpenImageDialog.Filter:='Images (*.png; *jpg)|*.png; *jpg';
+//  OpenImageDialog.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
+  SaveImageDialog.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
+  SaveImageDialog.DefaultExt := '.png';
+  SaveImageDialog.OnTypeChange := SetSaveDialogExtension;
 
   lblInfo.Text := '';
   FrameCount := 0;
@@ -183,7 +181,7 @@ begin
     btnAddLayer.Size.Height +
     btnClearLayers.Size.Height +
     btnSave.Size.Height +
-    (ControlMargin * 8);
+    (ControlMargin * 6);
 
   layControls.Height := ch;
 
@@ -287,6 +285,11 @@ begin
     end;
 end;
 
+procedure TfrmStyle.imgStyleThumb1zzzClick(Sender: TObject);
+begin
+  imgStyleThumb1zzz.EnableOpenDialog := False;
+end;
+
 procedure TfrmStyle.StyleLayoutResize(Sender: TObject);
 begin
   if Assigned(Container) then
@@ -364,14 +367,38 @@ end;
 
 procedure TfrmStyle.btnAddLayerClick(Sender: TObject);
 begin
-  AddStyleLayer;
+//  AddStyleLayer;
 end;
 
 procedure TfrmStyle.ResetLayerOptions;
 begin
   chkEnableTransparency.IsChecked := False;
   chkInvertAlpha.IsChecked := False;
-  cbxColourMode.ItemIndex := 0;
+//  cbxColourMode.ItemIndex := 0;
+
+// trkAlphaThresholdChange(Self);
+// trkStyleWeightChange(Self);
+//  chkEnableTransparencyChange(Self);
+//  chkInvertAlphaChange(Self);
+//  cbxColourModeChange(Self);
+  if Assigned(ActiveLayer) and (ActiveLayer is TLayerShader) then
+    begin
+      TLayerShader(ActiveLayer).ColorMode :=  cbxColourMode.ItemIndex;
+      TLayerShader(ActiveLayer).PreserveTransparency :=  chkEnableTransparency.IsChecked;
+      TLayerShader(ActiveLayer).InvertAlpha :=  chkInvertAlpha.IsChecked;
+    end;
+
+end;
+
+procedure TfrmStyle.UpdateLayerOptions;
+begin
+  if Assigned(ActiveLayer) and (ActiveLayer is TLayerShader) then
+    begin
+      TLayerShader(ActiveLayer).ColorMode :=  cbxColourMode.ItemIndex;
+      TLayerShader(ActiveLayer).PreserveTransparency :=  chkEnableTransparency.IsChecked;
+      TLayerShader(ActiveLayer).InvertAlpha :=  chkInvertAlpha.IsChecked;
+    end;
+
 end;
 
 procedure TfrmStyle.AddStyleLayer;
@@ -389,12 +416,12 @@ begin
     end;
 
   // Add a new image as a TProgressShader
-  NewLayer := AddLayer;
+  NewLayer := AddNewLayer;
   if Assigned(NewLayer) then
     begin
       if NewLayer is TProgressShader then
         begin
-          imgStyleThumb1.Bitmap.LoadFromFile(TProgressShader(NewLayer).ImageFile)
+          imgStyleThumb1zzz.Bitmap.LoadFromFile(TProgressShader(NewLayer).ImageFile)
         end;
 
       SetLength(Layers, Length(Layers) + 1);
@@ -442,7 +469,7 @@ begin
     end;
 end;
 
-function TfrmStyle.AddLayer: TBaseShader;
+function TfrmStyle.AddNewLayer: TBaseShader;
 var
   NewLayer: TBaseShader;
 begin
@@ -450,16 +477,16 @@ begin
 
   if Assigned(PySys) then
     begin
-      OpenDialog1.InitialDir := SystemSettings.LastOpenStyleDir;
-      if OpenDialog1.Execute then
+      OpenImageDialog.InitialDir := SystemSettings.LastOpenStyleDir;
+      if OpenImageDialog.Execute then
         begin
-          SystemSettings.LastOpenStyleDir := OpenDialog1.InitialDir;
+          SystemSettings.LastOpenStyleDir := OpenImageDialog.InitialDir;
 
           NewLayer := TProgressShader.Create(Container);
 
           with NewLayer as TProgressShader do
             begin
-              AddImage(OpenDialog1.FileName);
+              AddImage(OpenImageDialog.FileName);
               trkStyleWeight.Value := trkStyleWeight.Max;
               trkStyleWeight.Enabled := False;
               if Assigned(TProgressShader(NewLayer).Bitmap) then
@@ -508,6 +535,7 @@ begin
                   trkStyleWeight.Enabled := True;
                   trkAlphaThreshold.Value := 0.95;
                   prgStyleBatch.Value := 0;
+                  UpdateLayerOptions;
                 end;
                 FreeAndNil(CurrentBitMap);
             end;
@@ -603,10 +631,11 @@ end;
 
 procedure TfrmStyle.SaveStyleImage;
 begin
-  SaveDialog1.InitialDir := SystemSettings.LastOpenStyleDir;
-  if SaveDialog1.Execute then
+  SaveImageDialog.InitialDir := SystemSettings.LastOpenStyleDir;
+  SaveImageDialog.FileName := ExtractFilename(SaveImageDialog.FileName);
+  if SaveImageDialog.Execute then
     begin
-      SystemSettings.LastOpenStyleDir := SaveDialog1.InitialDir;
+      SystemSettings.LastOpenStyleDir := SaveImageDialog.InitialDir;
       FSaveInNextPaint := True;
       Container.Repaint;
     end;
@@ -668,15 +697,20 @@ begin
             begin
               var ThisLayer: TLayerShader := Container.Children[IDX] as TLayerShader;
               ThisLayer.OnDraw(ThisLayer, LSurface.Canvas, RectF(0, 0, AWidth, AHeight), 1);
+            end
+          else if Assigned(Container.Children[IDX]) and (Container.Children[IDX] is TProgressShader) then
+            begin
+              var ThisLayer: TProgressShader := Container.Children[IDX] as TProgressShader;
+              ThisLayer.OnDraw(ThisLayer, LSurface.Canvas, RectF(0, 0, AWidth, AHeight), 1);
             end;
         end;
     end;
 
   rend := sw.ElapsedMilliseconds;
 
-  LSurface.MakeImageSnapshot.EncodeToFile(SaveDialog1.FileName);
+  LSurface.MakeImageSnapshot.EncodeToFile(SaveImageDialog.FileName);
   lblInfo.Text := 'Saving ' +
-    ExtractFileName(SaveDialog1.FileName) + ' took ' +
+    ExtractFileName(SaveImageDialog.FileName) + ' took ' +
     FormatFloat('0.000s', rend / 1000) + ' to compose and ' +
     FormatFloat('0.000s', (sw.ElapsedMilliseconds - rend) / 1000) + ' to write';
 end;

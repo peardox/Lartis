@@ -46,7 +46,7 @@ const
   pyexe: String = 'python.exe';
   pyshim: String = 'pysrc';
   pycode: String = 'SystemCode.py';
-  appver: String = '1.0.1';
+  appver: String = '1.0.2';
 
   APIBase: String = 'https://peardox.com/Lartis/';
 

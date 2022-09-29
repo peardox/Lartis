@@ -1,7 +1,10 @@
-v1.0.2 - 2022-09-28
+v1.0.2 - 2022-09-29
 	Fix main for resizing issue (#4)
 	Adjust layout of Style Picker so it looks "better"
 	Fixed save taking too long (#3)
+	Add some Mac specific IFDEFs
+	Save unstyled layers properly
+	Fixed Style Colour Mode ComboBox (#1)
 	
 v1.0.1 - 2022-09-28
 	Fix empty save filename (#2)

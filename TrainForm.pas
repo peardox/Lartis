@@ -14,7 +14,7 @@ type
     TrackBar1: TTrackBar;
     Label1: TLabel;
     Button2: TButton;
-    OpenDialog1: TOpenDialog;
+    OpenTrainingImageDialog: TOpenDialog;
     procedure Button1Click(Sender: TObject);
     procedure TrackToScale;
     procedure TrackBar1Change(Sender: TObject);
@@ -66,10 +66,11 @@ procedure TfrmTrain.Button2Click(Sender: TObject);
 begin
   if Assigned(PySys) then
     begin
-      if OpenDialog1.Execute then
+      OpenTrainingImageDialog.Filter:='Lartis Style Archives (*.pth)|*.pth';
+      if OpenTrainingImageDialog.Execute then
         begin
-          PySys.modTrain.Train(OpenDialog1.Filename,
-          System.IOUtils.TPath.GetFileNameWithoutExtension(OpenDialog1.Filename),
+          PySys.modTrain.Train(OpenTrainingImageDialog.Filename,
+          System.IOUtils.TPath.GetFileNameWithoutExtension(OpenTrainingImageDialog.Filename),
           ScalePower(TrackBar1.Value));
         end;
     end;

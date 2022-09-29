@@ -51,7 +51,7 @@ object frmStyle: TfrmStyle
       Duration = 0.200000002980232200
     end
   end
-  object OpenDialog1: TOpenDialog
+  object OpenImageDialog: TOpenDialog
     Left = 320
     Top = 96
   end
@@ -64,9 +64,9 @@ object frmStyle: TfrmStyle
     Size.Height = 20.000000000000000000
     Size.PlatformDefault = False
   end
-  object SaveDialog1: TSaveDialog
-    Left = 384
-    Top = 96
+  object SaveImageDialog: TSaveDialog
+    Left = 320
+    Top = 152
   end
   object Layout1: TLayout
     Align = Client
@@ -88,50 +88,22 @@ object frmStyle: TfrmStyle
         Size.Height = 173.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
-        Viewport.Width = 160.000000000000000000
-        Viewport.Height = 173.000000000000000000
+        Viewport.Width = 156.000000000000000000
+        Viewport.Height = 169.000000000000000000
         object layStyleThumb1: TLayout
           Align = Top
-          Size.Width = 140.000000000000000000
-          Size.Height = 97.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 2
-          object imgStyleThumb1: TImageControl
-            Align = Client
-            Size.Width = 140.000000000000000000
-            Size.Height = 97.000000000000000000
-            Size.PlatformDefault = False
-            TabOrder = 0
-          end
-        end
-        object layStyleThumb3: TLayout
-          Align = Top
-          Position.Y = 194.000000000000000000
-          Size.Width = 140.000000000000000000
-          Size.Height = 97.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 1
-          object imgStyleThumb3: TImageControl
-            Align = Client
-            Size.Width = 140.000000000000000000
-            Size.Height = 97.000000000000000000
-            Size.PlatformDefault = False
-            TabOrder = 0
-          end
-        end
-        object layStyleThumb2: TLayout
-          Align = Top
-          Position.Y = 97.000000000000000000
-          Size.Width = 140.000000000000000000
+          Size.Width = 156.000000000000000000
           Size.Height = 97.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 0
-          object imgStyleThumb2: TImageControl
+          object imgStyleThumb1zzz: TImageControl
             Align = Client
-            Size.Width = 140.000000000000000000
+            EnableOpenDialog = False
+            Size.Width = 156.000000000000000000
             Size.Height = 97.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 0
+            OnClick = imgStyleThumb1zzzClick
           end
         end
       end
@@ -162,11 +134,12 @@ object frmStyle: TfrmStyle
           OnChange = cbxColourModeChange
         end
         object expTransparency: TExpander
+          IsExpanded = False
           Position.X = 8.000000000000000000
           Position.Y = 88.000000000000000000
           ShowCheck = False
           Size.Width = 145.000000000000000000
-          Size.Height = 129.000000000000000000
+          Size.Height = 25.000000000000000000
           Size.PlatformDefault = False
           Text = 'Transparency'
           TabOrder = 7
@@ -287,8 +260,8 @@ object frmStyle: TfrmStyle
           Size.Height = 551.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 1
-          Viewport.Width = 160.000000000000000000
-          Viewport.Height = 551.000000000000000000
+          Viewport.Width = 156.000000000000000000
+          Viewport.Height = 547.000000000000000000
         end
         object btnAbort: TButton
           Align = Bottom
