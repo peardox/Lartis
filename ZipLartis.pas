@@ -16,14 +16,17 @@ type
     OpenDialog1: TOpenDialog;
     Label1: TLabel;
     Button2: TButton;
+    Label2: TLabel;
     procedure Button1Click(Sender: TObject);
-    procedure ExtractLartisZip;
+    procedure ExtractLartisZips;
+    procedure ExtractOneZip(const AFile: String; const DestPath: String);
     procedure ShowZipProgress(Sender: TObject; AFilename: String; AHeader: TZipHeader; APosition: Int64);
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure Label2Click(Sender: TObject);
   private
     { Private declarations }
     ProgCount: Int64;
@@ -45,6 +48,7 @@ implementation
 
 uses
   Math,
+  DW.OSDevice,
   System.IOUtils;
 
 procedure TZipExtractForm.ShowZipProgress(Sender: TObject; AFilename: String; AHeader: TZipHeader; APosition: Int64);
@@ -75,64 +79,82 @@ begin
   ModalResult := mrCancel;
 end;
 
-procedure TZipExtractForm.ExtractLartisZip;
+procedure TZipExtractForm.ExtractOneZip(const AFile: String; const DestPath: String);
+var
+  z: TZipFile;
+  I, ZipCount: Int64;
+begin
+  ProgressBar.Value := 0;
+  ProgFile := '';
+  ProgTick := 0;
+  ProgCount := 0;
+  PaintCount := 0;
+  Application.ProcessMessages;
+
+  try
+    try
+      z := TZipFile.Create;
+      z.Open(AFile, TZipMode.zmRead);
+
+
+      ZipCount := Length(z.FileNames);
+      PySys.Log('Files = ' + IntToStr(ZipCount));
+
+      ProgressBar.Min := 0;
+      ProgressBar.Max := ZipCount - 1;
+      ProgressBar.Value := 0;
+      z.OnProgress := ShowZipProgress;
+
+      for I := 0 to ZipCount - 1 do
+        begin
+          Label1.Text := sLineBreak + 'Processing ' + AFile
+            + ' (' + IntToStr(I+1)
+            + ' of ' + IntToStr(ZipCount) + ')'
+{
+            + sLineBreak
+            + sLineBreak
+            + 'Extracting ' + z.FileName[I]
+}
+            ;
+          z.Extract(i, DestPath);
+        end;
+
+    except
+      on E: Exception do
+        begin
+          PySys.Log('Unhandled Exception in ExtractOneZip');
+          PySys.Log('Class : ' + E.ClassName);
+          PySys.Log('Error : ' + E.Message);
+        end;
+    end;
+  finally
+    z.Free;
+  end;
+end;
+
+procedure TZipExtractForm.ExtractLartisZips;
 var
   z: TZipFile;
   ZipOut: String;
-  I, ZipCount: Int64;
+  I: Integer;
 begin
-  z := Nil;
+  Label2.Visible := False;
+
+  OpenDialog1.Options :=  [TOpenOption.ofAllowMultiSelect];
 
   if OpenDialog1.Execute then
     begin
-      ProgFile := '';
-      ProgTick := 0;
-      PaintCount := 0;
       ZipOut := TPath.Combine(AppHome, 'models');
-      {$IFDEF TESTING}
-      if DirectoryExists(ZipOut) then
-        TDirectory.Delete(ZipOut, True);
-      {$ENDIF}
-      Label1.TextSettings.HorzAlign := TTextAlign.Leading;
+//      Label1.TextSettings.HorzAlign := TTextAlign.Leading;
 
       if not DirectoryExists(ZipOut) then
         ForceDirectories(ZipOut);
-      try
-        try
-          z := TZipFile.Create;
-          z.Open(OpenDialog1.Filename, TZipMode.zmRead);
 
+      for I := 0 to OpenDialog1.Files.Count - 1 do
+        ExtractOneZip(OpenDialog1.Files[I], ZipOut);
 
-          ZipCount := Length(z.FileNames);
-          PySys.Log('Files = ' + IntToStr(ZipCount));
-
-          ProgressBar.Min := 0;
-          ProgressBar.Max := ZipCount - 1;
-          ProgressBar.Value := 0;
-          z.OnProgress := ShowZipProgress;
-
-          for I := 0 to ZipCount - 1 do
-            begin
-              Label1.Text := 'Extracting ' + z.FileName[I]
-                + ' (' + IntToStr(I+1)
-                + ' of ' + IntToStr(ZipCount) + ')';
-              z.Extract(i, ZipOut);
-            end;
-
-        except
-          on E: Exception do
-            begin
-              PySys.Log('Unhandled Exception in RunShim');
-              PySys.Log('Class : ' + E.ClassName);
-              PySys.Log('Error : ' + E.Message);
-            end;
-        end;
-      finally
-        z.Free;
-      end;
-
-      Label1.TextSettings.HorzAlign := TTextAlign.Center;
-      Label1.Text := 'Imported All Styles (You can delete the archive if you want)';
+//      Label1.TextSettings.HorzAlign := TTextAlign.Center;
+      Label1.Text := 'Imported All Styles (You can delete the archive(s) if you want)';
       Button1.Text := 'Close';
       Button1.Enabled := True;
 
@@ -140,18 +162,24 @@ begin
     end
   else
     ModalResult := mrCancel;
+
+  Label2.Visible := True;
 end;
 
 procedure TZipExtractForm.Button1Click(Sender: TObject);
 begin
+  Button2.Visible := False;
+
   Button1.Enabled := False;
   Button2.Enabled := False;
+  Application.ProcessMessages;
+
   if Button1.Text = 'Close' then
     begin
       ModalResult := mrClose
     end
   else
-    ExtractLartisZip;
+    ExtractLartisZips;
 end;
 
 procedure TZipExtractForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -187,15 +215,22 @@ begin
   FormReset;
 end;
 
+procedure TZipExtractForm.Label2Click(Sender: TObject);
+begin
+  TOSDevice.OpenURL('https://peardox.itch.io/rehash-packs-for-lartis');
+end;
+
 procedure TZipExtractForm.FormActivate(Sender: TObject);
 begin
-  FormReset;
+//  FormReset;
 end;
 
 procedure TZipExtractForm.FormReset;
 begin
   Button1.Enabled := True;
+  Button1.Text := 'Import';
   Button2.Enabled := True;
+  Button2.Visible := True;
   ModalResult := mrNone;
 end;
 

@@ -17,6 +17,7 @@ uses
   {$IF NOT DEFINED(CPUARM)}
   PSUtil,
   {$ENDIF}
+  DW.OSDevice,
   FMX.Menus, FMX.Layouts, FMX.Styles,
   EmbeddedForm, PythonEngine;
 
@@ -45,6 +46,10 @@ type
     OpenFileMenu: TMenuItem;
     SaveFileMenu: TMenuItem;
     ImportMenu: TMenuItem;
+    HelpMenu: TMenuItem;
+    BugMenu: TMenuItem;
+    PatreonMenu: TMenuItem;
+    DiscordMenu: TMenuItem;
     {$IFDEF ENABLE_EVOLVE}
     EvolveLayout: TLayout;
     {$ENDIF}
@@ -73,6 +78,9 @@ type
     procedure SaveFileMenuClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure ImportMenuClick(Sender: TObject);
+    procedure BugMenuClick(Sender: TObject);
+    procedure PatreonMenuClick(Sender: TObject);
+    procedure DiscordMenuClick(Sender: TObject);
   private
     { Private declarations }
     FrameCount: Integer;
@@ -157,6 +165,21 @@ begin
 
   MenuItem1.Enabled := True;
 
+end;
+
+procedure TfrmMain.BugMenuClick(Sender: TObject);
+begin
+  TOSDevice.OpenURL('https://github.com/peardox/Lartis/issues');
+end;
+
+procedure TfrmMain.PatreonMenuClick(Sender: TObject);
+begin
+  TOSDevice.OpenURL('https://www.patreon.com/Peardox');
+end;
+
+procedure TfrmMain.DiscordMenuClick(Sender: TObject);
+begin
+  TOSDevice.OpenURL('https://discord.gg/e2rGEEHrBd');
 end;
 
 procedure TfrmMain.ChildCloser(Sender: TObject);

@@ -4,7 +4,7 @@ object ZipExtractForm: TZipExtractForm
   BorderIcons = []
   BorderStyle = Single
   Caption = 'Extract Lartis Archive'
-  ClientHeight = 132
+  ClientHeight = 168
   ClientWidth = 817
   Position = DesktopCenter
   FormFactor.Width = 320
@@ -18,14 +18,14 @@ object ZipExtractForm: TZipExtractForm
   object ProgressBar1: TProgressBar
     Align = Bottom
     Orientation = Horizontal
-    Position.Y = 80.000000000000000000
+    Position.Y = 116.000000000000000000
     Size.Width = 817.000000000000000000
     Size.Height = 20.000000000000000000
     Size.PlatformDefault = False
   end
   object Panel1: TPanel
     Align = Bottom
-    Position.Y = 100.000000000000000000
+    Position.Y = 136.000000000000000000
     Size.Width = 817.000000000000000000
     Size.Height = 32.000000000000000000
     Size.PlatformDefault = False
@@ -59,11 +59,26 @@ object ZipExtractForm: TZipExtractForm
     Margins.Left = 16.000000000000000000
     Margins.Right = 16.000000000000000000
     Size.Width = 785.000000000000000000
-    Size.Height = 80.000000000000000000
+    Size.Height = 74.000000000000000000
     Size.PlatformDefault = False
     TextSettings.Font.Size = 20.000000000000000000
     TextSettings.Font.StyleExt = {00070000000000000004000000}
+    TextSettings.VertAlign = Leading
     Text = 'Label1'
     TabOrder = 4
+  end
+  object Label2: TLabel
+    Align = Top
+    StyledSettings = [Family, Style]
+    HitTest = True
+    Size.Width = 817.000000000000000000
+    Size.Height = 42.000000000000000000
+    Size.PlatformDefault = False
+    TextSettings.Font.Size = 18.000000000000000000
+    TextSettings.FontColor = claGold
+    TextSettings.HorzAlign = Trailing
+    Text = 'Get More Styles'
+    TabOrder = 6
+    OnClick = Label2Click
   end
 end
