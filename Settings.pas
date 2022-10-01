@@ -36,6 +36,7 @@ var
 
   FrameCount: Integer;
   EnableGPU: Boolean;
+  AllowGPU: Boolean;
   SystemStyle: String;
   SystemSettings: TSettings;
 
@@ -67,7 +68,15 @@ var
 begin
   InstallRequired := False;
   VersionUpdate := False;
+  EnableGPU := False;
+  {$IF DEFINED(MACOS) AND DEFINED(CPUARM)}
   EnableGPU := True;
+  {$ENDIF}
+  {$IF DEFINED(MSWINDOWS)}
+  EnableGPU := True;
+  {$ENDIF}
+
+  AllowGPU := EnableGPU;
 
   {$IF DEFINED(MACOS)}
   RealHome := IncludeTrailingPathDelimiter(System.IOUtils.TPath.GetLibraryPath) + appname;

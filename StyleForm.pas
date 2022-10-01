@@ -165,6 +165,7 @@ begin
   cbxColourMode.ItemIndex := 0;
 
   chkEnableGPU.IsChecked := EnableGPU;
+  chkEnableGPU.Enabled := AllowGPU;
 
   SetLength(StyleSelectors, 0);
   SetLength(Layers, 0);
