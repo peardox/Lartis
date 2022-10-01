@@ -98,10 +98,7 @@ implementation
 uses
   Settings,
   Math,
-  StyleForm,
   System.IOUtils,
-  FMX.Dialogs, // REMOVE_ME
-  DebugForm, // REMOVE_ME
   PythonSystem;
 
 constructor TStyleSelector.Create(AOwner: TComponent);
@@ -157,25 +154,6 @@ end;
 
 procedure TStyleSelector.DoResize(Sender: TObject);
 begin
-  if Assigned(Self.lblScale) then
-    begin
-      frmStyle.lblInfo.Text := 'Info - '
-        + FloatToStr(layInfo.Width)
-        + ' : '
-        + FloatToStr(layInfo.Position.X)
-        + ', ' + FloatToStr(lblName.Width)
-        + ' : '
-        + FloatToStr(lblName.Position.X)
-        + ', ' + FloatToStr(lblScale.Width)
-        + ' : '
-        + FloatToStr(lblScale.Position.X)
-      ;
-
-//      lblName.Width := floor((layInfo.Width * 8) / 10);
-//      lblScale.Position.X := lblName.Width;
-//      lblScale.Width := floor((layInfo.Width * 2) / 10);
-//      lblScale.Height := 30;
-    end;
 end;
 
 procedure TStyleSelector.ChangeScale(Sender: TObject);
@@ -315,7 +293,7 @@ begin
     Result := DecodeJsonStyle(JsonText);
     Result.fpath := TPath.GetDirectoryName(AJsonFile);
   except
-    ShowMessage('Can''t read model info ''' + AJsonFile + '''');
+    raise Exception.Create('Can''t read model info ''' + AJsonFile + '''');
   end;
 end;
 

@@ -17,7 +17,9 @@ uses
   {$IF NOT DEFINED(CPUARM)}
   PSUtil,
   {$ENDIF}
+  {$IFNDEF LINUX64}
   DW.OSDevice,
+  {$ENDIF}
   FMX.Menus, FMX.Layouts, FMX.Styles,
   EmbeddedForm, PythonEngine;
 
@@ -169,17 +171,23 @@ end;
 
 procedure TfrmMain.BugMenuClick(Sender: TObject);
 begin
+{$IFNDEF LINUX64}
   TOSDevice.OpenURL('https://github.com/peardox/Lartis/issues');
+{$ENDIF}
 end;
 
 procedure TfrmMain.PatreonMenuClick(Sender: TObject);
 begin
+{$IFNDEF LINUX64}
   TOSDevice.OpenURL('https://www.patreon.com/Peardox');
+{$ENDIF}
 end;
 
 procedure TfrmMain.DiscordMenuClick(Sender: TObject);
 begin
+{$IFNDEF LINUX64}
   TOSDevice.OpenURL('https://discord.gg/e2rGEEHrBd');
+{$ENDIF}
 end;
 
 procedure TfrmMain.ChildCloser(Sender: TObject);

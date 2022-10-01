@@ -134,12 +134,11 @@ object frmStyle: TfrmStyle
           OnChange = cbxColourModeChange
         end
         object expTransparency: TExpander
-          IsExpanded = False
           Position.X = 8.000000000000000000
           Position.Y = 88.000000000000000000
           ShowCheck = False
           Size.Width = 145.000000000000000000
-          Size.Height = 25.000000000000000000
+          Size.Height = 129.000000000000000000
           Size.PlatformDefault = False
           Text = 'Transparency'
           TabOrder = 7
@@ -253,15 +252,15 @@ object frmStyle: TfrmStyle
         Size.Width = 160.000000000000000000
         Size.Height = 573.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 1
+        TabOrder = 0
         object vsbStyles: TFramedVertScrollBox
           Align = Client
           Size.Width = 160.000000000000000000
-          Size.Height = 551.000000000000000000
+          Size.Height = 526.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 1
+          TabOrder = 2
           Viewport.Width = 156.000000000000000000
-          Viewport.Height = 547.000000000000000000
+          Viewport.Height = 522.000000000000000000
         end
         object btnAbort: TButton
           Align = Bottom
@@ -269,9 +268,46 @@ object frmStyle: TfrmStyle
           Size.Width = 160.000000000000000000
           Size.Height = 22.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 0
+          TabOrder = 1
           Text = 'Abort Style'
           OnClick = btnAbortClick
+        end
+        object Layout3: TLayout
+          Align = Top
+          Size.Width = 160.000000000000000000
+          Size.Height = 25.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object swStyleMerge: TSwitch
+            Align = Left
+            IsChecked = False
+            Size.Width = 41.000000000000000000
+            Size.Height = 25.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Visible = False
+            OnClick = swStyleMergeClick
+          end
+          object lblStyleMerge: TLabel
+            Align = Right
+            Position.X = 40.000000000000000000
+            Size.Width = 120.000000000000000000
+            Size.Height = 25.000000000000000000
+            Size.PlatformDefault = False
+            Text = 'lblStyleMerge'
+            Visible = False
+            TabOrder = 1
+            TabStop = False
+          end
+          object btnMergeDown: TButton
+            Align = Client
+            Size.Width = 160.000000000000000000
+            Size.Height = 25.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 11
+            Text = 'Merge Layers Down'
+            OnClick = btnMergeDownClick
+          end
         end
       end
       object StyleLayout: TLayout
@@ -279,7 +315,7 @@ object frmStyle: TfrmStyle
         Size.Width = 753.000000000000000000
         Size.Height = 573.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 4
+        TabOrder = 3
         OnResize = StyleLayoutResize
       end
       object Splitter1: TSplitter

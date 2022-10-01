@@ -48,7 +48,9 @@ implementation
 
 uses
   Math,
+{$IFNDEF LINUX64}
   DW.OSDevice,
+{$ENDIF}
   System.IOUtils;
 
 procedure TZipExtractForm.ShowZipProgress(Sender: TObject; AFilename: String; AHeader: TZipHeader; APosition: Int64);
@@ -217,7 +219,9 @@ end;
 
 procedure TZipExtractForm.Label2Click(Sender: TObject);
 begin
+{$IFNDEF LINUX64}
   TOSDevice.OpenURL('https://peardox.itch.io/rehash-packs-for-lartis');
+{$ENDIF}
 end;
 
 procedure TZipExtractForm.FormActivate(Sender: TObject);

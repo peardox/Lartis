@@ -47,6 +47,10 @@ type
     Splitter1: TSplitter;
     Splitter2: TSplitter;
     btnAbort: TButton;
+    Layout3: TLayout;
+    swStyleMerge: TSwitch;
+    lblStyleMerge: TLabel;
+    btnMergeDown: TButton;
     procedure btnBackClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure StyleLayoutResize(Sender: TObject);
@@ -66,9 +70,12 @@ type
     procedure SetSaveDialogExtension(Sender: TObject);
     procedure btnAbortClick(Sender: TObject);
     procedure imgStyleThumb1zzzClick(Sender: TObject);
+    procedure swStyleMergeClick(Sender: TObject);
+    procedure btnMergeDownClick(Sender: TObject);
   private
     { Private declarations }
     FSaveInNextPaint: Boolean;
+    FMergeInNextPaint: Boolean;
     Grid: TGridShader;
     ActiveLayer: TBaseShader;
     Container: TAspectLayout;
@@ -77,7 +84,9 @@ type
     FrameCount: Integer;
     LastPath: String;
     LastModel: String;
-    function  AddNewLayer: TBaseShader;
+    function  AddNewLayer: TBaseShader; overload;
+    function  AddNewLayer(AStream: TStream): TBaseShader; overload;
+    function  AddNewLayer(const AFile: String): TBaseShader; overload;
     procedure ProjectInitialise;
     procedure ShowStyleProgress(Sender: TObject; const AValue: Single);
     procedure ShowStyledImage(Sender: TObject; const AFileName: String; const ATime: Single);
@@ -85,9 +94,13 @@ type
     procedure HandleStyleAbort(Sender: TObject);
     procedure DoSaveLayers;
     procedure Stylize(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False);
+    procedure BeforeStylize(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False);
+    procedure AfterStylize(Sender: TObject);
     procedure ClearLayers;
     procedure ResetLayerOptions;
     procedure UpdateLayerOptions;
+    procedure DoMergeLayers;
+    function RenderLayers: ISkSurface;
   public
     { Public declarations }
     procedure SaveStyleImage;
@@ -116,6 +129,9 @@ uses
 
 procedure TfrmStyle.FormCreate(Sender: TObject);
 begin
+  lblStyleMerge.Text := ' Apply To Original';
+  expTransparency.IsExpanded := False;
+
   {$IFDEF NOLAYERS}
   btnAddLayer.Visible := False;
   btnAddLayer.Height := 0;
@@ -132,11 +148,13 @@ begin
   LastPath := String.Empty;
   LastModel := String.Empty;
 
-  OpenImageDialog.Filter:='Images (*.png; *jpg)|*.png; *jpg';
-//  OpenImageDialog.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
+{$IFNDEF MACOS}
+//  OpenImageDialog.Filter:='Images (*.png; *jpg)|*.png; *jpg';
+  OpenImageDialog.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
   SaveImageDialog.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
   SaveImageDialog.DefaultExt := '.png';
   SaveImageDialog.OnTypeChange := SetSaveDialogExtension;
+{$ENDIF}
 
   lblInfo.Text := '';
   FrameCount := 0;
@@ -355,7 +373,7 @@ begin
     begin
       StyleSelectors[I] := TStyleSelector.Create(vsbStyles);
       StyleSelectors[I].Style := StyleModels.Collection[I];
-      StyleSelectors[I].RunStyle := Stylize;
+      StyleSelectors[I].RunStyle := BeforeStylize;
       vsbStyles.AddObject(StyleSelectors[I]);
     end;
 end;
@@ -421,7 +439,8 @@ begin
     begin
       if NewLayer is TProgressShader then
         begin
-          imgStyleThumb1zzz.Bitmap.LoadFromFile(TProgressShader(NewLayer).ImageFile)
+//          imgStyleThumb1zzz.Bitmap.LoadFromFile(TProgressShader(NewLayer).ImageFile)
+          imgStyleThumb1zzz.Bitmap.Assign(TProgressShader(NewLayer).Bitmap);
         end;
 
       SetLength(Layers, Length(Layers) + 1);
@@ -497,6 +516,48 @@ begin
     Result := NewLayer;
 end;
 
+function  TfrmStyle.AddNewLayer(const AFile: String): TBaseShader;
+var
+  NewLayer: TBaseShader;
+begin
+  NewLayer := Nil;
+
+  NewLayer := TProgressShader.Create(Container);
+
+  with NewLayer as TProgressShader do
+    begin
+      AddImage(AFile);
+      trkStyleWeight.Value := trkStyleWeight.Max;
+      trkStyleWeight.Enabled := False;
+      if Assigned(TProgressShader(NewLayer).Bitmap) then
+        TProgressShader(NewLayer).AlphaMap;
+    end;
+
+    Result := NewLayer;
+end;
+
+function TfrmStyle.AddNewLayer(AStream: TStream): TBaseShader;
+var
+  NewLayer: TBaseShader;
+begin
+  NewLayer := Nil;
+
+  if Assigned(PySys) then
+    begin
+      NewLayer := TProgressShader.Create(Container);
+
+      with NewLayer as TProgressShader do
+        begin
+          AddImage(AStream);
+          trkStyleWeight.Value := trkStyleWeight.Max;
+          trkStyleWeight.Enabled := False;
+          if Assigned(TProgressShader(NewLayer).Bitmap) then
+            TProgressShader(NewLayer).AlphaMap;
+        end;
+    end;
+    Result := NewLayer;
+end;
+
 procedure TfrmStyle.ShowStyledImage(Sender: TObject; const AFileName: String; const ATime: Single);
 var
   CurrentImage: String;
@@ -538,10 +599,30 @@ begin
                   UpdateLayerOptions;
                 end;
                 FreeAndNil(CurrentBitMap);
+              AfterStylize(Self);
             end;
         end;
     end;
 
+end;
+
+procedure TfrmStyle.btnMergeDownClick(Sender: TObject);
+begin
+  if Assigned(ActiveLayer) and (ActiveLayer is TLayerShader) then
+    begin
+      FMergeInNextPaint := True;
+    end;
+end;
+
+
+procedure TfrmStyle.AfterStylize(Sender: TObject);
+begin
+//
+end;
+
+procedure TfrmStyle.BeforeStylize(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False);
+begin
+  Stylize(Sender, APath, AModel);
 end;
 
 procedure TfrmStyle.Stylize(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False);
@@ -590,6 +671,14 @@ begin
               end;
           end;
     end;
+end;
+
+procedure TfrmStyle.swStyleMergeClick(Sender: TObject);
+begin
+  if swStyleMerge.IsChecked then
+    lblStyleMerge.Text := ' Apply To Displayed'
+  else
+    lblStyleMerge.Text := ' Apply To Original';
 end;
 
 procedure TfrmStyle.chkEnableGPUChange(Sender: TObject);
@@ -667,19 +756,86 @@ begin
 //  UpdateDebugInfo;
   if FSaveInNextPaint then
     DoSaveLayers;
+  if FMergeInNextPaint then
+    DoMergeLayers;
 end;
+
+procedure TfrmStyle.DoMergeLayers;
+var
+  AFile: String;
+  NewLayer: TBaseShader;
+  LSurface: ISkSurface;
+  sw: TStopWatch;
+begin
+  AFile := IncludeTrailingPathDelimiter(AppHome) + 'temp' + PathDelim + 'styled.png';
+  FMergeInNextPaint := False;
+  sw := TStopWatch.StartNew;
+  try
+    LSurface := RenderLayers;
+    LSurface.MakeImageSnapshot.EncodeToFile(AFile);
+// Copy of AddStyleLayer
+    {$IFDEF NOLAYERS}
+    ClearLayers;
+    {$ENDIF}
+    if Length(Layers) = 0 then
+      begin
+        Container := TAspectLayout.Create(StyleLayout);
+        Container.OnPaint := FormPaint;
+        Grid := TGridShader.Create(Container);
+      end;
+
+    // Add a new image as a TProgressShader
+    NewLayer := AddNewLayer(AFile);
+    if Assigned(NewLayer) then
+      begin
+        if NewLayer is TProgressShader then
+          begin
+            imgStyleThumb1zzz.Bitmap.Assign(TProgressShader(NewLayer).Bitmap);
+          end;
+
+        SetLength(Layers, Length(Layers) + 1);
+        Layers[Length(Layers) - 1] := NewLayer;
+        ActiveLayer := Layers[Length(Layers) - 1];
+        ResetLayerOptions;
+      end;
+
+// End of copy of AddStyleLayer
+
+//    lblInfo.Text := 'Layers Merged - took ' +
+//      FormatFloat('0.000s', (sw.ElapsedMilliseconds) / 1000) + ' to stream';
+  except
+    on E: Exception do
+      begin
+        ShowMessage('Unhandled Exception in DoMergeLayers' + sLineBreak
+          + 'Class : ' + E.ClassName + sLineBreak
+          + 'Error : ' + E.Message);
+      end;
+  end;
+end;
+
 
 procedure TfrmStyle.DoSaveLayers;
 var
-  AWidth, AHeight: Integer;
   LSurface: ISkSurface;
-  IDX: Integer;
   sw: TStopWatch;
-  rend: Single;
 begin
   FSaveInNextPaint := False;
   sw := TStopWatch.StartNew;
 
+  LSurface := RenderLayers;
+  LSurface.MakeImageSnapshot.EncodeToFile(SaveImageDialog.FileName);
+  lblInfo.Text := 'Saving ' +
+    ExtractFileName(SaveImageDialog.FileName) + ' took ' +
+    FormatFloat('0.000s', (sw.ElapsedMilliseconds) / 1000) + ' to write';
+end;
+
+function TfrmStyle.RenderLayers: ISkSurface;
+var
+  AWidth, AHeight: Integer;
+  LSurface: ISkSurface;
+  IDX: Integer;
+  rend: Single;
+begin
   AWidth := Container.ChildMaxImWidth;
   AHeight := Container.ChildMaxImHeight;
 
@@ -706,13 +862,7 @@ begin
         end;
     end;
 
-  rend := sw.ElapsedMilliseconds;
-
-  LSurface.MakeImageSnapshot.EncodeToFile(SaveImageDialog.FileName);
-  lblInfo.Text := 'Saving ' +
-    ExtractFileName(SaveImageDialog.FileName) + ' took ' +
-    FormatFloat('0.000s', rend / 1000) + ' to compose and ' +
-    FormatFloat('0.000s', (sw.ElapsedMilliseconds - rend) / 1000) + ' to write';
+  Result := LSurface;
 end;
 
 end.

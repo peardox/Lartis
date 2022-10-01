@@ -129,7 +129,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure AddShader;
-    function AddImage(const AImageFile: String): Boolean;
+    function AddImage(const AImageFile: String): Boolean; overload;
+    function AddImage(const AStream: TStream): Boolean; overload;
     function AddBitmap(const AImageBitmap: TBitmap; const CopySrc: Boolean = False): Boolean;
   published
     property OnDraw;
@@ -589,6 +590,19 @@ begin
     end
   else
     FImageFile := String.Empty;
+end;
+
+function TProgressShader.AddImage(const AStream: TStream): Boolean;
+begin
+  Result := False;
+  try
+    FImageFile := 'Streamed';
+    bmImage := TBitmap.Create;
+    bmImage.LoadFromStream(AStream);
+    Result := AddBitmap(bmImage);
+  except
+    raise Exception.Create('Can''t load image from stream');
+  end;
 end;
 
 function TProgressShader.AddBitmap(const AImageBitmap: TBitmap; const CopySrc: Boolean = False): Boolean;

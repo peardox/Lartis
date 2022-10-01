@@ -15,6 +15,8 @@ type
     Label1: TLabel;
     Button2: TButton;
     OpenTrainingImageDialog: TOpenDialog;
+    RadioButton1: TRadioButton;
+    Switch1: TSwitch;
     procedure Button1Click(Sender: TObject);
     procedure TrackToScale;
     procedure TrackBar1Change(Sender: TObject);

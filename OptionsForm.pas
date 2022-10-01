@@ -44,10 +44,12 @@ implementation
 {$R *.fmx}
 
 uses
+  DW.OSDevice,
   Settings;
 
 procedure TfrmOptions.btnHomeOpenClick(Sender: TObject);
 begin
+//  TOSDevice.ShowFilesInFolder([ExcludeTrailingPathDelimiter(AppHome)]);
 {$IFDEF MSWINDOWS}
   ShellExecute(0, 'open', 'explorer.exe', PChar('"' + ExcludeTrailingPathDelimiter(AppHome) + '"'), nil, 1);
   ModalResult := mrOK;

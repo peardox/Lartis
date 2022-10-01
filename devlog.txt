@@ -1,3 +1,8 @@
+v1.0.3 - 2022-09-30
+	Multi-select import (#1)
+	Add Discord, Bug, Patreon + Itch Links
+	Add Merge Down button - tried several approaches, this is OK for now
+	
 v1.0.2 - 2022-09-29
 	Fix main for resizing issue (#4)
 	Adjust layout of Style Picker so it looks "better"
