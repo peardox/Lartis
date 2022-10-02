@@ -7,8 +7,6 @@ uses
   Shaders;
 
 type
-  TLayerArray = Array of TBaseShader;
-
   TStyleProject = class(TComponent)
   private
     FLayers: TLayerArray;

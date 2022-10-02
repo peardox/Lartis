@@ -35,6 +35,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
+  TLayerArray = Array of TBaseShader;
 
   TGridShader = class(TBaseShader)
   private
