@@ -103,6 +103,7 @@ type
     procedure DoMergeLayers;
     function RenderLayers: ISkSurface;
     property DeferedStyle: TDeferedStyleEvent read FDeferedStyleEvent write FDeferedStyleEvent;
+    procedure ClearContainer;
   public
     { Public declarations }
     procedure SaveStyleImage;
@@ -133,7 +134,7 @@ begin
   lblStyleMerge.Text := ' Apply To Original';
   expTransparency.IsExpanded := False;
 
-  {$IFDEF NOLAYERS}
+  {$IFNDEF USELAYERS}
   btnAddLayer.Visible := False;
   btnAddLayer.Height := 0;
   btnSave.Visible := False;
@@ -150,8 +151,8 @@ begin
   LastModel := String.Empty;
 
 {$IFNDEF MACOS}
-//  OpenImageDialog.Filter:='Images (*.png; *jpg)|*.png; *jpg';
-  OpenImageDialog.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
+  OpenImageDialog.Filter:='Images (*.png; *jpg)|*.png; *jpg|PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
+//  OpenImageDialog.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
   SaveImageDialog.Filter:='PNG Images (*.png)|*.png|JPG Images (*.jpg)|*.jpg';
   SaveImageDialog.DefaultExt := '.png';
   SaveImageDialog.OnTypeChange := SetSaveDialogExtension;
@@ -422,15 +423,26 @@ begin
 
 end;
 
+procedure TfrmStyle.ClearContainer;
+begin
+//  if Assigned(Grid) then
+//    FreeAndNil(Grid);
+  if Assigned(Container) then
+    begin
+      Container.OnPaint := Nil;
+      FreeAndNil(Container);
+    end;
+  Container := TAspectLayout.Create(StyleLayout);
+  Container.OnPaint := FormPaint;
+  Grid := TGridShader.Create(Container);
+end;
+
 procedure TfrmStyle.AddStyleLayer;
 var
   NewLayer: TBaseShader;
 begin
-  Container := TAspectLayout.Create(StyleLayout);
-  Container.OnPaint := FormPaint;
-  Grid := TGridShader.Create(Container);
-
   // Add a new image as a TProgressShader
+  ClearContainer;
   NewLayer := AddNewLayer;
   if Assigned(NewLayer) then
     begin
@@ -438,7 +450,8 @@ begin
         begin
           imgStyleThumb1zzz.Bitmap.Assign(TProgressShader(NewLayer).Bitmap);
         end;
-
+ //     if Assigned(ActiveLayer) then
+ //       FreeAndNil(ActiveLayer);
       ActiveLayer := NewLayer;
     end;
 end;
@@ -758,14 +771,13 @@ begin
     LSurface.MakeImageSnapshot.EncodeToFile(AFile);
 // Copy of AddStyleLayer
 
-    Container := TAspectLayout.Create(StyleLayout);
-    Container.OnPaint := FormPaint;
-    Grid := TGridShader.Create(Container);
-
     // Add a new image as a TProgressShader
+    ClearContainer;
     NewLayer := AddNewLayer(AFile);
     if Assigned(NewLayer) then
       begin
+ //       if Assigned(ActiveLayer) then
+ //         FreeAndNil(ActiveLayer);
         ActiveLayer := NewLayer;
       end;
 
