@@ -91,6 +91,16 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
+        <DeployFile Include="$(SKIADIR)\Binary\OSX64\Release\sk4d.dylib" Condition="'$(Config)'=='Release'">
+            <RemoteDir>Lartis.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>sk4d.dylib</RemoteName>
+            <DeployClass>Skia</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+            <Required>True</Required>
+        </DeployFile>
         <DeployFile Include="$(SKIADIR)\Binary\OSX64\Release\sk4d.dylib" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis.app\Contents\MacOS\</RemoteDir>
             <RemoteName>sk4d.dylib</RemoteName>
@@ -101,11 +111,11 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(SKIADIR)\Binary\OSX64\Release\sk4d.dylib" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-macos-3.9.12-x86_64.zip" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis.app\Contents\MacOS\</RemoteDir>
-            <RemoteName>sk4d.dylib</RemoteName>
-            <DeployClass>Skia</DeployClass>
-            <Operation>1</Operation>
+            <RemoteName>python3-macos-3.9.12-x86_64.zip</RemoteName>
+            <DeployClass>Python</DeployClass>
+            <Operation>0</Operation>
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
@@ -120,11 +130,11 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="images\free\evolve.png" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis.app\Contents\Resources\images\free\</RemoteDir>
-            <RemoteName>evolve.png</RemoteName>
-            <DeployClass>File</DeployClass>
-            <Operation>0</Operation>
+        <DeployFile Include="OSX64\Debug\Lartis.dSYM" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>Lartis.app\..\$(PROJECTNAME).app.dSYM\Contents\Resources\DWARF\</RemoteDir>
+            <RemoteName>Lartis</RemoteName>
+            <DeployClass>ProjectOSXDebug</DeployClass>
+            <Operation>1</Operation>
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
@@ -138,29 +148,11 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="images\free\train.png" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis.app\Contents\Resources\images\free\</RemoteDir>
-            <RemoteName>train.png</RemoteName>
-            <DeployClass>File</DeployClass>
-            <Operation>0</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
         <DeployFile Include="OSX64\Debug\Lartis.entitlements" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis.app\..\</RemoteDir>
             <RemoteName>Lartis.entitlements</RemoteName>
             <DeployClass>ProjectOSXEntitlements</DeployClass>
             <Operation>1</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
-        <DeployFile Include="images\free\style.png" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis.app\Contents\Resources\images\free\</RemoteDir>
-            <RemoteName>style.png</RemoteName>
-            <DeployClass>File</DeployClass>
-            <Operation>0</Operation>
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
@@ -176,15 +168,6 @@
         </DeployFile>
         <DeployFile Include="images\licensed\movie.png" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis.app\Contents\Resources\images/licensed\</RemoteDir>
-            <RemoteName>movie.png</RemoteName>
-            <DeployClass>File</DeployClass>
-            <Operation>0</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
-        <DeployFile Include="images\free\movie.png" Condition="'$(Config)'=='Release'">
-            <RemoteDir>Lartis.app\Contents\Resources\images\free\</RemoteDir>
             <RemoteName>movie.png</RemoteName>
             <DeployClass>File</DeployClass>
             <Operation>0</Operation>
@@ -1217,7 +1200,7 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-linux-3.9.12-x86_64.zip" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-linux-3.9.12-x86_64.zip" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\</RemoteDir>
             <RemoteName>python3-linux-3.9.12-x86_64.zip</RemoteName>
             <DeployClass>Python</DeployClass>
@@ -1227,7 +1210,7 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(SKIADIR)\Binary\Linux64\Release\libsk4d.so" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="$(SKIADIR)\Binary\Linux64\Release\libsk4d.so" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\</RemoteDir>
             <RemoteName>libsk4d.so</RemoteName>
             <DeployClass>Skia</DeployClass>
@@ -1237,7 +1220,7 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(SKIADIR)\Binary\Linux64\Release\libsk4d.so" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="$(SKIADIR)\Binary\Linux64\Release\libsk4d.so" Condition="'$(Config)'=='Debug'">
             <RemoteDir>Lartis\</RemoteDir>
             <RemoteName>libsk4d.so</RemoteName>
             <DeployClass>Skia</DeployClass>
@@ -1294,7 +1277,7 @@
             <Overwrite>True</Overwrite>
             <Required>True</Required>
         </DeployFile>
-        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-linux-3.9.12-x86_64.zip" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="$(PYTHONENVIRONMENTDIR)\python\python3-linux-3.9.12-x86_64.zip" Condition="'$(Config)'=='Release'">
             <RemoteDir>Lartis\</RemoteDir>
             <RemoteName>python3-linux-3.9.12-x86_64.zip</RemoteName>
             <DeployClass>Python</DeployClass>
