@@ -44,7 +44,9 @@ implementation
 {$R *.fmx}
 
 uses
+  {$IFNDEF LINUX}
   DW.OSDevice,
+  {$ENDIF}
   Settings;
 
 procedure TfrmOptions.btnHomeOpenClick(Sender: TObject);
