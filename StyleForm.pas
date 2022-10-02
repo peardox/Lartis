@@ -2,8 +2,6 @@ unit StyleForm;
 
 interface
 
-{$DEFINE NOLAYERS}
-
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
@@ -65,7 +63,6 @@ type
     procedure layStyleControlResize(Sender: TObject);
     procedure TopPanelResize(Sender: TObject);
     procedure chkEnableGPUChange(Sender: TObject);
-    procedure btnClearLayersClick(Sender: TObject);
     procedure FormPaint(Sender: TObject; Canvas: TCanvas; const ARect: TRectF);
     procedure btnSaveClick(Sender: TObject);
     procedure btnAddLayerClick(Sender: TObject);
@@ -84,9 +81,6 @@ type
     Grid: TGridShader;
     ActiveLayer: TBaseShader;
     Container: TAspectLayout;
-    {$IFDEF NOLAYERS}
-    Layers: TLayerArray;
-    {$ENDIF}
     StyleSelectors: TStyleSelectorArray;
     FrameCount: Integer;
     LastPath: String;
@@ -104,9 +98,6 @@ type
     procedure BeforeStylize(Sender: TObject; const APath: String; const AModel: String);
     procedure DeferedStylize(Sender: TObject; const APath: String; const AModel: String);
     procedure AfterStylize(Sender: TObject);
-    {$IFNDEF NOLAYERS}
-    procedure ClearLayers;
-    {$ENDIF}
     procedure ResetLayerOptions;
     procedure UpdateLayerOptions;
     procedure DoMergeLayers;
@@ -117,7 +108,6 @@ type
     procedure SaveStyleImage;
     procedure AddStyleLayer;
     procedure MakeStyleSelectors;
-    procedure UpdateDebugInfo;
   end;
 
 var
@@ -179,9 +169,6 @@ begin
   chkEnableGPU.Enabled := AllowGPU;
 
   SetLength(StyleSelectors, 0);
-  {$IFNDEF NOLAYERS}
-  SetLength(Layers, 0);
-  {$ENDIF}
 
   ProjectInitialise;
   MakeStyleSelectors;
@@ -439,19 +426,9 @@ procedure TfrmStyle.AddStyleLayer;
 var
   NewLayer: TBaseShader;
 begin
-  {$IFDEF NOLAYERS}
   Container := TAspectLayout.Create(StyleLayout);
   Container.OnPaint := FormPaint;
   Grid := TGridShader.Create(Container);
-  {$ELSE}
-  ClearLayers;
-  if Length(Layers) = 0 then
-    begin
-      Container := TAspectLayout.Create(StyleLayout);
-      Container.OnPaint := FormPaint;
-      Grid := TGridShader.Create(Container);
-    end;
-  {$ENDIF}
 
   // Add a new image as a TProgressShader
   NewLayer := AddNewLayer;
@@ -462,54 +439,9 @@ begin
           imgStyleThumb1zzz.Bitmap.Assign(TProgressShader(NewLayer).Bitmap);
         end;
 
-  {$IFDEF NOLAYERS}
-      SetLength(Layers, Length(Layers) + 1);
-      Layers[Length(Layers) - 1] := NewLayer;
-      ActiveLayer := Layers[Length(Layers) - 1];
-  {$ELSE}
       ActiveLayer := NewLayer;
-  {$ENDIF}
     end;
 end;
-
-procedure TfrmStyle.btnClearLayersClick(Sender: TObject);
-begin
-end;
-
-{$IFNDEF NOLAYERS}
-procedure TfrmStyle.ClearLayers;
-var
-  I: Integer;
-begin
-  for I := Length(Layers) - 1 downto 0 do
-    begin
-      if Assigned(Layers[I]) then
-        begin
-          if Layers[I] is TLayerShader then
-            FreeAndNil(TLayerShader(Layers[I]))
-          else if Layers[I] is TProgressShader then
-            FreeAndNil(TProgressShader(Layers[I]))
-          else
-            begin
-            //  ShowMessage('Releasing Unknown Layer! Class = ' + Layers[I].ClassName);
-              Layers[I] := Nil;
-            end;
-        end;
-//      else
-//        ShowMessage('Unassigned Layer in Layer List!');
-    end;
-
-  SetLength(Layers, 0);
-  ActiveLayer := Nil;
-  if Assigned(Grid) then
-    FreeAndNil(Grid);
-  if Assigned(Container) then
-    begin
-      Container.OnPaint := Nil;
-      FreeAndNil(Container);
-    end;
-end;
-{$ENDIF}
 
 function TfrmStyle.AddNewLayer: TBaseShader;
 var
@@ -802,30 +734,9 @@ begin
     end;
 end;
 
-procedure TfrmStyle.UpdateDebugInfo;
-var
-  txt: String;
-  LLCount: Integer;
-begin
-  if Assigned(Container) then
-    begin
-      LLCount := 0;
-      Inc(FrameCount);
-      txt := '';
-      if Assigned(Layers) then
-        LLCount := Length(Layers);
-      txt := 'Layers = ' + IntToStr(LLCount)
-        + ', Frames = ' + IntToStr(FrameCount)
-        ;
-
-      lblInfo.Text := txt;
-    end;
-end;
-
 procedure TfrmStyle.FormPaint(Sender: TObject; Canvas: TCanvas;
   const ARect: TRectF);
 begin
-//  UpdateDebugInfo;
   if FSaveInNextPaint then
     DoSaveLayers;
   if FMergeInNextPaint then
@@ -846,27 +757,16 @@ begin
     LSurface := RenderLayers;
     LSurface.MakeImageSnapshot.EncodeToFile(AFile);
 // Copy of AddStyleLayer
-    {$IFNDEF NOLAYERS}
-    ClearLayers;
-    {$ENDIF}
-    if Length(Layers) = 0 then
-      begin
-        Container := TAspectLayout.Create(StyleLayout);
-        Container.OnPaint := FormPaint;
-        Grid := TGridShader.Create(Container);
-      end;
+
+    Container := TAspectLayout.Create(StyleLayout);
+    Container.OnPaint := FormPaint;
+    Grid := TGridShader.Create(Container);
 
     // Add a new image as a TProgressShader
     NewLayer := AddNewLayer(AFile);
     if Assigned(NewLayer) then
       begin
-        {$IFNDEF NOLAYERS}
-        SetLength(Layers, Length(Layers) + 1);
-        Layers[Length(Layers) - 1] := NewLayer;
-        ActiveLayer := Layers[Length(Layers) - 1];
-        {$ELSE}
         ActiveLayer := NewLayer;
-        {$ENDIF}
       end;
 
 // End of copy of AddStyleLayer

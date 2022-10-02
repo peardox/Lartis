@@ -88,8 +88,8 @@ object frmStyle: TfrmStyle
         Size.Height = 173.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
-        Viewport.Width = 156.000000000000000000
-        Viewport.Height = 169.000000000000000000
+        Viewport.Width = 160.000000000000000000
+        Viewport.Height = 173.000000000000000000
         object layStyleThumb1: TLayout
           Align = Top
           Size.Width = 156.000000000000000000
@@ -218,7 +218,6 @@ object frmStyle: TfrmStyle
           Position.Y = 272.000000000000000000
           TabOrder = 9
           Text = 'Clear Layers'
-          OnClick = btnClearLayersClick
         end
         object trkStyleWeight: TTrackBar
           CanParentFocus = True
@@ -259,8 +258,8 @@ object frmStyle: TfrmStyle
           Size.Height = 526.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 2
-          Viewport.Width = 156.000000000000000000
-          Viewport.Height = 522.000000000000000000
+          Viewport.Width = 160.000000000000000000
+          Viewport.Height = 526.000000000000000000
         end
         object btnAbort: TButton
           Align = Bottom
