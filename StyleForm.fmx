@@ -285,7 +285,6 @@ object frmStyle: TfrmStyle
             Size.Height = 25.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 0
-            Visible = False
             OnClick = swStyleMergeClick
           end
           object lblStyleMerge: TLabel
@@ -295,17 +294,18 @@ object frmStyle: TfrmStyle
             Size.Height = 25.000000000000000000
             Size.PlatformDefault = False
             Text = 'lblStyleMerge'
-            Visible = False
             TabOrder = 1
             TabStop = False
           end
           object btnMergeDown: TButton
             Align = Client
-            Size.Width = 160.000000000000000000
+            Enabled = False
+            Size.Width = 0.000000000000000000
             Size.Height = 25.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 11
             Text = 'Merge Layers Down'
+            Visible = False
             OnClick = btnMergeDownClick
           end
         end

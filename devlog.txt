@@ -1,3 +1,9 @@
+v1.0.4 - 2022-10-02
+	Properly fixed the Colour Mode selector
+	Properly fixed the Style Weight slider
+	Removed Merge Down (it was temporary)
+	Added Switch to replace Merge Down (it's far nicer)
+	
 v1.0.3 - 2022-09-30
 	Multi-select import (#1)
 	Add Discord, Bug, Patreon + Itch Links

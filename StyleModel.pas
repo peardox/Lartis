@@ -8,7 +8,7 @@ uses
   FMX.Layouts, FMX.Types, FMX.StdCtrls, FMX.Objects;
 
 type
-  TStyleProc = procedure(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False) of object;
+  TStyleProc = procedure(Sender: TObject; const APath: String; const AModel: String) of object;
 
   TModelImage = record
     iTitle: String;

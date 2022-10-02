@@ -12,6 +12,8 @@ uses
   Shaders, StyleProject, FMX.ListBox, Skia, Skia.FMX, Skia.FMX.Graphics, FMX.Ani;
 
 type
+  TDeferedStyleEvent = procedure(Sender: TObject; const APath: String; const AModel) of object;
+
   TfrmStyle = class(TEmbeddedForm)
     TopPanel: TPanel;
     OpenImageDialog: TOpenDialog;
@@ -74,8 +76,11 @@ type
     procedure btnMergeDownClick(Sender: TObject);
   private
     { Private declarations }
+    FDeferedStyleEvent: TDeferedStyleEvent;
     FSaveInNextPaint: Boolean;
     FMergeInNextPaint: Boolean;
+    FCurrentPath: String;
+    FCurrentModel: String;
     Grid: TGridShader;
     ActiveLayer: TBaseShader;
     Container: TAspectLayout;
@@ -94,13 +99,15 @@ type
     procedure HandleStyleAbort(Sender: TObject);
     procedure DoSaveLayers;
     procedure Stylize(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False);
-    procedure BeforeStylize(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False);
+    procedure BeforeStylize(Sender: TObject; const APath: String; const AModel: String);
+    procedure DeferedStylize(Sender: TObject; const APath: String; const AModel: String);
     procedure AfterStylize(Sender: TObject);
     procedure ClearLayers;
     procedure ResetLayerOptions;
     procedure UpdateLayerOptions;
     procedure DoMergeLayers;
     function RenderLayers: ISkSurface;
+    property DeferedStyle: TDeferedStyleEvent read FDeferedStyleEvent write FDeferedStyleEvent;
   public
     { Public declarations }
     procedure SaveStyleImage;
@@ -374,7 +381,7 @@ begin
     begin
       StyleSelectors[I] := TStyleSelector.Create(vsbStyles);
       StyleSelectors[I].Style := StyleModels.Collection[I];
-      StyleSelectors[I].RunStyle := BeforeStylize;
+      StyleSelectors[I].RunStyle := DeferedStylize;
       vsbStyles.AddObject(StyleSelectors[I]);
     end;
 end;
@@ -393,15 +400,17 @@ procedure TfrmStyle.ResetLayerOptions;
 begin
   chkEnableTransparency.IsChecked := False;
   chkInvertAlpha.IsChecked := False;
-//  cbxColourMode.ItemIndex := 0;
-
-// trkAlphaThresholdChange(Self);
-// trkStyleWeightChange(Self);
-//  chkEnableTransparencyChange(Self);
-//  chkInvertAlphaChange(Self);
-//  cbxColourModeChange(Self);
+  cbxColourMode.ItemIndex := 0;
+  trkStyleWeight.Value := trkStyleWeight.Max;
   if Assigned(ActiveLayer) and (ActiveLayer is TLayerShader) then
     begin
+      trkAlphaThresholdChange(Self);
+      trkStyleWeightChange(Self);
+//      chkEnableTransparencyChange(Self);
+//      chkInvertAlphaChange(Self);
+//      cbxColourModeChange(Self);
+//      cbxColourMode.Repaint;
+
       TLayerShader(ActiveLayer).ColorMode :=  cbxColourMode.ItemIndex;
       TLayerShader(ActiveLayer).PreserveTransparency :=  chkEnableTransparency.IsChecked;
       TLayerShader(ActiveLayer).InvertAlpha :=  chkInvertAlpha.IsChecked;
@@ -440,14 +449,12 @@ begin
     begin
       if NewLayer is TProgressShader then
         begin
-//          imgStyleThumb1zzz.Bitmap.LoadFromFile(TProgressShader(NewLayer).ImageFile)
           imgStyleThumb1zzz.Bitmap.Assign(TProgressShader(NewLayer).Bitmap);
         end;
 
       SetLength(Layers, Length(Layers) + 1);
       Layers[Length(Layers) - 1] := NewLayer;
       ActiveLayer := Layers[Length(Layers) - 1];
-      ResetLayerOptions;
     end;
 end;
 
@@ -612,16 +619,54 @@ begin
   if Assigned(ActiveLayer) and (ActiveLayer is TLayerShader) then
     begin
       FMergeInNextPaint := True;
+      Container.Repaint;
     end;
 end;
 
 
 procedure TfrmStyle.AfterStylize(Sender: TObject);
 begin
-//
+  // Clear temp vars
+  FCurrentPath := String.Empty;
+  FCurrentModel := String.Empty;
+  // Reset Options
+  ResetLayerOptions;
+  // Update Thumbnail
+  if ActiveLayer is TLayerShader then
+    begin
+      if swStyleMerge.IsChecked then
+        imgStyleThumb1zzz.Bitmap.Assign(TLayerShader(ActiveLayer).StyleBitmap)
+      else
+        imgStyleThumb1zzz.Bitmap.Assign(TLayerShader(ActiveLayer).OriginalBitmap);
+    end
+  else if ActiveLayer is TProgressShader then
+    // Shouldn't actually ever get here
+    imgStyleThumb1zzz.Bitmap.Assign(TProgressShader(ActiveLayer).Bitmap);
 end;
 
-procedure TfrmStyle.BeforeStylize(Sender: TObject; const APath: String; const AModel: String; const ByPassGPU: Boolean = False);
+procedure TfrmStyle.DeferedStylize(Sender: TObject; const APath: String; const AModel: String);
+begin
+  DeferedStyle := Nil;
+  if swStyleMerge.IsChecked then
+    begin
+      if Assigned(ActiveLayer) and (ActiveLayer is TLayerShader) then
+        begin
+          FMergeInNextPaint := True;
+          FCurrentPath := APath;
+          FCurrentModel := AModel;
+          Container.Repaint;
+//          BeforeStylize(Sender, APath, AModel);
+        end
+      else if Assigned(ActiveLayer) and (ActiveLayer is TProgressShader) then
+        begin
+          BeforeStylize(Sender, APath, AModel);
+        end;
+    end
+  else
+    BeforeStylize(Sender, APath, AModel);
+end;
+
+procedure TfrmStyle.BeforeStylize(Sender: TObject; const APath: String; const AModel: String);
 begin
   Stylize(Sender, APath, AModel);
 end;
@@ -676,10 +721,21 @@ end;
 
 procedure TfrmStyle.swStyleMergeClick(Sender: TObject);
 begin
+  if ActiveLayer is TProgressShader then
+    begin
+      imgStyleThumb1zzz.Bitmap.Assign(TProgressShader(ActiveLayer).Bitmap);
+    end
+  else if ActiveLayer is TLayerShader then
+    begin
+      if swStyleMerge.IsChecked then
+        imgStyleThumb1zzz.Bitmap.Assign(TLayerShader(ActiveLayer).StyleBitmap)
+      else
+        imgStyleThumb1zzz.Bitmap.Assign(TLayerShader(ActiveLayer).OriginalBitmap);
+    end;
   if swStyleMerge.IsChecked then
     lblStyleMerge.Text := ' Apply To Displayed'
   else
-    lblStyleMerge.Text := ' Apply To Original';
+    lblStyleMerge.Text := ' Apply To Last';
 end;
 
 procedure TfrmStyle.chkEnableGPUChange(Sender: TObject);
@@ -789,18 +845,21 @@ begin
     NewLayer := AddNewLayer(AFile);
     if Assigned(NewLayer) then
       begin
+{
         if NewLayer is TProgressShader then
           begin
             imgStyleThumb1zzz.Bitmap.Assign(TProgressShader(NewLayer).Bitmap);
           end;
-
+}
         SetLength(Layers, Length(Layers) + 1);
         Layers[Length(Layers) - 1] := NewLayer;
         ActiveLayer := Layers[Length(Layers) - 1];
-        ResetLayerOptions;
       end;
 
 // End of copy of AddStyleLayer
+
+    if (FCurrentPath <> String.Empty) and (FCurrentModel <> String.Empty) then
+      BeforeStylize(Self, FCurrentPath, FCurrentModel);
 
 //    lblInfo.Text := 'Layers Merged - took ' +
 //      FormatFloat('0.000s', (sw.ElapsedMilliseconds) / 1000) + ' to stream';
