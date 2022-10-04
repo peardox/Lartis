@@ -1,0 +1,60 @@
+uniform float3 	iResolution;      		// Viewport resolution (pixels)
+uniform float3 	sImageResolution;		// Styled resolution (pixels)
+uniform shader 	sImage;          		// An input image.
+uniform float2	fImOffset;				// Image Offset
+uniform float	fPercentDone;			// 0 .. 1 Percent Completion
+uniform float 	fImScale;				// Image Scale
+uniform float	iProgressMode;			// Progress Mode = 1 = clock, other = bar
+
+const float pi = 3.14159265359;
+
+float3 rgb2grey(float3 rgb){
+	float g = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) * 0.5;
+	return float3(1 * g, 1 * g, 1 * g);
+}
+
+float4 main( in float2 fragCoord ) {
+	float4 styled = float4(0, 0, 0, 0);
+	
+	float done = ((2 * fPercentDone) - 1) * pi;	// -pi to +pi
+
+	float2 center = sImageResolution.xy / 2;
+	float vscale = sImageResolution.y / iResolution.y;
+	float hscale = sImageResolution.x / iResolution.x;
+	float fit_scale = max(vscale, hscale);
+	if(fit_scale < 1) fit_scale = 1;
+	float2 scale_to_fit = float2(fit_scale, fit_scale);
+
+	float2 im1loc = (fragCoord * scale_to_fit * fImScale);
+	im1loc -= fImOffset;
+
+	if(any(greaterThan(im1loc, sImageResolution.xy))) {
+		return float4(0, 0, 0, 0);
+	}
+	if(any(lessThan(im1loc, float2(0, 0)))) {
+		return float4(0, 0, 0, 0);
+	}
+	
+	styled = sImage.eval(im1loc).rgba;
+	
+	if(iProgressMode == 0) {
+		float4 colour = styled;
+		
+		float dy = im1loc.y - center.y;
+		float dx = im1loc.x - center.x;
+		float angle = atan(-dx, dy);
+
+		if(angle > done) {
+			styled.rgb = rgb2grey(styled.rgb);
+		}	
+	} else {
+		float progress = im1loc.x / sImageResolution.x;
+
+		if(progress > fPercentDone) {
+			styled.rgb = rgb2grey(styled.rgb);
+		}	
+	}
+	
+	return( styled );
+}
+
