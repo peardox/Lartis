@@ -64,20 +64,18 @@ type
 
     procedure PackageBeforeInstall(Sender: TObject);
     procedure PackageAfterInstall(Sender: TObject);
-    procedure PackageInstallError(Sender: TObject; AErrorMessage: string);
+    procedure PackageInstallError(Sender: TObject; AException: Exception; var AAbort: Boolean);
     procedure PackageAfterImport(Sender: TObject);
     procedure PackageBeforeImport(Sender: TObject);
     procedure PackageBeforeUnInstall(Sender: TObject);
     procedure PackageAfterUnInstall(Sender: TObject);
-    procedure PackageUnInstallError(Sender: TObject; AErrorMessage: string);
+    procedure PackageUnInstallError(Sender: TObject; AException: Exception; var AAbort: Boolean);
     procedure AddExtraUrl(APackage: TPyManagedPackage; const AUrl: string);
     procedure PyEnvAfterDeactivate(Sender: TObject; const APythonVersion: string);
     procedure PyIOSendUniData(Sender: TObject; const Data: string);
 
-    procedure OnEnsurePipError(const ASender: TObject; const ADistribution: TPyDistribution; const AException: Exception);
-    procedure OnEnsurePipExecute(const ASender: TObject;
-      const ATrigger: TPyEnvironmentaddOnTrigger;
-      const ADistribution: TPyDistribution);
+    procedure OnEnsurePipError(const ASender: TObject; const AException: Exception; var AAbort: Boolean);
+    procedure OnEnsurePipExecute(const ASender: TObject);
 
     procedure SafeInstall(Sender: TObject; FTask: ITask = Nil);
     procedure SafeImport(Sender: TObject);
@@ -300,9 +298,10 @@ begin
   Inc(PyPackagesInstalled);
 end;
 
-procedure TPySys.PackageInstallError(Sender: TObject; AErrorMessage: string);
+procedure TPySys.PackageInstallError(Sender: TObject; AException: Exception;
+  var AAbort: Boolean);
 begin
-  Log('Error for ' + TPyPackage(Sender).PyModuleName + ' : ' + AErrorMessage);
+  Log('Error for ' + TPyPackage(Sender).PyModuleName + ' : ' + AException.Message);
 end;
 
 procedure TPySys.PackageBeforeUnInstall(Sender: TObject);
@@ -316,9 +315,10 @@ begin
   Dec(PyPackagesInstalled);
 end;
 
-procedure TPySys.PackageUnInstallError(Sender: TObject; AErrorMessage: string);
+procedure TPySys.PackageUnInstallError(Sender: TObject; AException: Exception;
+  var AAbort: Boolean);
 begin
-  Log('Error for ' + TPyPackage(Sender).PyModuleName + ' : ' + AErrorMessage);
+  Log('Error for ' + TPyPackage(Sender).PyModuleName + ' : ' + AException.Message);
 end;
 
 procedure TPySys.PackageBeforeImport(Sender: TObject);
@@ -401,17 +401,14 @@ begin
   Log('Ready Event');
 end;
 
-procedure TPySys.OnEnsurePipError(const ASender: TObject;
-  const ADistribution: TPyDistribution; const AException: Exception);
+procedure TPySys.OnEnsurePipError(const ASender: TObject; const AException: Exception; var AAbort: Boolean);
 begin
   Log('Unhandled Exception in EnsurePipError');
   Log('Class : ' + AException.ClassName);
   Log('Error : ' + AException.Message);
 end;
 
-procedure TPySys.OnEnsurePipExecute(const ASender: TObject;
-  const ATrigger: TPyEnvironmentaddOnTrigger;
-  const ADistribution: TPyDistribution);
+procedure TPySys.OnEnsurePipExecute(const ASender: TObject);
 begin
   Log('EnsurePip executing');
 end;
